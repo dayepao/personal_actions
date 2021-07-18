@@ -1,0 +1,38 @@
+name: keepalive
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: 0 13 1,15 * *
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set time zone
+      run: | 
+        sudo timedatectl set-timezone 'Asia/Shanghai'
+    - name: Update keepalive
+      run: | 
+        repos="personal_actions backup onedrive-cf-index GenshinDailyHelper" #仓库名称
+        str="$(date)\n\n"
+        for repo in $repos
+        do
+        git clone https://github.com/${{ github.actor }}/${repo}
+        cd ${repo}
+        echo "$(date)" > keepalive
+        git config user.name "GitHub Action"
+        git config user.email "action@github.com"
+        git add keepalive
+        git commit -m "Update keepalive" -a
+        git push "https://${{ github.actor }}:${{ secrets.GH_PAT }}@github.com/${{ github.actor }}/${repo}.git"
+        str="${str}${repo}保活成功\n\n"
+        cd ..
+        done
+        pushdata="{\"touser\" : \"@all\",\"msgtype\" : \"text\",\"agentid\" : 1000002,\"text\" : {\"content\" : \"${str}\"},\"safe\":0,\"enable_id_trans\": 0,\"enable_duplicate_check\": 0,\"duplicate_check_interval\": 0}"
+        echo "PUSHDATA=${pushdata}" >> $GITHUB_ENV
+    - name: Push
+      run: | 
+        if [ "${{ secrets.PUSH_KEY }}" != "" ];then
+        curl -X POST -H '{"Content-type" : "application/json"}' -d "${PUSHDATA}" https://push.dayepao.com/?pushkey=${{ secrets.PUSH_KEY }}
+        fi
