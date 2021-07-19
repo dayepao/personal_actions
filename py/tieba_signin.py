@@ -149,17 +149,19 @@ PUSH_KEY = os.environ.get("PUSH_KEY")
 
 now = datetime.datetime.now()
 now = now.strftime("%Y-%m-%d %H:%M:%S")
-headers = {'X-Forwarded-For': '121.238.47.136',
-           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36 Edg/91.0.864.67', 'Cookie': TIEBA_COOKIE}
+headers = {
+    'X-Forwarded-For': '121.238.47.136',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36 Edg/91.0.864.67',
+    'Cookie': TIEBA_COOKIE
+}
 
+if __name__ == '__main__':
+    # onekeysignin()
+    # get_list()
+    if check_cookie():
+        start_signin()
+    else:
+        print(now + "\nCookie已失效")
+        para.pushstr = para.pushstr + now + "\n\nCookie已失效"
 
-# onekeysignin()
-# get_list()
-if check_cookie():
-    start_signin()
-else:
-    print(now + "\nCookie已失效")
-    para.pushstr = para.pushstr + now + "\n\nCookie已失效"
-
-if PUSH_KEY:
-    push()
+    PUSH_KEY and push()
