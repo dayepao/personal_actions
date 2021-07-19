@@ -11,27 +11,37 @@ from bs4 import BeautifulSoup
 
 
 def get_method(url, headers=None):
-    while True:
+    k = 1
+    while k < 6:
         try:
             res = requests.get(url, headers=headers, timeout=5)
         except Exception as e:
+            k = k + 1
             print(sys._getframe().f_code.co_name + ": " + str(e))
             continue
         else:
             break
-    return res
+    try:
+        return res
+    except Exception:
+        sys.exit(sys._getframe().f_code.co_name + ": " + "Max retries exceeded")
 
 
 def post_method(url, postdata=None, postjson=None, headers=None):
-    while True:
+    k = 1
+    while k < 6:
         try:
             res = requests.post(url, data=postdata, json=postjson, headers=headers, timeout=5)
         except Exception as e:
+            k = k + 1
             print(sys._getframe().f_code.co_name + ": " + str(e))
             continue
         else:
             break
-    return res
+    try:
+        return res
+    except Exception:
+        sys.exit(sys._getframe().f_code.co_name + ": " + "Max retries exceeded")
 
 
 def onekeysignin():
