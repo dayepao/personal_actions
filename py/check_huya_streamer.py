@@ -1,4 +1,5 @@
 import datetime
+import sys
 import time
 
 import requests
@@ -12,7 +13,7 @@ def check_status(streamer_id):
         try:
             res = requests.get(url, headers=headers, timeout=5)
         except Exception as e:
-            print(e)
+            print(sys._getframe().f_code.co_name + ": " + str(e))
             continue
         else:
             break
@@ -68,7 +69,7 @@ def mainblock():
                 try:
                     requests.post(pushurl, json=pushdata, timeout=5)
                 except Exception as e:
-                    print(e)
+                    print(sys._getframe().f_code.co_name + ": " + str(e))
                     continue
                 else:
                     break
