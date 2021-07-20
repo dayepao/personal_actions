@@ -2,8 +2,10 @@ import ast
 import datetime
 import json
 import os
+import platform
 import re
 import sys
+import time
 
 import requests
 from bs4 import BeautifulSoup
@@ -17,6 +19,7 @@ def get_method(url, headers=None):
         except Exception as e:
             k = k + 1
             print(sys._getframe().f_code.co_name + ": " + str(e))
+            time.sleep(1)
             continue
         else:
             break
@@ -34,6 +37,7 @@ def post_method(url, postdata=None, postjson=None, headers=None):
         except Exception as e:
             k = k + 1
             print(sys._getframe().f_code.co_name + ": " + str(e))
+            time.sleep(1)
             continue
         else:
             break
@@ -57,7 +61,10 @@ def download():
     while key < len(images):
         image = ast.literal_eval(images[key] + "}")
         imgurl = "https://cn.bing.com" + image['url']
-        filename = finalpath + "\\" + (''.join(re.findall('[，\u4e00-\u9fa5]', image['copyright'])) or image['enddate']) + ".jpg"
+        if platform.system() == 'Windows':
+            filename = finalpath + "\\" + (''.join(re.findall('[，\u4e00-\u9fa5]', image['copyright'])) or image['enddate']) + ".jpg"
+        else:
+            filename = finalpath + "/" + (''.join(re.findall('[，\u4e00-\u9fa5]', image['copyright'])) or image['enddate']) + ".jpg"
         imgr = get_method(imgurl)
         print("正在下载 " + filename)
         para.pushstr = para.pushstr + "正在下载" + filename + "\n\n"

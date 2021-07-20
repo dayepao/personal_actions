@@ -22,6 +22,7 @@ def get_method(url, headers=None):
         except Exception as e:
             k = k + 1
             print(sys._getframe().f_code.co_name + ": " + str(e))
+            time.sleep(1)
             continue
         else:
             break
@@ -39,6 +40,7 @@ def post_method(url, postdata=None, postjson=None, headers=None):
         except Exception as e:
             k = k + 1
             print(sys._getframe().f_code.co_name + ": " + str(e))
+            time.sleep(1)
             continue
         else:
             break
