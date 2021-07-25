@@ -8,6 +8,9 @@ from PyQt6.QtCore import QThread, pyqtSignal
 from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtWidgets import QApplication, QMenu, QSystemTrayIcon
 
+# pip install pywin32
+# pip install PyUserInput
+
 
 class check_caps_status_work(QThread):
     signal = pyqtSignal(str)
