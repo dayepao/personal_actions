@@ -79,20 +79,22 @@ def signin(tiebalist, key):
 
 def start_post(tiebalist):
     para.pushstr = para.pushstr + "\n\n开始水贴，共" + str(len(tiebalist)) + "个贴吧\n"
+    print("\n\n开始水贴，共" + str(len(tiebalist)) + "个贴吧\n")
     key = 0
     temp_list = copy.deepcopy(tiebalist)
     for tieba in tiebalist:
+        para.tbs = get_tbs(headers)
         post_list = get_post_list(tieba, headers)
         fid = get_fid(tieba, headers)
         mouse_pwd, mouse_pwd_t = get_mouse_pwd()
         bsk = get_BSK(para.tbs)
-        soup = auto_post(headers, tieba, fid, post_list[random.randint(1, 5)], para.tbs, POST_CONTENT, mouse_pwd, mouse_pwd_t, bsk)
+        soup = auto_post(headers, tieba, fid, post_list[random.randint(3, 8)], para.tbs, POST_CONTENT, mouse_pwd, mouse_pwd_t, bsk)
         if '"no":0' in str(soup):
             key = key + 1
-            print(tieba + '水贴成功')
+            print(tieba + '吧 水贴成功')
             temp_list.remove(tieba)
         else:
-            print(tieba + '水贴失败: ' + str(soup))
+            print(tieba + '吧 水贴失败: ' + str(soup))
         time.sleep(random.randint(120, 180))
     para.pushstr = para.pushstr + "\n共" + str(len(tiebalist) - len(temp_list)) + "个贴吧水贴成功"
     if temp_list:
