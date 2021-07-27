@@ -50,5 +50,6 @@ if __name__ == '__main__':
         fid = get_fid(tieba, headers)
         mouse_pwd, mouse_pwd_t = get_mouse_pwd()
         bsk = get_BSK(tbs)
-        result = auto_post(headers, tieba, fid, post_list[random.randint(1, 5)], tbs, post_content, mouse_pwd, mouse_pwd_t, bsk)
-        print(result)
+        print(bsk)
+        # result = auto_post(headers, tieba, fid, post_list[random.randint(1, 5)], tbs, post_content, mouse_pwd, mouse_pwd_t, bsk)
+        # print(result)

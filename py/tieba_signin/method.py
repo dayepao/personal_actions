@@ -102,7 +102,7 @@ def get_mouse_pwd():
 
 
 def get_BSK(tbs):
-    path = os.path.join('js', 'bsk.js')
+    path = os.path.join('.', 'js', 'bsk.js')
     with open(path, 'r') as f:
         source = f.read()
     return execjs.compile(source).call('solve_bsk', tbs)
