@@ -83,7 +83,6 @@ def start_post(tiebalist):
     key = 0
     temp_list = copy.deepcopy(tiebalist)
     for tieba in tiebalist:
-        para.tbs = get_tbs(headers)
         post_list = get_post_list(tieba, headers)
         fid = get_fid(tieba, headers)
         mouse_pwd, mouse_pwd_t = get_mouse_pwd()
