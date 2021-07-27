@@ -35,4 +35,5 @@ jobs:
         IS_AUTO_POST: ${{ secrets.IS_AUTO_POST }}
         PUSH_KEY: ${{ secrets.PUSH_KEY }}
       run: | 
-        python py/tieba_signin/tieba_signin.py
+        cd py/tieba_signin
+        python tieba_signin.py
