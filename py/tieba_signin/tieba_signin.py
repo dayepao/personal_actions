@@ -43,7 +43,7 @@ def start_signin():
     print(tiebalist)
     print("\n" + now + "\n开始签到，共" + str(len(tiebalist)) + "个贴吧")
     signin(tiebalist, 1)
-    if not IS_AUTO_POST == 'None':
+    if IS_AUTO_POST == 'True':
         start_post(tiebalist)
 
 
@@ -139,5 +139,4 @@ if __name__ == '__main__':
     else:
         print(now + "\nCookie已失效")
         para.pushstr = para.pushstr + now + "\n\nCookie已失效"
-    if not PUSH_KEY == 'None':
-        push()
+    PUSH_KEY and push()
