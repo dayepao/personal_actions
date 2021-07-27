@@ -13,7 +13,6 @@ from method import (get_BSK, get_fid, get_list, get_method, get_mouse_pwd,
 
 TIEBA_COOKIE = str(os.environ.get("TIEBA_COOKIE"))
 IS_AUTO_POST = str(os.environ.get("IS_AUTO_POST"))
-POST_CONTENT = '[emotion pic_type=1 width=30 height=30]//tb2.bdstatic.com/tb/editor/images/face/i_f' + str(random.randint(10, 50)) + '.png?t=20140803[/emotion]'
 PUSH_KEY = os.environ.get("PUSH_KEY")
 
 
@@ -83,6 +82,7 @@ def start_post(tiebalist):
     key = 0
     temp_list = copy.deepcopy(tiebalist)
     for tieba in tiebalist:
+        POST_CONTENT = '[emotion pic_type=1 width=30 height=30]//tb2.bdstatic.com/tb/editor/images/face/i_f' + str(random.randint(10, 50)) + '.png?t=20140803[/emotion]'
         post_list = get_post_list(tieba, headers)
         fid = get_fid(tieba, headers)
         mouse_pwd, mouse_pwd_t = get_mouse_pwd()
