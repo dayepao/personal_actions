@@ -33,4 +33,4 @@ jobs:
         TIEBA_COOKIE: ${{ secrets.TIEBA_COOKIE }}
         PUSH_KEY: ${{ secrets.PUSH_KEY }}
       run: | 
-        python py/tieba_signin.py
+        python py/tieba_signin/tieba_signin.py
