@@ -31,6 +31,7 @@ jobs:
     - name: Tieba_Signin
       env: 
         TIEBA_COOKIE: ${{ secrets.TIEBA_COOKIE }}
+        IS_AUTO_POST: ${{ secrets.IS_AUTO_POST }}
         PUSH_KEY: ${{ secrets.PUSH_KEY }}
       run: | 
         python py/tieba_signin/tieba_signin.py
