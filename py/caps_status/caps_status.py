@@ -41,10 +41,10 @@ class TrayIcon(QSystemTrayIcon):
         super().__init__(parent)
         self.caps_ico = resource_path(os.path.join('ico', 'caps.ico'))
         self.small_ico = resource_path(os.path.join('ico', 'small.ico'))
-        self.showMenu()
-        self.check_caps_status()
         self.setIcon(QIcon(self.small_ico))
+        self.showMenu()
         self.activated.connect(self.iconClied)
+        self.check_caps_status()
 
     def showMenu(self):
         self.menu = QMenu()
