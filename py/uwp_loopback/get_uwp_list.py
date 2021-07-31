@@ -93,14 +93,16 @@ def get_uwp_list():
     uwp_list = []
     for DisplayName, sid in reg_uwp_list:
         name_zh_cn = ''
+        if not re.search(re.compile('[@{\\.\\?!]'), DisplayName):
+            name_zh_cn = name_zh_cn + DisplayName + '/'
         for name, appid in startapps:
             try:
                 if str(re.match(re.compile('.*?\\.(.*?)_.*?'), appid).group(1)) in DisplayName:
                     name_zh_cn = name_zh_cn + name + '/'
                 elif str(re.match(re.compile('.*?\\.(.*?)_.*?'), appid).group(1)) == str(DisplayName).replace(' ', ''):
-                    name_zh_cn = name_zh_cn + name + '/'
+                    name_zh_cn = name + '/'
                 elif name == DisplayName:
-                    name_zh_cn = name_zh_cn + name + '/'
+                    name_zh_cn = name + '/'
             except Exception:
                 pass
         if name_zh_cn != '':
@@ -112,7 +114,7 @@ def get_uwp_list():
 if __name__ == '__main__':
     uwp_list = get_uwp_list()
     for uwp in uwp_list:
-        if 'Pay' in str(uwp):
+        if 'Realtek' in str(uwp):
             print(uwp)
 
 # print(len(get_familynames()))

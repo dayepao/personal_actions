@@ -30,6 +30,9 @@ class handle_loopback_thread_work(QThread):
             main = 'powershell CheckNetIsolation LoopbackExempt -a -p='
         elif self.work == 'Disable':
             main = 'powershell CheckNetIsolation LoopbackExempt -d -p='
+        elif self.work == 'Disable All':
+            os.popen('powershell CheckNetIsolation LoopbackExempt -c')
+            return
         else:
             return
         for checked_uwp_sid in checked_uwp_sids:
@@ -63,6 +66,7 @@ class mainwindow(QMainWindow, uwp_loopback_ui.Ui_MainWindow):
 
         self.pushButton.clicked.connect(partial(self.handle_loopback, 'Enable'))
         self.pushButton_2.clicked.connect(partial(self.handle_loopback, 'Disable'))
+        self.pushButton_3.clicked.connect(partial(self.handle_loopback, 'Disable All'))
         self.tableWidget.horizontalHeader().sectionClicked.connect(self.header_check_box_clicked)
 
     def set_header_check_box(self):
@@ -90,23 +94,26 @@ class mainwindow(QMainWindow, uwp_loopback_ui.Ui_MainWindow):
             i += 1
 
     def on_thread_start(self):
+        '''子线程开始前禁用所有按键'''
         self.pushButton.setEnabled(False)
         self.pushButton_2.setEnabled(False)
-        self.tableWidget.horizontalHeader().setDisabled(0)
+        self.pushButton_3.setEnabled(False)
 
     def set_rate(self, rate):
         self.lineEdit.setText('正在处理' + rate)
 
     def on_thread_finished(self, work):
+        '''子线程结束后启用所有按键'''
         self.pushButton.setEnabled(True)
         self.pushButton_2.setEnabled(True)
+        self.pushButton_3.setEnabled(True)
         self.lineEdit.setText(work + '操作 已完成')
 
     def handle_loopback(self, work: str = ''):
-        '''与pushButton (Enable/Disable)连接'''
+        '''与pushButton (Enable/Disable/Disable All)连接'''
         self.on_thread_start()
 
-        if work not in ('Enable', 'Disable'):
+        if work not in ('Enable', 'Disable', 'Disable All'):
             return
 
         self.handle_loopback_thread = handle_loopback_thread_work(work)
@@ -116,30 +123,6 @@ class mainwindow(QMainWindow, uwp_loopback_ui.Ui_MainWindow):
 
         self.handle_loopback_thread.start()
         self.handle_loopback_thread.exec()
-
-    def enable_loopback(self):
-        '''与pushButton (Enable)连接'''
-        self.on_thread_start()
-
-        self.enable_loopback_thread = handle_loopback_thread_work(work='Enable')
-        self.enable_loopback_thread.finished.connect(partial(self.on_thread_finished, 'Enable'))
-
-        self.enable_loopback_thread.signal.connect(self.set_rate)
-
-        self.enable_loopback_thread.start()
-        self.enable_loopback_thread.exec()
-
-    def disable_loopback(self):
-        '''与pushButton_2 (Disable)连接'''
-        self.on_thread_start()
-
-        self.disable_loopback_thread = handle_loopback_thread_work(work='Disable')
-        self.disable_loopback_thread.finished.connect(partial(self.on_thread_finished, 'Disable'))
-
-        self.disable_loopback_thread.signal.connect(self.set_rate)
-
-        self.disable_loopback_thread.start()
-        self.disable_loopback_thread.exec()
 
     def get_checked_uwp_sid(self):
         i = 0
