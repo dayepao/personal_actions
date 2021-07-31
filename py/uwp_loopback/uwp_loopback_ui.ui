@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>uwp_loopback | by@dayepao</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -54,6 +54,11 @@
       <column>
        <property name="text">
         <string/>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>状态</string>
        </property>
       </column>
       <column>

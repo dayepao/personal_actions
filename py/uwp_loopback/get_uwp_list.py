@@ -1,5 +1,5 @@
-import os
 import re
+import subprocess
 import winreg
 
 # GET-StartApps
@@ -66,24 +66,39 @@ def get_reg_uwp_list():
 
 
 def get_familynames():
-    ps = os.popen('powershell (Get-AppxPackage).packagefamilyname')
     familynames = []
-    for familyname in ps.readlines():
-        familynames.append(str(familyname).replace('\n', ''))
+    ps = 'powershell (Get-AppxPackage).packagefamilyname'
+    with subprocess.Popen(ps, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
+        for line in proc.stdout.readlines():
+            familynames.append(str(line.decode('gbk')).replace('\r\n', ''))
     return familynames
 
 
 def get_startapps():
-    ps = os.popen('powershell (GET-StartApps).name')
     startapp_names = []
-    for startapp_name in ps.readlines():
-        startapp_names.append(str(startapp_name).replace('\n', ''))
-    ps = os.popen('powershell (GET-StartApps).appid')
+    ps = 'powershell (GET-StartApps).name'
+    with subprocess.Popen(ps, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
+        for line in proc.stdout.readlines():
+            startapp_names.append(str(line.decode('gbk')).replace('\r\n', ''))
+
     startapp_appids = []
-    for startapp_appid in ps.readlines():
-        startapp_appids.append(str(startapp_appid).replace('\n', ''))
+    ps = 'powershell (GET-StartApps).appid'
+    with subprocess.Popen(ps, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
+        for line in proc.stdout.readlines():
+            startapp_appids.append(str(line.decode('gbk')).replace('\r\n', ''))
     startapps = list(zip(startapp_names, startapp_appids))
     return startapps
+
+
+def get_enabled_sid_list():
+    enabled_sid_list = []
+    ps = 'CheckNetIsolation LoopbackExempt -s'
+    with subprocess.Popen(ps, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
+        for line in proc.stdout.readlines():
+            search_result = re.search(re.compile(' *SID:  (.+) *'), str(line.decode('gbk')).replace('\r\n', ''))
+            if search_result:
+                enabled_sid_list.append(str(search_result.group(1)))
+    return enabled_sid_list
 
 
 def get_uwp_list():
@@ -116,6 +131,10 @@ if __name__ == '__main__':
     for uwp in uwp_list:
         if 'Realtek' in str(uwp):
             print(uwp)
+    enabled_sid_list = get_enabled_sid_list()
+    print(enabled_sid_list)
 
 # print(len(get_familynames()))
 # print(len(get_startapps()))
+# print(get_startapps())
+# print(get_enabled_sid_list())

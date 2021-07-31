@@ -1,17 +1,17 @@
 import ctypes
 import os
+import subprocess
 import sys
-import time
 from functools import partial
 
 from PyQt6 import QtWidgets
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
-from PyQt6.QtGui import QIcon, QPixmap
-from PyQt6.QtWidgets import (QApplication, QCheckBox, QHBoxLayout, QHeaderView,
-                             QMainWindow, QWidget)
+from PyQt6.QtGui import QColor, QIcon, QPixmap
+from PyQt6.QtWidgets import (QAbstractItemView, QApplication, QCheckBox,
+                             QHBoxLayout, QHeaderView, QMainWindow, QWidget)
 
 import uwp_loopback_ui
-from get_uwp_list import get_uwp_list
+from get_uwp_list import get_enabled_sid_list, get_uwp_list
 
 # pyinstall --uac-admin
 
@@ -24,39 +24,69 @@ class handle_loopback_thread_work(QThread):
         self.work = work
 
     def run(self):
-        checked_uwp_sids = ui.get_checked_uwp_sid()
-        key = 0
         if self.work == 'Enable':
-            main = 'powershell CheckNetIsolation LoopbackExempt -a -p='
+            ps = 'powershell CheckNetIsolation LoopbackExempt -a -p='
         elif self.work == 'Disable':
-            main = 'powershell CheckNetIsolation LoopbackExempt -d -p='
+            ps = 'powershell CheckNetIsolation LoopbackExempt -d -p='
         elif self.work == 'Disable All':
-            os.popen('powershell CheckNetIsolation LoopbackExempt -c')
+            ps = 'powershell CheckNetIsolation LoopbackExempt -c'
+            with subprocess.Popen(ps, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
+                proc.stdout.readlines()
             return
         else:
             return
+
+        checked_uwp_sids = ui.get_checked_uwp_sid()
+        key = 0
         for checked_uwp_sid in checked_uwp_sids:
-            os.popen(main + checked_uwp_sid)
+            ps_integral = ps + checked_uwp_sid
+            with subprocess.Popen(ps_integral, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
+                proc.stdout.readlines()
             key = key + 1
             rate = key/len(checked_uwp_sids)
             rate = min(rate*100, 100)
             rate = round(rate, 1)
             rate = str(rate) + "%"
             self.signal.emit(rate)
-            time.sleep(0.2)
+            # time.sleep(0.3)
+
+
+class set_status_thread_work(QThread):
+    def __init__(self, parent: None = None) -> None:
+        super().__init__(parent=parent)
+
+    def run(self):
+        # time.sleep(3)
+        enabled_sid_list = get_enabled_sid_list()
+        for i in range(ui.tableWidget.rowCount()):
+            status = '未解锁'
+            if str(ui.tableWidget.item(i, 4).data(Qt.ItemDataRole.DisplayRole)) in enabled_sid_list:
+                status = '已解锁'
+            ui.tableWidget.item(i, 1).setText(status)
+
+            if status == '已解锁':
+                ui.tableWidget.item(i, 1).setBackground(QColor(0, 255, 0, 127))
+            else:
+                ui.tableWidget.item(i, 1).setBackground(QColor(255, 0, 0, 127))
 
 
 class mainwindow(QMainWindow, uwp_loopback_ui.Ui_MainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
+
+        # 禁用按键
+        self.disable_button()
+
         # 设置列宽
         self.tableWidget.horizontalHeader().setDefaultSectionSize(200)
         self.tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self.tableWidget.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Interactive)
         self.tableWidget.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Interactive)
+        self.tableWidget.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.Interactive)
         self.tableWidget.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)
         self.tableWidget.setColumnWidth(0, 10)
+        self.tableWidget.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Fixed)
+        self.tableWidget.setColumnWidth(1, 50)
 
         # 显示全选框
         self.set_header_check_box()
@@ -64,10 +94,14 @@ class mainwindow(QMainWindow, uwp_loopback_ui.Ui_MainWindow):
         # 显示uwp列表
         self.set_list()
 
+        # 刷新解锁状态
+        self.set_status('启动')
+
         self.pushButton.clicked.connect(partial(self.handle_loopback, 'Enable'))
         self.pushButton_2.clicked.connect(partial(self.handle_loopback, 'Disable'))
         self.pushButton_3.clicked.connect(partial(self.handle_loopback, 'Disable All'))
         self.tableWidget.horizontalHeader().sectionClicked.connect(self.header_check_box_clicked)
+        self.tableWidget.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
     def set_header_check_box(self):
         self.checked_img = resource_path(os.path.join('img', 'checked.png'))
@@ -86,38 +120,45 @@ class mainwindow(QMainWindow, uwp_loopback_ui.Ui_MainWindow):
             for j in range(self.tableWidget.columnCount()):
                 item = QtWidgets.QTableWidgetItem()
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                item.setFlags(Qt.ItemFlag.ItemIsEditable)
+                # item.setFlags(Qt.ItemFlag.ItemIsEditable)
                 # item.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsEditable) # 使flag生效
                 self.tableWidget.setItem(i, j, item)
                 j += 1
             self.set_item_data(i, DisplayName, name, sid)
             i += 1
 
-    def on_thread_start(self):
+    def set_status(self, work):
+        self.set_status_thread = set_status_thread_work()
+        self.set_status_thread.start()
+        self.lineEdit.setText('正在刷新状态...')
+
+        def on_thread_finished():
+            self.pushButton.setEnabled(True)
+            self.pushButton_2.setEnabled(True)
+            self.pushButton_3.setEnabled(True)
+            self.lineEdit.setText(work + '操作 已完成')
+        self.set_status_thread.finished.connect(on_thread_finished)
+
+    def disable_button(self):
         '''子线程开始前禁用所有按键'''
         self.pushButton.setEnabled(False)
         self.pushButton_2.setEnabled(False)
         self.pushButton_3.setEnabled(False)
 
     def set_rate(self, rate):
-        self.lineEdit.setText('正在处理' + rate)
-
-    def on_thread_finished(self, work):
-        '''子线程结束后启用所有按键'''
-        self.pushButton.setEnabled(True)
-        self.pushButton_2.setEnabled(True)
-        self.pushButton_3.setEnabled(True)
-        self.lineEdit.setText(work + '操作 已完成')
+        self.lineEdit.setText('正在处理...' + rate)
 
     def handle_loopback(self, work: str = ''):
         '''与pushButton (Enable/Disable/Disable All)连接'''
-        self.on_thread_start()
+        self.disable_button()
 
         if work not in ('Enable', 'Disable', 'Disable All'):
             return
 
         self.handle_loopback_thread = handle_loopback_thread_work(work)
-        self.handle_loopback_thread.finished.connect(partial(self.on_thread_finished, work))
+
+        # handle子线程结束后刷新状态
+        self.handle_loopback_thread.finished.connect(partial(self.set_status, work))
 
         self.handle_loopback_thread.signal.connect(self.set_rate)
 
@@ -129,7 +170,7 @@ class mainwindow(QMainWindow, uwp_loopback_ui.Ui_MainWindow):
         checked_uwp_sid = []
         for i in range(self.tableWidget.rowCount()):
             if self.tableWidget.cellWidget(i, 0).findChild(QCheckBox, 'check_box_' + str(i)).isChecked():
-                checked_uwp_sid.append(str(self.tableWidget.item(i, 3).data(Qt.ItemDataRole.DisplayRole)))
+                checked_uwp_sid.append(str(self.tableWidget.item(i, 4).data(Qt.ItemDataRole.DisplayRole)))
             i += 1
         return checked_uwp_sid
 
@@ -166,9 +207,9 @@ class mainwindow(QMainWindow, uwp_loopback_ui.Ui_MainWindow):
         check_box_layout.setContentsMargins(0, 0, 0, 0)
         check_box_widget = QWidget()
         check_box_widget.setLayout(check_box_layout)
-        self.tableWidget.item(i, 1).setText(DisplayName)
-        self.tableWidget.item(i, 2).setText(name)
-        self.tableWidget.item(i, 3).setText(sid)
+        self.tableWidget.item(i, 2).setText(DisplayName)
+        self.tableWidget.item(i, 3).setText(name)
+        self.tableWidget.item(i, 4).setText(sid)
         self.tableWidget.setCellWidget(i, 0, check_box_widget)
 
 
