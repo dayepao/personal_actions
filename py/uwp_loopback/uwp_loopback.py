@@ -70,6 +70,17 @@ class set_status_thread_work(QThread):
                 ui.tableWidget.item(i, 1).setBackground(QColor(255, 0, 0, 127))
 
 
+class set_list_thread_work(QThread):
+    signal = pyqtSignal(list)
+
+    def __init__(self, parent: None = None) -> None:
+        super().__init__(parent=parent)
+
+    def run(self):
+        uwp_list = get_uwp_list()
+        self.signal.emit(uwp_list)
+
+
 class mainwindow(QMainWindow, uwp_loopback_ui.Ui_MainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -91,17 +102,15 @@ class mainwindow(QMainWindow, uwp_loopback_ui.Ui_MainWindow):
         # 显示全选框
         self.set_header_check_box()
 
-        # 显示uwp列表
-        self.set_list()
-
-        # 刷新解锁状态
-        self.set_status('启动')
-
+        # 配置按键函数&表格属性
         self.pushButton.clicked.connect(partial(self.handle_loopback, 'Enable'))
         self.pushButton_2.clicked.connect(partial(self.handle_loopback, 'Disable'))
         self.pushButton_3.clicked.connect(partial(self.handle_loopback, 'Disable All'))
         self.tableWidget.horizontalHeader().sectionClicked.connect(self.header_check_box_clicked)
         self.tableWidget.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+
+        # 显示uwp列表
+        self.set_list()
 
     def set_header_check_box(self):
         self.checked_img = resource_path(os.path.join('img', 'checked.png'))
@@ -112,20 +121,30 @@ class mainwindow(QMainWindow, uwp_loopback_ui.Ui_MainWindow):
         self.unchecked_cachekey = self.tableWidget.horizontalHeaderItem(0).icon().cacheKey()
 
     def set_list(self):
-        uwp_list = get_uwp_list()
-        i = 0
-        for DisplayName, name, sid in uwp_list:
-            self.tableWidget.insertRow(i)
-            j = 0
-            for j in range(self.tableWidget.columnCount()):
-                item = QtWidgets.QTableWidgetItem()
-                item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                # item.setFlags(Qt.ItemFlag.ItemIsEditable)
-                # item.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsEditable) # 使flag生效
-                self.tableWidget.setItem(i, j, item)
-                j += 1
-            self.set_item_data(i, DisplayName, name, sid)
-            i += 1
+        self.set_list_thread = set_list_thread_work(self)
+        self.set_list_thread.start()
+        self.lineEdit.setText('正在读取列表...')
+
+        def on_set_list_thread_finished():
+            # 刷新解锁状态
+            self.set_status('初始化')
+        self.set_list_thread.finished.connect(on_set_list_thread_finished)
+
+        def set_list_integral(uwp_list):
+            i = 0
+            for DisplayName, name, sid in uwp_list:
+                self.tableWidget.insertRow(i)
+                j = 0
+                for j in range(self.tableWidget.columnCount()):
+                    item = QtWidgets.QTableWidgetItem()
+                    item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                    # item.setFlags(Qt.ItemFlag.ItemIsEditable)
+                    # item.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsEditable) # 使flag生效
+                    self.tableWidget.setItem(i, j, item)
+                    j += 1
+                self.set_item_data(i, DisplayName, name, sid)
+                i += 1
+        self.set_list_thread.signal.connect(set_list_integral)
 
     def set_status(self, work):
         self.set_status_thread = set_status_thread_work()
@@ -133,9 +152,7 @@ class mainwindow(QMainWindow, uwp_loopback_ui.Ui_MainWindow):
         self.lineEdit.setText('正在刷新状态...')
 
         def on_thread_finished():
-            self.pushButton.setEnabled(True)
-            self.pushButton_2.setEnabled(True)
-            self.pushButton_3.setEnabled(True)
+            self.enable_button()
             self.lineEdit.setText(work + '操作 已完成')
         self.set_status_thread.finished.connect(on_thread_finished)
 
@@ -144,6 +161,12 @@ class mainwindow(QMainWindow, uwp_loopback_ui.Ui_MainWindow):
         self.pushButton.setEnabled(False)
         self.pushButton_2.setEnabled(False)
         self.pushButton_3.setEnabled(False)
+
+    def enable_button(self):
+        '''子线程结束后启用所有按键'''
+        self.pushButton.setEnabled(True)
+        self.pushButton_2.setEnabled(True)
+        self.pushButton_3.setEnabled(True)
 
     def set_rate(self, rate):
         self.lineEdit.setText('正在处理...' + rate)
