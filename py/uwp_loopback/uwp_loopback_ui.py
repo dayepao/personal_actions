@@ -64,7 +64,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "uwp_loopback | by@dayepao"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "uwp_loopback | for 晨晨"))
         self.pushButton.setText(_translate("MainWindow", "Enable"))
         self.pushButton_2.setText(_translate("MainWindow", "Disable"))
         self.pushButton_3.setText(_translate("MainWindow", "Disable All"))
