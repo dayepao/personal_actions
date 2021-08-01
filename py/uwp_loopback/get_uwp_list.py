@@ -7,6 +7,10 @@ import winreg
 
 # CheckNetIsolation LoopbackExempt -?  # 环回免除操作命令
 
+# 两种读取subprocess.Popen输出的方法
+# startapp_names.append(str(io.TextIOWrapper(proc.stdout).readlines()).replace('\\n', ''))
+# startapp_names.append(str(line.decode('gbk')).replace('\r\n', ''))
+
 
 def read_subkeys(winreg_hkey, location):
     key = winreg.OpenKey(getattr(winreg, winreg_hkey), location)
