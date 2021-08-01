@@ -23,12 +23,20 @@ class handle_loopback_thread_work(QThread):
         super().__init__(parent=parent)
         self.work = work
 
+    def get_rate(self, key, key_all) -> str:
+        rate = key/key_all
+        rate = min(rate*100, 100)
+        rate = round(rate, 1)
+        rate = str(rate) + "%"
+        return rate
+
     def run(self):
         if self.work == 'Enable':
             ps = 'powershell CheckNetIsolation LoopbackExempt -a -p='
         elif self.work == 'Disable':
             ps = 'powershell CheckNetIsolation LoopbackExempt -d -p='
         elif self.work == 'Disable All':
+            self.signal.emit('0.0%')
             ps = 'powershell CheckNetIsolation LoopbackExempt -c'
             with subprocess.Popen(ps, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
                 proc.stdout.readlines()
@@ -38,16 +46,14 @@ class handle_loopback_thread_work(QThread):
 
         checked_uwp_sids = ui.get_checked_uwp_sid()
         key = 0
+        key_all = len(checked_uwp_sids)
+        self.signal.emit('0.0%')
         for checked_uwp_sid in checked_uwp_sids:
             ps_integral = ps + checked_uwp_sid
             with subprocess.Popen(ps_integral, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
                 proc.stdout.readlines()
             key = key + 1
-            rate = key/len(checked_uwp_sids)
-            rate = min(rate*100, 100)
-            rate = round(rate, 1)
-            rate = str(rate) + "%"
-            self.signal.emit(rate)
+            self.signal.emit(self.get_rate(key, key_all))
             # time.sleep(0.3)
 
 
@@ -90,7 +96,7 @@ class mainwindow(QMainWindow, uwp_loopback_ui.Ui_MainWindow):
         self.disable_button()
 
         # 设置列宽
-        self.tableWidget.horizontalHeader().setDefaultSectionSize(200)
+        self.tableWidget.horizontalHeader().setDefaultSectionSize(300)
         self.tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.tableWidget.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Interactive)
         self.tableWidget.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeMode.Interactive)
@@ -106,11 +112,12 @@ class mainwindow(QMainWindow, uwp_loopback_ui.Ui_MainWindow):
         self.pushButton.clicked.connect(partial(self.handle_loopback, 'Enable'))
         self.pushButton_2.clicked.connect(partial(self.handle_loopback, 'Disable'))
         self.pushButton_3.clicked.connect(partial(self.handle_loopback, 'Disable All'))
+        self.pushButton_4.clicked.connect(self.refresh)
         self.tableWidget.horizontalHeader().sectionClicked.connect(self.header_check_box_clicked)
         self.tableWidget.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
         # 显示uwp列表
-        self.set_list()
+        self.set_list('初始化')
 
     def set_header_check_box(self):
         self.checked_img = resource_path(os.path.join('img', 'checked.png'))
@@ -120,15 +127,10 @@ class mainwindow(QMainWindow, uwp_loopback_ui.Ui_MainWindow):
         self.tableWidget.horizontalHeaderItem(0).setIcon(QIcon(QPixmap(self.unchecked_img)))
         self.unchecked_cachekey = self.tableWidget.horizontalHeaderItem(0).icon().cacheKey()
 
-    def set_list(self):
+    def set_list(self, work):
         self.set_list_thread = set_list_thread_work(self)
         self.set_list_thread.start()
         self.lineEdit.setText('正在读取列表...')
-
-        def on_set_list_thread_finished():
-            # 刷新解锁状态
-            self.set_status('初始化')
-        self.set_list_thread.finished.connect(on_set_list_thread_finished)
 
         def set_list_integral(uwp_list):
             i = 0
@@ -144,6 +146,7 @@ class mainwindow(QMainWindow, uwp_loopback_ui.Ui_MainWindow):
                     j += 1
                 self.set_item_data(i, DisplayName, name, sid)
                 i += 1
+            self.set_status(work)
         self.set_list_thread.signal.connect(set_list_integral)
 
     def set_status(self, work):
@@ -153,6 +156,9 @@ class mainwindow(QMainWindow, uwp_loopback_ui.Ui_MainWindow):
 
         def on_thread_finished():
             self.enable_button()
+            self.tableWidget.horizontalHeaderItem(0).setIcon(QIcon(QPixmap(self.unchecked_img)))
+            self.unchecked_cachekey = self.tableWidget.horizontalHeaderItem(0).icon().cacheKey()
+            self.unselect_all()
             self.lineEdit.setText(work + '操作 已完成')
         self.set_status_thread.finished.connect(on_thread_finished)
 
@@ -161,15 +167,25 @@ class mainwindow(QMainWindow, uwp_loopback_ui.Ui_MainWindow):
         self.pushButton.setEnabled(False)
         self.pushButton_2.setEnabled(False)
         self.pushButton_3.setEnabled(False)
+        self.pushButton_4.setEnabled(False)
 
     def enable_button(self):
         '''子线程结束后启用所有按键'''
         self.pushButton.setEnabled(True)
         self.pushButton_2.setEnabled(True)
         self.pushButton_3.setEnabled(True)
+        self.pushButton_4.setEnabled(True)
 
     def set_rate(self, rate):
         self.lineEdit.setText('正在处理...' + rate)
+
+    def refresh(self):
+        self.disable_button()
+        i = 0
+        for i in range(self.tableWidget.rowCount()):
+            self.tableWidget.removeRow(0)
+            i += 1
+        self.set_list('Refresh')
 
     def handle_loopback(self, work: str = ''):
         '''与pushButton (Enable/Disable/Disable All)连接'''
