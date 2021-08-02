@@ -71,8 +71,8 @@ def get_reg_uwp_list():
 
 def get_familynames():
     familynames = []
-    ps = 'powershell (Get-AppxPackage).packagefamilyname'
-    with subprocess.Popen(ps, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
+    ps = '(Get-AppxPackage).packagefamilyname'
+    with subprocess.Popen(['powershell', ps], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
         for line in proc.stdout.readlines():
             familynames.append(str(line.decode('gbk')).replace('\r\n', ''))
     return familynames
@@ -80,14 +80,14 @@ def get_familynames():
 
 def get_startapps():
     startapp_names = []
-    ps = 'powershell (GET-StartApps).name'
-    with subprocess.Popen(ps, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
+    ps = '(GET-StartApps).name'
+    with subprocess.Popen(['powershell', ps], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
         for line in proc.stdout.readlines():
             startapp_names.append(str(line.decode('gbk')).replace('\r\n', ''))
 
     startapp_appids = []
-    ps = 'powershell (GET-StartApps).appid'
-    with subprocess.Popen(ps, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
+    ps = '(GET-StartApps).appid'
+    with subprocess.Popen(['powershell', ps], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
         for line in proc.stdout.readlines():
             startapp_appids.append(str(line.decode('gbk')).replace('\r\n', ''))
     startapps = list(zip(startapp_names, startapp_appids))
@@ -96,8 +96,8 @@ def get_startapps():
 
 def get_enabled_sid_list():
     enabled_sid_list = []
-    ps = 'CheckNetIsolation LoopbackExempt -s'
-    with subprocess.Popen(ps, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
+    cmd = 'CheckNetIsolation LoopbackExempt -s'
+    with subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
         for line in proc.stdout.readlines():
             search_result = re.search(re.compile(' *SID:  (.+) *'), str(line.decode('gbk')).replace('\r\n', ''))
             if search_result:

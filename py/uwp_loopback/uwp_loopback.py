@@ -25,36 +25,52 @@ class handle_loopback_thread_work(QThread):
 
     def get_rate(self, key, key_all) -> str:
         rate = key/key_all
-        rate = min(rate*100, 100)
+        rate = min(rate*100, 100.0)
         rate = round(rate, 1)
         rate = str(rate) + "%"
         return rate
 
-    def run(self):
-        if self.work == 'Enable':
-            ps = 'powershell CheckNetIsolation LoopbackExempt -a -p='
-        elif self.work == 'Disable':
-            ps = 'powershell CheckNetIsolation LoopbackExempt -d -p='
-        elif self.work == 'Disable All':
-            self.signal.emit('0.0%')
-            ps = 'powershell CheckNetIsolation LoopbackExempt -c'
-            with subprocess.Popen(ps, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
-                proc.stdout.readlines()
-            return
-        else:
-            return
-
+    def set_checked_uwp_sids_ps(self):
         checked_uwp_sids = ui.get_checked_uwp_sid()
-        key = 0
         key_all = len(checked_uwp_sids)
-        self.signal.emit('0.0%')
+        checked_uwp_sids_ps = '@('
         for checked_uwp_sid in checked_uwp_sids:
-            ps_integral = ps + checked_uwp_sid
-            with subprocess.Popen(ps_integral, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
-                proc.stdout.readlines()
-            key = key + 1
-            self.signal.emit(self.get_rate(key, key_all))
-            # time.sleep(0.3)
+            checked_uwp_sids_ps = checked_uwp_sids_ps + "\"" + checked_uwp_sid + "\","
+        if checked_uwp_sids_ps == '@(':
+            checked_uwp_sids_ps = checked_uwp_sids_ps + ")"
+        else:
+            checked_uwp_sids_ps = checked_uwp_sids_ps[:-1] + ")"
+        return checked_uwp_sids_ps, key_all
+
+    def handle_Enable_or_Disable(self, ps, key_all):
+        key = 0
+        self.signal.emit('0.0%')
+        with subprocess.Popen(['powershell', ps], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
+            while True:
+                if proc.stdout.readline():
+                    key = key + 1
+                    rate = self.get_rate(key, key_all)
+                    self.signal.emit(rate)
+                else:
+                    break
+
+    def handle_Disable_All(self):
+        self.signal.emit('0.0%')
+        cmd = 'CheckNetIsolation LoopbackExempt -c'
+        with subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
+            proc.stdout.readlines()
+
+    def run(self):
+        checked_uwp_sids_ps, key_all = self.set_checked_uwp_sids_ps()
+
+        if self.work == 'Enable':
+            ps = '$checked_uwp_sids=' + checked_uwp_sids_ps + ' ; foreach ($checked_uwp_sid in $checked_uwp_sids) {CheckNetIsolation LoopbackExempt -a -p="$checked_uwp_sid"}'
+            self.handle_Enable_or_Disable(ps, key_all)
+        elif self.work == 'Disable':
+            ps = '$checked_uwp_sids=' + checked_uwp_sids_ps + ' ; foreach ($checked_uwp_sid in $checked_uwp_sids) {CheckNetIsolation LoopbackExempt -d -p="$checked_uwp_sid"}'
+            self.handle_Enable_or_Disable(ps, key_all)
+        elif self.work == 'Disable All':
+            self.handle_Disable_All()
 
 
 class set_status_thread_work(QThread):
@@ -62,7 +78,6 @@ class set_status_thread_work(QThread):
         super().__init__(parent=parent)
 
     def run(self):
-        # time.sleep(3)
         enabled_sid_list = get_enabled_sid_list()
         for i in range(ui.tableWidget.rowCount()):
             status = '未解锁'
