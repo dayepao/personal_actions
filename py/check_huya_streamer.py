@@ -3,10 +3,11 @@ import os
 import sys
 import time
 
-import requests
+import httpx
 from bs4 import BeautifulSoup
 
-# pip install -U requests[security]
+# pip install httpx
+
 PUSH_KEY = os.environ.get("PUSH_KEY")
 STREAMERS = {"楚河": "998"}  # "主播名称（随意）" : "房间号"
 
@@ -14,7 +15,7 @@ STREAMERS = {"楚河": "998"}  # "主播名称（随意）" : "房间号"
 def get_method(url, headers=None):
     while True:
         try:
-            res = requests.get(url, headers=headers, timeout=5)
+            res = httpx.get(url, headers=headers)
         except Exception as e:
             print(sys._getframe().f_code.co_name + ": " + str(e))
             time.sleep(1)
@@ -27,7 +28,7 @@ def get_method(url, headers=None):
 def post_method(url, postdata=None, postjson=None, headers=None):
     while True:
         try:
-            res = requests.post(url, data=postdata, json=postjson, headers=headers, timeout=5)
+            res = httpx.post(url, data=postdata, json=postjson, headers=headers)
         except Exception as e:
             print(sys._getframe().f_code.co_name + ": " + str(e))
             time.sleep(1)
