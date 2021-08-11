@@ -52,11 +52,11 @@ def read_DisplayName(values):
     return DisplayName
 
 
-def get_reg_uwp_list():
+def get_reg_uwp_dict():
     winreg_hkey = 'HKEY_CURRENT_USER'
     location = "SOFTWARE\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\CurrentVersion\\AppContainer\\Mappings"
     subkeys = read_subkeys(winreg_hkey, location)
-    uwp_list = []
+    reg_uwp_dict = {}
     # print(subkeys)
     i = 0
     for i in range(len(subkeys)):
@@ -64,33 +64,19 @@ def get_reg_uwp_list():
         values = read_value(winreg_hkey, sublocation)
         # print(values)
         DisplayName = read_DisplayName(values)
-        uwp_list.append((DisplayName, subkeys[i]))
+        reg_uwp_dict[str(DisplayName)] = str(subkeys[i])
         i += 1
-    return uwp_list
-
-
-def get_familynames():
-    familynames = []
-    ps = '(Get-AppxPackage).packagefamilyname'
-    with subprocess.Popen(['powershell', ps], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
-        for line in proc.stdout.readlines():
-            familynames.append(str(line.decode('gbk')).replace('\r\n', ''))
-    return familynames
+    return reg_uwp_dict
 
 
 def get_startapps():
-    startapp_names = []
-    ps = '(GET-StartApps).name'
+    startapps = {}
+    ps = 'GET-StartApps'
     with subprocess.Popen(['powershell', ps], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
-        for line in proc.stdout.readlines():
-            startapp_names.append(str(line.decode('gbk')).replace('\r\n', ''))
-
-    startapp_appids = []
-    ps = '(GET-StartApps).appid'
-    with subprocess.Popen(['powershell', ps], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
-        for line in proc.stdout.readlines():
-            startapp_appids.append(str(line.decode('gbk')).replace('\r\n', ''))
-    startapps = list(zip(startapp_names, startapp_appids))
+        for line in proc.stdout.readlines()[3:]:
+            search_result = re.search(re.compile('(.+) +(.+)'), str(line.decode('gbk')).strip())
+            if search_result:
+                startapps[str(search_result.group(2).strip())] = str(search_result.group(1).strip())
     return startapps
 
 
@@ -107,14 +93,14 @@ def get_enabled_sid_list():
 
 def get_uwp_list():
     '''返回[(DisplayName, name, sid)]'''
-    reg_uwp_list = get_reg_uwp_list()
+    reg_uwp_dict = get_reg_uwp_dict()
     startapps = get_startapps()
     uwp_list = []
-    for DisplayName, sid in reg_uwp_list:
+    for DisplayName, sid in reg_uwp_dict.items():
         name_zh_cn = ''
         if not re.search(re.compile('[@{\\.\\?!]'), DisplayName):
             name_zh_cn = name_zh_cn + DisplayName + '/'
-        for name, appid in startapps:
+        for appid, name in startapps.items():
             try:
                 if str(re.match(re.compile('.*?\\.(.*?)_.*?'), appid).group(1)) in DisplayName:
                     name_zh_cn = name_zh_cn + name + '/'
@@ -135,8 +121,6 @@ if __name__ == '__main__':
     for uwp in uwp_list:
         if 'Realtek' in str(uwp):
             print(uwp)
-    enabled_sid_list = get_enabled_sid_list()
-    print(enabled_sid_list)
 
 # print(len(get_familynames()))
 # print(len(get_startapps()))
