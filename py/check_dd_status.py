@@ -1,5 +1,6 @@
 import datetime
 import os
+import socket
 import sys
 import time
 
@@ -58,7 +59,7 @@ def change_password(now, ssh: paramiko.SSHClient, target_password: str):
 
 
 if __name__ == '__main__':
-    target_ip = input("请输入要监控的 IP : ")
+    target_ip = input("请输入要监控的服务器IP : ")
     default_password = input("请输入 DD 包默认密码(默认为\"cxthhhhh.com\"): ")
     target_password = input("请输入要修改的密码(为空则不修改): ")
 
@@ -75,6 +76,9 @@ if __name__ == '__main__':
         time.sleep(1)
         try:
             ssh.connect(hostname=target_ip, port=22, username='root', password=default_password)
+        except socket.gaierror:
+            print('\n\nIP 地址错误')
+            sys.exit(0)
         except paramiko.ssh_exception.AuthenticationException:
             notice(now + '\nDD 已完成\n[错误] 默认密码错误')
             sys.exit(0)
