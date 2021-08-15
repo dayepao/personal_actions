@@ -62,8 +62,10 @@ if __name__ == '__main__':
     default_password = input("请输入 DD 包默认密码(默认为\"cxthhhhh.com\"): ")
     target_password = input("请输入要修改的密码(为空则不修改): ")
 
-    start_time = datetime.datetime.now()
+    if default_password == '':
+        default_password = "cxthhhhh.com"
 
+    start_time = datetime.datetime.now()
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
     while True:
