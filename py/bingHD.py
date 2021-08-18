@@ -7,7 +7,7 @@ import re
 import sys
 import time
 
-import requests
+import httpx
 from bs4 import BeautifulSoup
 
 
@@ -15,7 +15,7 @@ def get_method(url, headers=None):
     k = 1
     while k < 6:
         try:
-            res = requests.get(url, headers=headers, timeout=5)
+            res = httpx.get(url, headers=headers, timeout=5)
         except Exception as e:
             k = k + 1
             print(sys._getframe().f_code.co_name + ": " + str(e))
@@ -33,7 +33,7 @@ def post_method(url, postdata=None, postjson=None, headers=None):
     k = 1
     while k < 6:
         try:
-            res = requests.post(url, data=postdata, json=postjson, headers=headers, timeout=5)
+            res = httpx.post(url, data=postdata, json=postjson, headers=headers, timeout=5)
         except Exception as e:
             k = k + 1
             print(sys._getframe().f_code.co_name + ": " + str(e))
