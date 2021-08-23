@@ -30,13 +30,13 @@ class handle_loopback_thread_work(QThread):
         rate = str(rate) + "%"
         return rate
 
-    def set_checked_uwp_sids_ps(self):
+    def set_checked_uwp_sids_ps(self) -> tuple[str, int]:
         checked_uwp_sids = ui.get_checked_uwp_sid()
         key_all = len(checked_uwp_sids)
-        checked_uwp_sids_ps = '@('
+        checked_uwp_sids_ps = "@("
         for checked_uwp_sid in checked_uwp_sids:
             checked_uwp_sids_ps = checked_uwp_sids_ps + "\"" + checked_uwp_sid + "\","
-        if checked_uwp_sids_ps == '@(':
+        if checked_uwp_sids_ps == "@(":
             checked_uwp_sids_ps = checked_uwp_sids_ps + ")"
         else:
             checked_uwp_sids_ps = checked_uwp_sids_ps[:-1] + ")"
@@ -46,13 +46,14 @@ class handle_loopback_thread_work(QThread):
         key = 0
         self.signal.emit('0.0%')
         with subprocess.Popen(['powershell', ps], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
-            while True:
-                if proc.stdout.readline():
-                    key = key + 1
-                    rate = self.get_rate(key, key_all)
-                    self.signal.emit(rate)
-                else:
-                    break
+            # while True:
+            while proc.stdout.readline() != b'':
+                # if proc.stdout.readline():
+                key = key + 1
+                rate = self.get_rate(key, key_all)
+                self.signal.emit(rate)
+                # else:
+                # break
 
     def handle_Disable_All(self):
         self.signal.emit('0.0%')
@@ -219,7 +220,7 @@ class mainwindow(QMainWindow, uwp_loopback_ui.Ui_MainWindow):
         self.handle_loopback_thread.start()
         self.handle_loopback_thread.exec()
 
-    def get_checked_uwp_sid(self):
+    def get_checked_uwp_sid(self) -> list[str]:
         i = 0
         checked_uwp_sid = []
         for i in range(self.tableWidget.rowCount()):
