@@ -25,7 +25,7 @@ jobs:
     
     - name: Install library
       run: | 
-        pip install -U requests[security]
+        pip install httpx
         pip install beautifulsoup4
         pip install PyExecJS
     

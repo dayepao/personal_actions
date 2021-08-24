@@ -11,10 +11,10 @@ import paramiko
 PUSH_KEY = os.environ.get("PUSH_KEY")
 
 
-def post_method(url, postdata=None, postjson=None, headers=None):
+def post_method(url, postdata=None, postjson=None, headers=None, timeout=5):
     while True:
         try:
-            res = httpx.post(url, data=postdata, json=postjson, headers=headers)
+            res = httpx.post(url, data=postdata, json=postjson, headers=headers, timeout=timeout)
         except Exception as e:
             print(sys._getframe().f_code.co_name + ": " + str(e))
             time.sleep(1)
@@ -39,7 +39,7 @@ def notice(pushstr):
         "enable_duplicate_check": 0,
         "duplicate_check_interval": 0
     }
-    post_method(pushurl, postjson=pushdata)
+    post_method(pushurl, postjson=pushdata, timeout=10)
 
 
 def change_password(now, ssh: paramiko.SSHClient, target_password: str):

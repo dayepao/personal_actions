@@ -3,7 +3,7 @@ import os
 import sys
 import time
 
-import requests
+import httpx
 from bs4 import BeautifulSoup
 
 # pip install -U requests[security]
@@ -14,11 +14,11 @@ PUSH_KEY = os.environ.get('PUSH_KEY')
 REPOS = ["AutoApiS", "uptime-status", "onedrive-cf-index"]  # 仓库名称
 
 
-def get_method(url, headers=None):
+def get_method(url, headers=None, timeout=5):
     k = 1
     while k < 6:
         try:
-            res = requests.get(url, headers=headers, timeout=5)
+            res = httpx.get(url, headers=headers, timeout=timeout)
         except Exception as e:
             k = k + 1
             print(sys._getframe().f_code.co_name + ": " + str(e))
@@ -32,11 +32,11 @@ def get_method(url, headers=None):
         sys.exit(sys._getframe().f_code.co_name + ": " + "Max retries exceeded")
 
 
-def post_method(url, postdata=None, postjson=None, headers=None):
+def post_method(url, postdata=None, postjson=None, headers=None, timeout=5):
     k = 1
     while k < 6:
         try:
-            res = requests.post(url, data=postdata, json=postjson, headers=headers, timeout=5)
+            res = httpx.post(url, data=postdata, json=postjson, headers=headers, timeout=timeout)
         except Exception as e:
             k = k + 1
             print(sys._getframe().f_code.co_name + ": " + str(e))
@@ -80,6 +80,6 @@ if __name__ == '__main__':
                 "enable_duplicate_check": 0,
                 "duplicate_check_interval": 0
             }
-            post_method(pushurl, postjson=pushdata)
+            post_method(pushurl, postjson=pushdata, timeout=10)
     else:
         print(now + "\n\n" + "所有仓库都是最新的")

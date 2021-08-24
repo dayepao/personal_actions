@@ -11,11 +11,11 @@ import httpx
 from bs4 import BeautifulSoup
 
 
-def get_method(url, headers=None):
+def get_method(url, headers=None, timeout=5):
     k = 1
     while k < 6:
         try:
-            res = httpx.get(url, headers=headers, timeout=5)
+            res = httpx.get(url, headers=headers, timeout=timeout)
         except Exception as e:
             k = k + 1
             print(sys._getframe().f_code.co_name + ": " + str(e))
@@ -29,11 +29,11 @@ def get_method(url, headers=None):
         sys.exit(sys._getframe().f_code.co_name + ": " + "Max retries exceeded")
 
 
-def post_method(url, postdata=None, postjson=None, headers=None):
+def post_method(url, postdata=None, postjson=None, headers=None, timeout=5):
     k = 1
     while k < 6:
         try:
-            res = httpx.post(url, data=postdata, json=postjson, headers=headers, timeout=5)
+            res = httpx.post(url, data=postdata, json=postjson, headers=headers, timeout=timeout)
         except Exception as e:
             k = k + 1
             print(sys._getframe().f_code.co_name + ": " + str(e))
@@ -106,4 +106,4 @@ pushdata = {
     "enable_duplicate_check": 0,
     "duplicate_check_interval": 0
 }
-post_method(pushurl, postjson=pushdata)
+post_method(pushurl, postjson=pushdata, timeout=10)

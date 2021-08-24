@@ -114,7 +114,7 @@ def push():
         "enable_duplicate_check": 0,
         "duplicate_check_interval": 0
     }
-    res = post_method(pushurl, postjson=pushdata)
+    res = post_method(pushurl, postjson=pushdata, timeout=10)
     html = res.text
     soup = BeautifulSoup(html, 'html.parser')
     print("\n推送状态: " + str(soup))

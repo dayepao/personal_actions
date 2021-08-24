@@ -12,10 +12,10 @@ PUSH_KEY = os.environ.get("PUSH_KEY")
 STREAMERS = {"楚河": "998"}  # "主播名称（随意）" : "房间号"
 
 
-def get_method(url, headers=None):
+def get_method(url, headers=None, timeout=5):
     while True:
         try:
-            res = httpx.get(url, headers=headers)
+            res = httpx.get(url, headers=headers, timeout=timeout)
         except Exception as e:
             print(sys._getframe().f_code.co_name + ": " + str(e))
             time.sleep(1)
@@ -25,10 +25,10 @@ def get_method(url, headers=None):
     return res
 
 
-def post_method(url, postdata=None, postjson=None, headers=None):
+def post_method(url, postdata=None, postjson=None, headers=None, timeout=5):
     while True:
         try:
-            res = httpx.post(url, data=postdata, json=postjson, headers=headers)
+            res = httpx.post(url, data=postdata, json=postjson, headers=headers, timeout=timeout)
         except Exception as e:
             print(sys._getframe().f_code.co_name + ": " + str(e))
             time.sleep(1)
@@ -65,7 +65,7 @@ def push(pushstr):
         "enable_duplicate_check": 0,
         "duplicate_check_interval": 0
     }
-    post_method(pushurl, postjson=pushdata)
+    post_method(pushurl, postjson=pushdata, timeout=10)
 
 
 def mainblock():

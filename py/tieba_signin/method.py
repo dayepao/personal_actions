@@ -6,17 +6,17 @@ import sys
 import time
 
 import execjs
-import requests
+import httpx
 from bs4 import BeautifulSoup
 
 # pip install PyExecJS
 
 
-def get_method(url, headers=None):
+def get_method(url, headers=None, timeout=5):
     k = 1
     while k < 6:
         try:
-            res = requests.get(url, headers=headers, timeout=5)
+            res = httpx.get(url, headers=headers, timeout=timeout)
         except Exception as e:
             k = k + 1
             print(sys._getframe().f_code.co_name + ": " + str(e))
@@ -30,11 +30,11 @@ def get_method(url, headers=None):
         sys.exit(sys._getframe().f_code.co_name + ": " + "Max retries exceeded")
 
 
-def post_method(url, postdata=None, postjson=None, headers=None):
+def post_method(url, postdata=None, postjson=None, headers=None, timeout=5):
     k = 1
     while k < 6:
         try:
-            res = requests.post(url, data=postdata, json=postjson, headers=headers, timeout=5)
+            res = httpx.post(url, data=postdata, json=postjson, headers=headers, timeout=timeout)
         except Exception as e:
             k = k + 1
             print(sys._getframe().f_code.co_name + ": " + str(e))
