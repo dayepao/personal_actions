@@ -3,17 +3,18 @@ import os
 import sys
 import time
 
+import PySide6
 from pykeyboard import PyKeyboard
-from PyQt6.QtCore import QThread, pyqtSignal
-from PyQt6.QtGui import QAction, QIcon
-from PyQt6.QtWidgets import QApplication, QMenu, QSystemTrayIcon
+from PySide6.QtCore import QThread, Signal
+from PySide6.QtGui import QAction, QIcon
+from PySide6.QtWidgets import QApplication, QMenu, QSystemTrayIcon
 
 # pip install pywin32
 # pip install PyUserInput
 
 
 class check_caps_status_work(QThread):
-    signal = pyqtSignal(str)
+    signal = Signal(str)
 
     def CAPSLOCK_STATE(self):
         hllDll = ctypes.WinDLL("User32.dll")
@@ -67,9 +68,8 @@ class TrayIcon(QSystemTrayIcon):
         self.check_thread.start()
 
     def iconClied(self, reason):
-        "鼠标点击icon传递的信号会带有一个整形的值，1是表示单击右键，2是双击，3是单击左键，4是用鼠标中键点击"
         k = PyKeyboard()
-        if reason.value in (2, 3):
+        if reason in (PySide6.QtWidgets.QSystemTrayIcon.ActivationReason.Trigger, PySide6.QtWidgets.QSystemTrayIcon.ActivationReason.DoubleClick):
             k.tap_key(k.caps_lock_key)
 
     def quit(self):
