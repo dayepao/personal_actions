@@ -2,8 +2,8 @@ import hashlib
 import os
 import sys
 
-from PyQt6.QtCore import QThread, pyqtSignal
-from PyQt6.QtWidgets import QApplication, QFileDialog, QMainWindow
+from PySide6.QtCore import QThread, Signal
+from PySide6.QtWidgets import QApplication, QFileDialog, QMainWindow
 
 import hash_ui
 
@@ -13,8 +13,8 @@ class para:
 
 
 class get_file_hash_thread_work(QThread):
-    signal1 = pyqtSignal(str)
-    signal2 = pyqtSignal(str, str)
+    signal1 = Signal(str)
+    signal2 = Signal(str, str)
 
     def run(self):
         self.flag = 1

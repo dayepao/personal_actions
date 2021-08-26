@@ -4,11 +4,11 @@ import subprocess
 import sys
 from functools import partial
 
-from PyQt6 import QtWidgets
-from PyQt6.QtCore import Qt, QThread, pyqtSignal
-from PyQt6.QtGui import QColor, QIcon, QPixmap
-from PyQt6.QtWidgets import (QAbstractItemView, QApplication, QCheckBox,
-                             QHBoxLayout, QHeaderView, QMainWindow, QWidget)
+from PySide6 import QtWidgets
+from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtGui import QColor, QIcon, QPixmap
+from PySide6.QtWidgets import (QAbstractItemView, QApplication, QCheckBox,
+                               QHBoxLayout, QHeaderView, QMainWindow, QWidget)
 
 import uwp_loopback_ui
 from get_uwp_list import get_enabled_sid_list, get_uwp_list
@@ -17,7 +17,7 @@ from get_uwp_list import get_enabled_sid_list, get_uwp_list
 
 
 class handle_loopback_thread_work(QThread):
-    signal = pyqtSignal(str)  # 必须放在__init__外
+    signal = Signal(str)  # 必须放在__init__外
 
     def __init__(self, work, parent: None = None) -> None:
         super().__init__(parent=parent)
@@ -93,7 +93,7 @@ class set_status_thread_work(QThread):
 
 
 class set_list_thread_work(QThread):
-    signal = pyqtSignal(list)
+    signal = Signal(list)
 
     def __init__(self, parent: None = None) -> None:
         super().__init__(parent=parent)
