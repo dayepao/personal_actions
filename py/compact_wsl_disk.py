@@ -38,8 +38,11 @@ def get_disk_paths(disk_file_name: str = 'ext4.vhdx'):
 def shutdown_wsl():
     print('\n即将终止所有运行的 WSL2 轻型工具虚拟机，请保存好数据')
     input('按回车键继续...')
+    print('开始压缩...')
     ps = set_ps_command(
         r'write-output ' + PASSWORD + r' | wsl sudo -S fstrim',
+        r'wsl --shutdown',
+        r'Start-Sleep -s 5',
         r'wsl --shutdown'
     )
     with subprocess.Popen(['powershell', ps], shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW, start_new_session=True) as proc:
