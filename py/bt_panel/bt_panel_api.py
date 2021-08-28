@@ -217,13 +217,5 @@ if __name__ == '__main__':
     PANEL_API_KEY = str(os.environ.get("PANEL_API_KEY"))
     my_panel = bt_panel(panel_url=PANEL_URL, panel_api_key=PANEL_API_KEY)
 
-    '''print(
-        my_panel.add_crontab_CRONTAB(
-            post_name="测试2",
-            post_hour="5",
-            post_minute="25",
-            post_sBody="echo \"line 1\"\necho \"line 2\"\necho \"line 三\""
-        )
-    )'''
-    print(my_panel.get_crontab_CRONTAB()[0])
+    print(my_panel.get_crontab_CRONTAB())
     # print(my_panel.del_crontab_CRONTAB(post_id=16))
