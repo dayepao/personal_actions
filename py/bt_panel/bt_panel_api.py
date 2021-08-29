@@ -166,6 +166,27 @@ class bt_panel:
 
         return res.json()
 
+    def modify_crond_CRONTAB(
+        self,
+        post_id: str,
+        post_name: str = '',
+        post_type: str = 'day',
+        post_where1: str = '',
+        post_hour: str = '1',
+        post_minute: str = '30',
+        post_week: str = '',
+        post_sType: str = 'toShell',
+        post_sBody: str = '',
+        post_sName: str = '',
+        post_backupTo: str = 'localhost',
+        post_save: str = '',
+        post_urladdress: str = 'undefined',
+        post_save_local: str = 'undefined',
+        post_notice: str = 'undefined',
+        post_notice_channel: str = 'undefined',
+    ) -> dict:
+        pass
+
     def del_crontab_CRONTAB(self, post_id: int) -> dict:
         '''删除指定计划任务'''
 
