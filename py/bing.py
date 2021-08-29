@@ -1,7 +1,7 @@
 import imghdr
 import os
 
-import requests
+import httpx
 from bs4 import BeautifulSoup
 
 
@@ -17,7 +17,7 @@ def download():
         filename = "bing\\" + str(key) + ".jpg"
         print("正在下载" + filename)
         if not os.path.exists(filename):
-            res = requests.get(url)
+            res = httpx.get(url)
             html = res.text
             if str(html) == "Error":
                 key = key + 1
@@ -26,7 +26,7 @@ def download():
             imgs = soup.find_all('img')
             src = imgs[0].get('src')
             headers = {'referer': 'https://tbing.cn/', 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36 Edg/88.0.705.68'}
-            imgr = requests.get(src, headers=headers)
+            imgr = httpx.get(src, headers=headers)
             with open(filename, 'wb') as f:
                 f.write(imgr.content)
             if str(imghdr.what(filename)) == "None":

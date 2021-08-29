@@ -1,7 +1,7 @@
 import json
 from urllib import parse
 
-import requests
+import httpx
 
 
 def get_refresh_token():
@@ -20,7 +20,7 @@ def get_refresh_token():
         'client_secret': para.client_secret,
         'redirect_uri': para.redirect_uri
     }
-    res = requests.post(para.url + "/token", data=postdata, headers=para.headers)
+    res = httpx.post(para.url + "/token", data=postdata, headers=para.headers)
     if res.status_code == 200:
         jsonstr = json.loads(res.text)
         print(json.dumps(jsonstr, sort_keys=False, indent=4, separators=(',', ':')))
@@ -37,7 +37,7 @@ def refresh_refresh_token():
         'client_secret': para.client_secret,
         'redirect_uri': para.redirect_uri
     }
-    res = requests.post(para.url + "/token", data=postdata, headers=para.headers)
+    res = httpx.post(para.url + "/token", data=postdata, headers=para.headers)
     if res.status_code == 200:
         jsonstr = json.loads(res.text)
         print(json.dumps(jsonstr, sort_keys=False, indent=4, separators=(',', ':')))
