@@ -1,55 +1,14 @@
 import os
 import random
 import re
-import sys
 import time
 
-import httpx
 from bs4 import BeautifulSoup
+
+from utils_dayepao import get_method, get_self_dir, make_dir
 
 CET4_url = "https://pan.uvooc.com/Learn/CET/CET4?hash=867M0pkv"
 CET6_url = "https://pan.uvooc.com/Learn/CET/CET6?hash=867M0pkv"
-
-
-def get_method(url, headers=None, timeout=5, max_retries=5):
-    k = 1
-    while k <= max_retries:
-        try:
-            res = httpx.get(url, headers=headers, timeout=timeout)
-        except Exception as e:
-            k = k + 1
-            print(sys._getframe().f_code.co_name + ": " + str(e))
-            time.sleep(1)
-            continue
-        else:
-            break
-    try:
-        return res
-    except Exception:
-        sys.exit(sys._getframe().f_code.co_name + ": " + "Max retries exceeded")
-
-
-def post_method(url, postdata=None, postjson=None, headers=None, timeout=5, max_retries=5):
-    k = 1
-    while k <= max_retries:
-        try:
-            res = httpx.post(url, data=postdata, json=postjson, headers=headers, timeout=timeout)
-        except Exception as e:
-            k = k + 1
-            print(sys._getframe().f_code.co_name + ": " + str(e))
-            time.sleep(1)
-            continue
-        else:
-            break
-    try:
-        return res
-    except Exception:
-        sys.exit(sys._getframe().f_code.co_name + ": " + "Max retries exceeded")
-
-
-def make_dir(path):
-    if not os.path.exists(path):
-        os.makedirs(path)
 
 
 def download_CET(CET_url, py_dir: str):
@@ -84,7 +43,6 @@ def download_CET(CET_url, py_dir: str):
                     time.sleep(random.randint(1, 5))
 
 
-py_path = __file__
-py_dir = py_path[:py_path.rfind('\\')]
+py_dir = get_self_dir()[1]
 download_CET(CET_url=CET4_url, py_dir=py_dir)
 download_CET(CET_url=CET6_url, py_dir=py_dir)

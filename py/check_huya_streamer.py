@@ -1,10 +1,10 @@
 import datetime
 import os
-import sys
 import time
 
-import httpx
 from bs4 import BeautifulSoup
+
+from utils_dayepao import get_method, post_method
 
 # pip install httpx
 
@@ -12,35 +12,9 @@ PUSH_KEY = os.environ.get("PUSH_KEY")
 STREAMERS = {"楚河": "998"}  # "主播名称（随意）" : "房间号"
 
 
-def get_method(url, headers=None, timeout=5):
-    while True:
-        try:
-            res = httpx.get(url, headers=headers, timeout=timeout)
-        except Exception as e:
-            print(sys._getframe().f_code.co_name + ": " + str(e))
-            time.sleep(1)
-            continue
-        else:
-            break
-    return res
-
-
-def post_method(url, postdata=None, postjson=None, headers=None, timeout=5):
-    while True:
-        try:
-            res = httpx.post(url, data=postdata, json=postjson, headers=headers, timeout=timeout)
-        except Exception as e:
-            print(sys._getframe().f_code.co_name + ": " + str(e))
-            time.sleep(1)
-            continue
-        else:
-            break
-    return res
-
-
 def check_status(streamer_id):
     url = "https://www.huya.com/" + streamer_id
-    res = get_method(url, headers)
+    res = get_method(url, headers, max_retries=0)
     html = res.text
     soup = BeautifulSoup(html, 'html.parser')
     items = soup.find_all(class_='host-prevStartTime')

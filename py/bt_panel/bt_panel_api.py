@@ -130,7 +130,7 @@ class bt_panel:
         post_minute: 分钟
         post_week: 周几 [1, 2, 3, 4, 5, 6, 0(周日)]
         post_sType: 任务类型 [toShell, ]
-        post_sBody: 脚本内容/排除规则 ``\\n``换行
+        post_sBody: 脚本内容/排除规则 `\\n`换行
         post_sName: 备份目录/备份网站/备份数据库
         post_backupTo: 备份位置 [localhost, ]
         post_save: 保留最新备份数

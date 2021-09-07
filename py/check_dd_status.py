@@ -4,24 +4,12 @@ import socket
 import sys
 import time
 
-import httpx
 import paramiko
+
+from utils_dayepao import post_method
 
 # pip install paramiko
 PUSH_KEY = os.environ.get("PUSH_KEY")
-
-
-def post_method(url, postdata=None, postjson=None, headers=None, timeout=5):
-    while True:
-        try:
-            res = httpx.post(url, data=postdata, json=postjson, headers=headers, timeout=timeout)
-        except Exception as e:
-            print(sys._getframe().f_code.co_name + ": " + str(e))
-            time.sleep(1)
-            continue
-        else:
-            break
-    return res
 
 
 def notice(pushstr):
