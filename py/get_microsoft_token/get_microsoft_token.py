@@ -69,7 +69,7 @@ class get_admin_consent_work(QThread):
 
     def run(self):
         result = ""
-        result_json = {}
+        params_json = {}
         if self.isConsented:
             result = self.get_client_token()
             self.signal.emit(result)
@@ -82,9 +82,9 @@ class get_admin_consent_work(QThread):
                 result = "错误: " + "".join(self.params['error']) + "\n错误描述: 未知"
         else:
             for key, value in self.params.items():
-                result_json[key] = "".join(value)
+                params_json[key] = "".join(value)
 
-            if ("admin_consent" not in result_json.keys()) or (result_json["admin_consent"] != "True"):
+            if ("admin_consent" not in params_json.keys()) or (params_json["admin_consent"] != "True"):
                 result = "未知错误"
             else:
                 result = self.get_client_token()
