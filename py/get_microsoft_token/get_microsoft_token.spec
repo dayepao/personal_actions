@@ -4,8 +4,8 @@
 block_cipher = None
 
 
-a = Analysis(['get_refresh_token.py'],
-             pathex=['C:\\Users\\ll057\\OneDrive\\git\\backup\\py\\get_refresh_token'],
+a = Analysis(['get_microsoft_token.py'],
+             pathex=['C:\\Users\\ll057\\OneDrive\\git\\backup\\py\\get_microsoft_token'],
              binaries=[],
              datas=[],
              hiddenimports=[],
@@ -26,7 +26,7 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,  
           [],
-          name='get_refresh_token',
+          name='get_microsoft_token',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
