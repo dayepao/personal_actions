@@ -75,9 +75,20 @@ def get_self_dir():
 def download_file(file_path: str, file_url: str):
     make_dir(file_path[:file_path.rfind('\\')])
     file_content = get_method(file_url).content
-    with open(file_path, 'wb') as f:
+    with open(file_path, "wb") as f:
         f.write(file_content)
 
 
+def update_self():
+    self_path, self_dir = get_self_dir()
+    with open(self_path, "rb") as f:
+        new_content = f.read()
+    for filename in os.listdir(self_dir):
+        if os.path.isdir(os.path.join(self_dir, filename)):
+            if os.path.exists(old_path := os.path.join(self_dir, filename, "utils_dayepao.py")):
+                with open(old_path, "wb") as f:
+                    f.write(new_content)
+
+
 if __name__ == "__main__":
-    print(get_self_dir())
+    update_self()
