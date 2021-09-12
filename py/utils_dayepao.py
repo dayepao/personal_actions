@@ -72,9 +72,9 @@ def get_self_dir():
     return py_path, py_dir
 
 
-def download_file(file_path: str, file_url: str):
+def download_file(file_path: str, file_url: str, headers: dict = None):
     make_dir(file_path[:file_path.rfind('\\')])
-    file_content = get_method(file_url).content
+    file_content = get_method(file_url, headers=headers).content
     with open(file_path, "wb") as f:
         f.write(file_content)
 
