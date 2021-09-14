@@ -1,3 +1,4 @@
+import hashlib
 import os
 import sys
 import time
@@ -72,6 +73,14 @@ def get_self_dir():
     return py_path, py_dir
 
 
+def get_file_hash(file_path, name: str = "md5"):
+    hashstr = hashlib.new(name)
+    with open(file_path, "rb") as f:
+        while (tempdata := f.read(40960)) != b'':
+            hashstr.update(tempdata)
+    return str(hashstr.hexdigest())
+
+
 def download_file(file_path: str, file_url: str, headers: dict = None):
     make_dir(file_path[:file_path.rfind('\\')])
     file_content = get_method(file_url, headers=headers).content
@@ -84,10 +93,9 @@ def update_self():
     with open(self_path, "rb") as f:
         new_content = f.read()
     for filename in os.listdir(self_dir):
-        if os.path.isdir(os.path.join(self_dir, filename)):
-            if os.path.exists(old_path := os.path.join(self_dir, filename, "utils_dayepao.py")):
-                with open(old_path, "wb") as f:
-                    f.write(new_content)
+        if (os.path.isdir(os.path.join(self_dir, filename))) and (os.path.exists(old_path := os.path.join(self_dir, filename, "utils_dayepao.py"))) and (get_file_hash(self_path) != get_file_hash(old_path)):
+            with open(old_path, "wb") as f:
+                f.write(new_content)
 
 
 if __name__ == "__main__":
