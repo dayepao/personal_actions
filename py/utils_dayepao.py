@@ -74,6 +74,9 @@ def get_self_dir():
 
 
 def get_file_hash(file_path, name: str = "md5"):
+    """
+    name: 哈希算法，可选: 'md5', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512', 'blake2b', 'blake2s', 'sha3_224', 'sha3_256', 'sha3_384', 'sha3_512', 'shake_128', 'shake_256'
+    """
     hashstr = hashlib.new(name)
     with open(file_path, "rb") as f:
         while (tempdata := f.read(40960)) != b'':
@@ -90,10 +93,10 @@ def download_file(file_path: str, file_url: str, headers: dict = None):
 
 def update_self():
     self_path, self_dir = get_self_dir()
-    with open(self_path, "rb") as f:
-        new_content = f.read()
     for filename in os.listdir(self_dir):
         if (os.path.isdir(os.path.join(self_dir, filename))) and (os.path.exists(old_path := os.path.join(self_dir, filename, "utils_dayepao.py"))) and (get_file_hash(self_path) != get_file_hash(old_path)):
+            with open(self_path, "rb") as f:
+                new_content = f.read()
             with open(old_path, "wb") as f:
                 f.write(new_content)
 
