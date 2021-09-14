@@ -1,8 +1,10 @@
 import imghdr
 import os
+import time
 
-import httpx
 from bs4 import BeautifulSoup
+
+from utils_dayepao import download_file, get_method, get_self_dir
 
 
 def download():
@@ -14,10 +16,10 @@ def download():
 
     while key < key_stop:
         url = "https://tbing.cn/detail/" + str(key)
-        filename = "bing\\" + str(key) + ".jpg"
-        print("正在下载" + filename)
+        filename = get_self_dir()[1] + "\\bing\\" + str(key) + ".jpg"
+        print("正在下载: " + filename)
         if not os.path.exists(filename):
-            res = httpx.get(url)
+            res = get_method(url)
             html = res.text
             if str(html) == "Error":
                 key = key + 1
@@ -25,21 +27,18 @@ def download():
             soup = BeautifulSoup(html, 'html.parser')
             imgs = soup.find_all('img')
             src = imgs[0].get('src')
-            headers = {'referer': 'https://tbing.cn/', 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36 Edg/88.0.705.68'}
-            imgr = httpx.get(src, headers=headers)
-            with open(filename, 'wb') as f:
-                f.write(imgr.content)
+            headers = {'referer': 'https://tbing.cn/',
+                       'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36 Edg/88.0.705.68'}
+            download_file(file_path=filename, file_url=src, headers=headers)
             if str(imghdr.what(filename)) == "None":
                 os.remove(filename)
                 notice = notice + "\n" + "已删除" + filename
         key = key + 1
+        time.sleep(1)
 
     print(notice)
 
 
-if os.path.exists('bing'):
+if __name__ == "__main__":
     download()
-else:
-    os.mkdir('bing')
-    download()
-os.system("pause")
+    os.system("pause")
