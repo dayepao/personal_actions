@@ -1,13 +1,15 @@
 import hashlib
 import os
+import re
 import sys
 import time
 
 import __main__
 import httpx
+from bs4 import BeautifulSoup
 
 
-def get_method(url, headers=None, timeout=5, max_retries=5):
+def get_method(url, headers: dict = None, timeout=5, max_retries=5):
     """
     timeout: 超时时间，单位秒(s)，默认为 5 秒，为 `None` 时禁用
     max_retries: 最大尝试次数，默认为 5 次，为 0 时禁用
@@ -29,7 +31,7 @@ def get_method(url, headers=None, timeout=5, max_retries=5):
         sys.exit(sys._getframe().f_code.co_name + ": " + "Max retries exceeded")
 
 
-def post_method(url, postdata=None, postjson=None, headers=None, timeout=5, max_retries=5):
+def post_method(url, postdata=None, postjson=None, headers: dict = None, timeout=5, max_retries=5):
     """
     timeout: 超时时间，单位秒(s)，默认为 5 秒，为 `None` 时禁用
     max_retries: 最大尝试次数，默认为 5 次，为 0 时禁用
@@ -49,6 +51,23 @@ def post_method(url, postdata=None, postjson=None, headers=None, timeout=5, max_
         return res
     except Exception:
         sys.exit(sys._getframe().f_code.co_name + ": " + "Max retries exceeded")
+
+
+def dayepao_push(pushstr):
+    pushurl = "https://push.dayepao.com/?pushkey=" + (os.environ.get("PUSH_KEY") if os.environ.get("PUSH_KEY") else "")
+    pushdata = {
+        "touser": "@all",
+        "msgtype": "text",
+        "agentid": 1000002,
+        "text": {
+            "content": pushstr
+        },
+        "safe": 0,
+        "enable_id_trans": 0,
+        "enable_duplicate_check": 0,
+        "duplicate_check_interval": 0
+    }
+    return post_method(pushurl, postjson=pushdata, timeout=10).text
 
 
 def make_dir(path):
@@ -99,6 +118,18 @@ def update_self():
                 new_content = f.read()
             with open(old_path, "wb") as f:
                 f.write(new_content)
+
+
+def search_in_website(url: str, content: str, headers: dict = None, attrs: dict[str, str] = None):
+    res = get_method(url, headers)
+    soup = BeautifulSoup(res.text, 'html.parser')
+    htmls_in_scope = soup.find_all(attrs=attrs)
+    html = []
+    for html_in_scope in htmls_in_scope:
+        search_result = re.search(re.compile(r'^<.+?>(.+)<.+?>$'), str(html_in_scope).replace("\r", "").replace("\n", ""))
+        if search_result:
+            html.append(search_result.group(1).strip())
+    return bool(content in " / ".join(html))
 
 
 if __name__ == "__main__":
