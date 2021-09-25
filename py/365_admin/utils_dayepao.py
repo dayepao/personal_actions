@@ -9,6 +9,12 @@ import httpx
 from bs4 import BeautifulSoup
 
 
+"""
+pip install httpx
+pip install beautifulsoup4
+"""
+
+
 def get_method(url, headers: dict = None, timeout=5, max_retries=5):
     """
     timeout: 超时时间，单位秒(s)，默认为 5 秒，为 `None` 时禁用
