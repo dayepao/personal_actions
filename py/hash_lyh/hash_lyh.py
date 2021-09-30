@@ -2,7 +2,8 @@ import hashlib
 import os
 import sys
 
-from PySide6.QtCore import QThread, Signal
+from PySide6.QtCore import QEvent, QObject, QThread, Signal
+from PySide6.QtGui import QDragEnterEvent, QDropEvent
 from PySide6.QtWidgets import QApplication, QFileDialog, QMainWindow
 
 import hash_ui
@@ -41,6 +42,19 @@ class get_file_hash_thread_work(QThread):
         self.flag = 0
 
 
+class new_method:
+    def lineEdit_dragEnterEvent(event: QDragEnterEvent):
+        if event.mimeData().hasUrls:
+            event.accept()
+        else:
+            event.ignore()
+
+    def lineEdit_dropEvent(window, event: QDropEvent):
+        window.clear_lineEdit()
+        para.filename = event.mimeData().urls()[0].toLocalFile()
+        window.lineEdit.setText(str(para.filename))
+
+
 class mainwindow(QMainWindow, hash_ui.Ui_MainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -48,17 +62,17 @@ class mainwindow(QMainWindow, hash_ui.Ui_MainWindow):
         self.pushButton.clicked.connect(self.open_file)
         self.pushButton_2.clicked.connect(self.check)
         self.pushButton_3.clicked.connect(self.stop_work)
+        self.lineEdit.installEventFilter(self)
 
-    def dragEnterEvent(self, event):
-        if event.mimeData().hasUrls:
-            event.accept()
-        else:
-            event.ignore()
-
-    def dropEvent(self, event):
-        self.clear_lineEdit()
-        para.filename = event.mimeData().urls()[0].toLocalFile()
-        self.lineEdit.setText(str(para.filename))
+    def eventFilter(self, obj: QObject, event: QEvent):
+        if obj.objectName() == "lineEdit":
+            if event.type() == QEvent.DragEnter:
+                new_method.lineEdit_dragEnterEvent(event)
+                return True
+            if event.type() == QEvent.Drop:
+                new_method.lineEdit_dropEvent(self, event)
+                return True
+        return QObject.eventFilter(self, obj, event)
 
     def stop_work(self):
         if 'hash_thread' in dir(self):
