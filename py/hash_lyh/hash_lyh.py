@@ -57,7 +57,7 @@ class mainwindow(QMainWindow, hash_ui.Ui_MainWindow):
                 new_method.lineEdit_dragEnterEvent(event)
                 return True
             if event.type() == QEvent.Drop:
-                self.filename = new_method.lineEdit_dropEvent(self, event)
+                new_method.lineEdit_dropEvent(self, event)
                 return True
         return QObject.eventFilter(self, obj, event)
 

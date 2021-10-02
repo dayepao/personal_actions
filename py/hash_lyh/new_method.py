@@ -12,6 +12,5 @@ def lineEdit_dragEnterEvent(event: QDragEnterEvent):
 
 def lineEdit_dropEvent(window: mainwindow, event: QDropEvent):
     window.clear_lineEdit()
-    filename = event.mimeData().urls()[0].toLocalFile()
-    window.lineEdit.setText(str(filename))
-    return filename
+    window.filename = event.mimeData().urls()[0].toLocalFile()
+    window.lineEdit.setText(str(window.filename))
