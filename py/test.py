@@ -1,6 +1,6 @@
 import httpx
 
-from utils_dayepao import get_method
+from utils_dayepao import get_content_in_website
 
 if __name__ == "__main__":
     headers = {
@@ -10,12 +10,5 @@ if __name__ == "__main__":
     }
     c = httpx.Client()
     c.headers.update(headers=headers)
-    print(c.headers)
-    get_method('http://httpbin.org/cookies/set/sessioncookie/a123456789', c=c)
-    res = get_method("http://httpbin.org/cookies", c=c, headers={"a": "b"})
-    print(res.request.headers)
-    res = get_method("http://httpbin.org/cookies", c=c)
-    print(res.request.headers)
-    print(c.headers)
-    c.headers.clear()
-    print(c.headers)
+    print(get_content_in_website("https://hostloc.com/forum.php", r'今日: <em>(.+?)</em>'))
+    # print(get_method("https://hostloc.com/forum.php").text)

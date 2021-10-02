@@ -96,7 +96,7 @@ def make_dir(path):
 def get_self_dir():
     """获取自身路径
 
-    返回 (py_path, py_dir)
+    返回`(py_path, py_dir)`
 
     py_path: 当前.py文件完整路径 (包括文件名)
     py_dir: 当前.py文件所在文件夹路径
@@ -127,25 +127,57 @@ def download_file(file_path: str, file_url: str, headers: dict = None):
         f.write(file_content)
 
 
+def get_tags_with_certain_attrs(url: str, headers: dict = None, attrs: dict[str, str] = None, c: httpx.Client = None):
+    """获得网页指定属性的标签
+
+    返回`(tags, tags_content)`
+
+    tags: 标签列表
+    tags_content: 标签内容列表
+    attrs: 标签属性
+    """
+    res = get_method(url, headers, c=c)
+    soup = BeautifulSoup(res.text, 'html.parser')
+    temp_tags = list(soup.find_all(attrs=attrs))
+    tags = []
+
+    # 去重 && 当attrs为空时，去除具有包含关系的结果
+    i = 0
+    for i in range(len(temp_tags)):
+        k = 0
+        for temp_tag in temp_tags:
+            if (temp_tags[i] in temp_tag) and (temp_tags[i] != temp_tag):
+                k = 1
+        if (k == 0) and (temp_tags[i] not in tags):
+            tags.append(temp_tags[i])
+        i += 1
+
+    tags_content = []
+    for tag in tags:
+        search_result = re.search(re.compile(r'^<.+?>(.+)<.+?>$'), str(tag).replace("\r", "").replace("\n", ""))
+        if search_result:
+            tags_content.append(str(search_result.group(1).strip()))
+    return (tags, tags_content)
+
+
 def search_in_website(url: str, content: str, headers: dict = None, attrs: dict[str, str] = None, c: httpx.Client = None):
     """搜索网页中是否有指定内容，返回布尔值
 
     attrs: 标签属性
     """
-    res = get_method(url, headers, c=c)
-    soup = BeautifulSoup(res.text, 'html.parser')
-    htmls_in_scope = soup.find_all(attrs=attrs)
-    html = []
-    for html_in_scope in htmls_in_scope:
-        search_result = re.search(re.compile(r'^<.+?>(.+)<.+?>$'), str(html_in_scope).replace("\r", "").replace("\n", ""))
-        if search_result:
-            html.append(search_result.group(1).strip())
-    return bool(content in " / ".join(html))
+    tags_content = get_tags_with_certain_attrs(url, headers=headers, attrs=attrs, c=c)[1]
+    return bool(content in " / ".join(tags_content))
 
 
-def get_content_in_website(url, r_e: re.Pattern, c: httpx.Client = None):
-    res = get_method(url, c=c)
-    print(res.text)
+def get_content_in_website(url, r_e: str, headers: dict = None, attrs: dict[str, str] = None, c: httpx.Client = None):
+    """搜索网页中匹配指定正则表达式的内容
+
+    r_e: 正则表达式，例如`r'^<.+?>(.+)<.+?>$'`
+    attrs: 标签属性
+    """
+    tags_content = get_tags_with_certain_attrs(url, headers=headers, attrs=attrs, c=c)[1]
+    search_result = re.findall(re.compile(r_e), " / ".join(tags_content))
+    return search_result
 
 
 def update_self():
