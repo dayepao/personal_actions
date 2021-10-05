@@ -9,25 +9,20 @@ jobs:
   Hostloc_Get_Points:
     runs-on: ubuntu-latest
     steps:
-
     - name: Set time zone
       run: | 
         sudo timedatectl set-timezone 'Asia/Shanghai'
-    
     - name: Checkout
       uses: actions/checkout@v2
-    
     - name: Setup python
       uses: actions/setup-python@v2
       with: 
         python-version: '3.x'
         architecture: 'x64'
-    
-    - name: Install library
+    - name: Install Dependencies
       run: | 
         pip install httpx
         pip install beautifulsoup4
-    
     - name: Hostloc_Get_Points
       env: 
         HOSTLOC: ${{ secrets.HOSTLOC }}
