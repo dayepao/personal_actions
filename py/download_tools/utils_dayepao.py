@@ -64,8 +64,8 @@ def post_method(url, postdata=None, postjson=None, headers: dict = None, timeout
         sys.exit(sys._getframe().f_code.co_name + ": " + "Max retries exceeded")
 
 
-def dayepao_push(pushstr):
-    pushurl = "https://push.dayepao.com/?pushkey=" + (os.environ.get("PUSH_KEY") if os.environ.get("PUSH_KEY") else "")
+def dayepao_push(pushstr, pushkey=""):
+    pushurl = "https://push.dayepao.com/?pushkey=" + (os.environ.get("PUSH_KEY") if os.environ.get("PUSH_KEY") else pushkey)
     pushdata = {
         "touser": "@all",
         "msgtype": "text",

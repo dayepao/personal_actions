@@ -1,3 +1,4 @@
+import json
 import os
 import random
 import sys
@@ -42,9 +43,9 @@ def login(username, password) -> httpx.Client:
 def check_login_status(c: httpx.Client, i) -> bool:
     test_url = "https://hostloc.com/home.php?mod=spacecp"
     if search_in_website(test_url, "您需要先登录才能继续本操作", c=c):
-        print("第" + str(i) + "个账号登陆失败，请检查账号信息是否正确！")
+        print("❌第{num}个账号登陆失败，请检查账号信息是否正确！".format(num=str(i)))
         return False
-    print("第" + str(i) + "个账号登陆成功！")
+    print("✔️第{num}个账号登陆成功！".format(num=str(i)))
     return True
 
 
@@ -81,27 +82,20 @@ def get_points(c: httpx.Client):
 
 
 if __name__ == "__main__":
-    username = os.environ.get('HOSTLOC_USERNAME')
-    password = os.environ.get('HOSTLOC_PASSWORD')
-
-    if not username or not password:
-        print("未检测到用户名或密码，请检查环境变量")
+    account = os.environ.get('HOSTLOC')  # {"username1": "password1", "username2": "password2"}
+    if not account:
+        print("未检测到hostloc账号，请检查环境变量是否设置正确！")
         sys.exit(0)
-
-    username_list = username.split(",")
-    password_list = password.split(",")
-
-    if len(username_list) != len(password_list):
-        print("用户名与密码数量不匹配，请检查环境变量")
-        sys.exit(0)
+    account: dict = json.loads(account)
 
     print("当前IP: " + get_ip())
-    print("共检测到{num}个账号，开始获取积分".format(num=str(len(username_list))))
+    print("共检测到{num}个账号，开始获取积分".format(num=str(len(account))))
 
-    for i in range(len(username_list)):
+    i = 1
+    for username, password in account.items():
         print("*" * 60)
-        c = login(username_list[i], password_list[i])
-        if check_login_status(c, i + 1):
+        c = login(username, password)
+        if check_login_status(c, i):
             get_points(c)
         i += 1
 
