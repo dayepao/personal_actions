@@ -8,7 +8,6 @@ import __main__
 import httpx
 from bs4 import BeautifulSoup
 
-
 """
 pip install httpx
 pip install beautifulsoup4

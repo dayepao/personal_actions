@@ -77,9 +77,9 @@ class get_admin_consent_work(QThread):
 
         if "error" in self.params.keys():
             if "error_description" in self.params.keys():
-                result = "错误: " + "".join(self.params['error']) + "\n错误描述: " + "".join(self.params["error_description"])
+                result = "错误: {error}\n错误描述: {error_description}".format(error="".join(self.params['error']), error_description="".join(self.params["error_description"]))
             else:
-                result = "错误: " + "".join(self.params['error']) + "\n错误描述: 未知"
+                result = "错误: {error}\n错误描述: 未知".format(error="".join(self.params['error']))
         else:
             for key, value in self.params.items():
                 params_json[key] = "".join(value)
@@ -91,7 +91,7 @@ class get_admin_consent_work(QThread):
         self.signal.emit(result)
 
     def get_client_token(self):
-        url = "https://login.microsoftonline.com/" + ui.tenant_id + "/oauth2/v2.0/token"
+        url = "https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token".format(tenant_id=ui.tenant_id)
         postdata = {
             'client_id': ui.client_id,
             'client_secret': ui.client_secret,
@@ -181,7 +181,12 @@ class mainwindow(QMainWindow, get_microsoft_token_ui.Ui_MainWindow):
             'Files.ReadWrite.All',
             'offline_access'
         )
-        request_url = para.url + "/authorize?client_id=" + self.client_id + "&scope=" + scope + "&response_type=" + "code" + "&redirect_uri=" + self.redirect_uri
+        request_url = "{url}/authorize?client_id={client_id}&scope={scope}&response_type=code&redirect_uri={redirect_uri}".format(
+            url=para.url,
+            client_id=self.client_id,
+            scope=scope,
+            redirect_uri=self.redirect_uri
+        )
 
         self.show_Dialog(request_url)
         handle_input_url_result = self.handle_input_url()
@@ -207,7 +212,11 @@ class mainwindow(QMainWindow, get_microsoft_token_ui.Ui_MainWindow):
         thread.exec()
 
     def get_admin_consent(self):
-        request_url = "https://login.microsoftonline.com/" + self.tenant_id + "/adminconsent?client_id=" + self.client_id + "&redirect_uri=" + self.redirect_uri
+        request_url = "https://login.microsoftonline.com/{tenant_id}/adminconsent?client_id={client_id}&redirect_uri={redirect_uri}".format(
+            tenant_id=self.tenant_id,
+            client_id=self.client_id,
+            redirect_uri=self.redirect_uri
+        )
         params = {}
         isConsented = True
 
