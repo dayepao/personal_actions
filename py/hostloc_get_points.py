@@ -104,3 +104,6 @@ if __name__ == "__main__":
         if check_login_status(c, i + 1):
             get_points(c)
         i += 1
+
+    print("*" * 60)
+    print("程序执行完毕，获取积分过程结束")
