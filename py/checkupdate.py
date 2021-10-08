@@ -5,9 +5,6 @@ from bs4 import BeautifulSoup
 
 from utils_dayepao import get_method, post_method
 
-# pip install -U requests[security]
-
-
 GH_ACTOR = os.environ.get('GH_ACTOR')
 PUSH_KEY = os.environ.get('PUSH_KEY')
 REPOS = ["AutoApiS", "uptime-status", "onedrive-cf-index"]  # 仓库名称

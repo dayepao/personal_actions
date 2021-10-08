@@ -1,6 +1,8 @@
 import subprocess
+
 import chardet
 
+# pip install chardet
 
 ps = "write-output 'test1'; Start-Sleep -s 5; write-output 'test2'"
 
