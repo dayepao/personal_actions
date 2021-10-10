@@ -40,10 +40,10 @@ def shutdown_wsl():
     input('按回车键继续...')
     print('开始压缩...')
     ps = set_ps_command(
-        r'write-output ' + PASSWORD + r' | wsl sudo -S fstrim',
-        r'wsl --shutdown',
-        r'Start-Sleep -s 5',
-        r'wsl --shutdown'
+        r"write-output '{password}' | wsl sudo -S fstrim".format(password=PASSWORD),
+        r"wsl --shutdown",
+        r"Start-Sleep -s 5",
+        r"wsl --shutdown"
     )
     with subprocess.Popen(['powershell', ps], shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW, start_new_session=True) as proc:
         proc.wait()
@@ -51,8 +51,8 @@ def shutdown_wsl():
 
 def get_file_size(target_file: str):
     ps = set_ps_command(
-        r'$target_file = $(get-item ' + target_file + r')',
-        r'write-output "$($target_file.length/1MB)"'
+        r"$target_file = $(get-item '{target_file}')".format(target_file=target_file),
+        r"write-output $($target_file.length/1MB)"
     )
     with subprocess.Popen(['powershell', ps], shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
         size = int(proc.stdout.read().decode('gbk').replace('\r\n', ''))
