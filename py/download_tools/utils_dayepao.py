@@ -1,16 +1,21 @@
 import hashlib
 import os
 import re
+import subprocess
 import sys
 import time
+from queue import Queue
+from threading import Thread
 
 import __main__
+import chardet
 import httpx
 from bs4 import BeautifulSoup
 
 """
 pip install httpx
 pip install beautifulsoup4
+pip install chardet
 """
 
 
@@ -177,6 +182,39 @@ def get_content_in_website(url, r_e: str, headers: dict = None, attrs: dict[str,
     tags_content = get_tags_with_certain_attrs(url, headers=headers, attrs=attrs, c=c)[1]
     search_result = re.findall(re.compile(r_e), " / ".join(tags_content))
     return search_result
+
+
+def set_powershell_cmd(*args: str):
+    if (powershell_cmd := ";".join(args)).strip() == "":
+        raise ValueError("命令为空，请检查传入参数")
+    return powershell_cmd
+
+
+def cmd_dayepao(cmd: str | list, encoding: str = None):
+    """
+    cmd: "命令" 或 ["powershell", "命令"]
+    """
+    class cmd_thread_work(Thread):
+        def __init__(self, queue: Queue, cmd: str | list, encoding: str) -> None:
+            super().__init__()
+            self.queue = queue
+            self.cmd = cmd
+            self.encoding = encoding
+
+        def run(self):
+            with subprocess.Popen(self.cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
+                # for line in proc.stdout.readlines():
+                while (line := proc.stdout.readline()) != b'':
+                    chardet_result = chardet.detect(line)
+                    encoding = self.encoding or (chardet_result["encoding"] if chardet_result["confidence"] >= 0.8 else None) or "gb18030"
+                    self.queue.put(line.decode(encoding, "ignore").replace("\r\n", ""))
+            self.queue.put(b'')
+
+    queue = Queue()
+    cmd_thread = cmd_thread_work(queue=queue, cmd=cmd, encoding=encoding)
+    cmd_thread.setDaemon(True)
+    cmd_thread.start()
+    return queue
 
 
 def update_self():

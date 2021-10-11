@@ -1,14 +1,32 @@
-import httpx
+from utils_dayepao import cmd_dayepao, set_powershell_cmd
 
-from utils_dayepao import get_content_in_website
+
+def test1():
+    ps = "write-output 'test1'; Start-Sleep -s 5; write-output 'test2'"
+    queue = cmd_dayepao(ps)
+    while (ps_result := queue.get()) != b'':
+        print(ps_result)
+    print("123")
+    ps = "write-output 'test3'; Start-Sleep -s 5; write-output 'test4'"
+    queue = cmd_dayepao(ps)
+    while (ps_result := queue.get()) != b'':
+        print(ps_result)
+    print("456")
+
+
+def test2():
+    ps = set_powershell_cmd(
+        "write-output '输入命令为空'",
+        "Start-Sleep -s 5",
+        "write-output 'test2'"
+    )
+    # ps = set_powershell_cmd()
+    print(repr(ps))
+    queue = cmd_dayepao(["powershell", ps])
+    while (ps_result := queue.get()) != b'':
+        print(ps_result)
+
 
 if __name__ == "__main__":
-    headers = {
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36 Edg/94.0.992.31",
-        "origin": "https://hostloc.com",
-        "referer": "https://hostloc.com/",
-    }
-    c = httpx.Client()
-    c.headers.update(headers=headers)
-    print(get_content_in_website("https://hostloc.com/forum.php", r'今日: <em>(.+?)</em>'))
-    # print(get_method("https://hostloc.com/forum.php").text)
+    print("*" * 100)
+    test2()
