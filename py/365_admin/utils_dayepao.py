@@ -191,13 +191,16 @@ def set_powershell_cmd(*args: str):
 
 
 def cmd_dayepao(cmd: str | list, encoding: str = None):
-    """
+    """执行终端命令
     cmd: "命令" 或 ["powershell", "命令"]
+
+    返回 (out_queue, err_queue)
     """
     class cmd_thread_work(Thread):
-        def __init__(self, queue: Queue, cmd: str | list, encoding: str) -> None:
+        def __init__(self, out_queue: Queue, err_queue: Queue, cmd: str | list, encoding: str) -> None:
             super().__init__()
-            self.queue = queue
+            self.out_queue = out_queue
+            self.err_queue = err_queue
             self.cmd = cmd
             self.encoding = encoding
 
@@ -207,14 +210,20 @@ def cmd_dayepao(cmd: str | list, encoding: str = None):
                 while (line := proc.stdout.readline()) != b'':
                     chardet_result = chardet.detect(line)
                     encoding = self.encoding or (chardet_result["encoding"] if chardet_result["confidence"] >= 0.8 else None) or "gb18030"
-                    self.queue.put(line.decode(encoding, "ignore").replace("\r\n", ""))
-            self.queue.put(b'')
+                    self.out_queue.put(line.decode(encoding, "ignore").replace("\r\n", ""))
+                self.out_queue.put(b'')
+                while (line := proc.stderr.readline()) != b'':
+                    chardet_result = chardet.detect(line)
+                    encoding = self.encoding or (chardet_result["encoding"] if chardet_result["confidence"] >= 0.8 else None) or "gb18030"
+                    self.err_queue.put(line.decode(encoding, "ignore").replace("\r\n", ""))
+                self.err_queue.put(b'')
 
-    queue = Queue()
-    cmd_thread = cmd_thread_work(queue=queue, cmd=cmd, encoding=encoding)
+    out_queue = Queue()
+    err_queue = Queue()
+    cmd_thread = cmd_thread_work(out_queue=out_queue, err_queue=err_queue, cmd=cmd, encoding=encoding)
     cmd_thread.setDaemon(True)
     cmd_thread.start()
-    return queue
+    return out_queue, err_queue
 
 
 def update_self():
