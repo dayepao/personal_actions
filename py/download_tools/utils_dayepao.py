@@ -19,7 +19,7 @@ pip install chardet
 """
 
 
-def get_method(url, headers: dict = None, timeout=5, max_retries=5, c: httpx.Client = None):
+def get_method(url: str, headers: dict = None, timeout=5, max_retries=5, c: httpx.Client = None):
     """
     timeout: 超时时间，单位秒(s)，默认为 5 秒，为 `None` 时禁用
     max_retries: 最大尝试次数，默认为 5 次，为 0 时禁用
@@ -44,7 +44,7 @@ def get_method(url, headers: dict = None, timeout=5, max_retries=5, c: httpx.Cli
         sys.exit(sys._getframe().f_code.co_name + ": " + "Max retries exceeded")
 
 
-def post_method(url, postdata=None, postjson=None, headers: dict = None, timeout=5, max_retries=5, c: httpx.Client = None):
+def post_method(url: str, postdata=None, postjson=None, headers: dict = None, timeout=5, max_retries=5, c: httpx.Client = None):
     """
     timeout: 超时时间，单位秒(s)，默认为 5 秒，为 `None` 时禁用
     max_retries: 最大尝试次数，默认为 5 次，为 0 时禁用
@@ -69,7 +69,7 @@ def post_method(url, postdata=None, postjson=None, headers: dict = None, timeout
         sys.exit(sys._getframe().f_code.co_name + ": " + "Max retries exceeded")
 
 
-def dayepao_push(pushstr, pushkey=""):
+def dayepao_push(pushstr: str, pushkey: str = ""):
     pushurl = "https://push.dayepao.com/?pushkey=" + (os.environ.get("PUSH_KEY") if os.environ.get("PUSH_KEY") else pushkey)
     pushdata = {
         "touser": "@all",
@@ -86,7 +86,7 @@ def dayepao_push(pushstr, pushkey=""):
     return post_method(pushurl, postjson=pushdata, timeout=10).text
 
 
-def make_dir(path):
+def make_dir(path: str):
     """创建路径
 
     `make_dir(file_path[:file_path.rfind('\\')])`
@@ -110,7 +110,7 @@ def get_self_dir():
     return py_path, py_dir
 
 
-def get_file_hash(file_path, name: str = "md5"):
+def get_file_hash(file_path: str, name: str = "md5"):
     """获取文件哈希值
 
     name: 哈希算法，可选: 'md5', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512', 'blake2b', 'blake2s', 'sha3_224', 'sha3_256', 'sha3_384', 'sha3_512', 'shake_128', 'shake_256'
