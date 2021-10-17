@@ -39,10 +39,10 @@ def set_vmprocessor(vm_name: str, config: dict):
     err_queue = cmd_dayepao(["powershell", ps])[1]
     while (ps_result := err_queue.get()) != b"":
         result.append(ps_result)
-    return not bool(result)
+    return (not bool(result), result)
 
 
 if __name__ == "__main__":
     print(get_vms())
-    print(set_vmprocessor("杂项", {"ExposeVirtualizationExtensions": "$false"}))
+    # print(set_vmprocessor("杂项", {"ExposeVirtualizationExtensions": "$false"}))
     print(get_vmprocessor("杂项")["ExposeVirtualizationExtensions"])
