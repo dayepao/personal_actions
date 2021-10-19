@@ -97,8 +97,8 @@ class mainwindow(QMainWindow, HyperV_controller_ui.Ui_MainWindow):
             pushbutton.setObjectName("pushButton_1_{}".format(i))
             pushbutton.setText("选择")
             pushbutton.clicked.connect(partial(self.popup_vm, i))
-            if vm_state == "Running":
-                pushbutton.setEnabled(False)
+            # if vm_state == "Running":
+            # pushbutton.setEnabled(False)
             pushbutton.setCursor(Qt.CursorShape.PointingHandCursor)
             pushbutton.setStyleSheet("QPushButton {border: 50px solid transparent}")
             pushbutton_layout = QHBoxLayout()

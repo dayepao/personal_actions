@@ -1,4 +1,5 @@
 import re
+import time
 
 from utils_dayepao import cmd_dayepao
 
@@ -18,6 +19,17 @@ def get_vms():
         if re_result:
             vms[re_result.group(1)] = re_result.group(2)
     return vms
+
+
+def get_vm_state(vm_name: str):
+    ps = "(Get-VM -Name '{vm_name}').State".format(vm_name=vm_name)
+    out_queue = cmd_dayepao(["powershell", ps])[0]
+    while (ps_result := out_queue.get()) != b"":
+        vm_state = str(ps_result).strip()
+    try:
+        return vm_state
+    except Exception:
+        return "未知"
 
 
 def get_vmprocessor(vm_name: str):
@@ -43,6 +55,8 @@ def set_vmprocessor(vm_name: str, config: dict):
 
 
 if __name__ == "__main__":
-    print(get_vms())
+    # print(get_vms())
     # print(set_vmprocessor("杂项", {"ExposeVirtualizationExtensions": "$false"}))
-    print(get_vmprocessor("杂项")["ExposeVirtualizationExtensions"])
+    # print(get_vmprocessor("杂项")["ExposeVirtualizationExtensions"])
+    time1 = time.time()
+    print(get_vm_state("杂项"), time.time() - time1)

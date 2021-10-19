@@ -6,12 +6,12 @@ from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QDialog,
                                QHBoxLayout, QHeaderView, QLineEdit, QWidget)
 
+from HyperV_controller_ps import get_vm_state, get_vmprocessor, set_vmprocessor
 from ui import popup_vm_ui
-from HyperV_controller_ps import get_vmprocessor, set_vmprocessor
 
 
 class set_fun_thread_work(QThread):
-    signal = Signal(list)
+    signal_err = Signal(list)
 
     def __init__(self, vm_name: str, vmprocessor_changes: dict) -> None:
         super().__init__()
@@ -23,26 +23,31 @@ class set_fun_thread_work(QThread):
         result = set_vmprocessor(self.vm_name, self.vmprocessor_changes)
         if not result[0]:
             err.extend(result[1])
-        self.signal.emit(err)
+        self.signal_err.emit(err)
 
 
 class set_list_thread_work(QThread):
-    signal = Signal(dict)
+    signal_fun = Signal(dict)
+    signal_state = Signal(str)
 
     def __init__(self, vm_name) -> None:
         super().__init__()
         self.vm_name = vm_name
 
     def run(self):
+        vm_state = get_vm_state(self.vm_name)
+        self.signal_state.emit(vm_state)
+
         fun_dict = {}
         fun_dict.update(get_vmprocessor(self.vm_name))
-        self.signal.emit(fun_dict)
+        self.signal_fun.emit(fun_dict)
 
 
 class dialog(QDialog, popup_vm_ui.Ui_Dialog):
-    def __init__(self, vm_name) -> None:
+    def __init__(self, vm_name: str) -> None:
         super().__init__()
         self.vm_name = vm_name
+        self.vm_state = "未知"
         self.setupUi(self)
         self.setWindowTitle(self.vm_name)
         # 功能对应说明
@@ -87,8 +92,8 @@ class dialog(QDialog, popup_vm_ui.Ui_Dialog):
         self.disable_button()
         self.set_fun_thread = set_fun_thread_work(vm_name=self.vm_name, vmprocessor_changes=vmprocessor_changes)
         self.set_fun_thread.start()
-        self.textEdit.setText("{vm_name}: 正在修改...".format(vm_name=self.vm_name))
-        self.set_fun_thread.signal.connect(partial(self.set_list, "修改"))
+        self.textEdit.setText("{vm_name}({vm_state}): 正在修改...".format(vm_name=self.vm_name, vm_state=self.vm_state))
+        self.set_fun_thread.signal_err.connect(partial(self.set_list, "修改"))
 
     def disable_button(self):
         '''禁用所有按键'''
@@ -98,15 +103,24 @@ class dialog(QDialog, popup_vm_ui.Ui_Dialog):
     def enable_button(self):
         '''启用所有按键'''
         self.pushButton.setEnabled(True)
-        self.pushButton_2.setEnabled(True)
+        if self.vm_state == "Off":
+            self.pushButton_2.setEnabled(True)
 
     def set_list(self, work: str, err: list = None):
         self.disable_button()
         self.tableWidget.setRowCount(0)
         self.lineedit_list: list[QLineEdit] = []
+
         self.set_list_thread = set_list_thread_work(self.vm_name)
         self.set_list_thread.start()
-        self.textEdit.setText("{vm_name}: 正在读取列表...".format(vm_name=self.vm_name))
+
+        self.textEdit.setText("{vm_name}({vm_state}): 正在读取列表...".format(vm_name=self.vm_name, vm_state=self.vm_state))
+
+        # 获取虚拟机状态
+        def set_vm_state(vm_state: str):
+            self.vm_state = vm_state
+
+        self.set_list_thread.signal_state.connect(set_vm_state)
 
         # 配置虚拟机表格行列数
         def set_list_item(fun_dict: dict):
@@ -147,13 +161,13 @@ class dialog(QDialog, popup_vm_ui.Ui_Dialog):
                 lineedit_widget.setLayout(lineedit_layout)
                 self.tableWidget.setCellWidget(i, 3, lineedit_widget)
 
-        self.set_list_thread.signal.connect(set_list_item)
+        self.set_list_thread.signal_fun.connect(set_list_item)
         self.set_list_thread.finished.connect(partial(self.notice, work, err))
 
     # 显示完成提示
     def notice(self, work: str, err: list = None):
-        self.textEdit.setText("{vm_name}: {work} 已完成\n{err}".format(vm_name=self.vm_name, work=work, err="\n".join(err) if err else ""))
         self.enable_button()
+        self.textEdit.setText("{vm_name}({vm_state}): {work} 已完成\n{err}".format(vm_name=self.vm_name, vm_state=self.vm_state, work=work, err="\n".join(err) if err else ""))
 
 
 if __name__ == "__main__":
