@@ -59,4 +59,5 @@ if __name__ == "__main__":
     # print(set_vmprocessor("杂项", {"ExposeVirtualizationExtensions": "$false"}))
     # print(get_vmprocessor("杂项")["ExposeVirtualizationExtensions"])
     time1 = time.time()
-    print(get_vm_state("杂项"), time.time() - time1)
+    # print(get_vm_state("杂项"), time.time() - time1)
+    print(get_vms(), time.time() - time1)
