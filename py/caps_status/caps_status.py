@@ -4,13 +4,15 @@ import sys
 import time
 
 import PySide6
-from pykeyboard import PyKeyboard
+from pynput import keyboard
 from PySide6.QtCore import QThread, Signal
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QApplication, QMenu, QSystemTrayIcon
 
-# pip install pywin32
-# pip install PyUserInput
+# pip install pynput
+
+# ~~pip install pywin32~~
+# ~~pip install PyUserInput~~
 
 
 class check_caps_status_work(QThread):
@@ -68,9 +70,10 @@ class TrayIcon(QSystemTrayIcon):
         self.check_thread.start()
 
     def iconClied(self, reason):
-        k = PyKeyboard()
+        k = keyboard.Controller()
         if reason in (PySide6.QtWidgets.QSystemTrayIcon.ActivationReason.Trigger, PySide6.QtWidgets.QSystemTrayIcon.ActivationReason.DoubleClick):
-            k.tap_key(k.caps_lock_key)
+            k.press(keyboard.Key.caps_lock)
+            k.release(keyboard.Key.caps_lock)
 
     def quit(self):
         self.setVisible(False)
