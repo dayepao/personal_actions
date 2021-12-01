@@ -11,6 +11,6 @@ if __name__ == '__main__':
             post_name="同步img",
             post_hour="3",
             post_minute="30",
-            post_sBody="sudo python3 /root/bingHD.py\nrsync -avzhP --update /onedrive/resource/img/ /www/wwwroot/img.dayepao.com/img/"
+            post_sBody="sudo python3.10 /root/bingHD.py\nrsync -avzhP --update /onedrive/resource/img/ /www/wwwroot/img.dayepao.com/img/"
         )
     )
