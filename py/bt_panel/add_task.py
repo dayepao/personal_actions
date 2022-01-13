@@ -9,8 +9,8 @@ if __name__ == '__main__':
     print(
         my_panel.add_crontab_CRONTAB(
             post_name="采集Bing每日壁纸",
-            post_hour="3",
-            post_minute="30",
+            post_hour="2",
+            post_minute="00",
             post_sBody="sudo python3.10 /root/bingHD.py"
         )
     )
@@ -20,6 +20,6 @@ if __name__ == '__main__':
             post_hour="4",
             post_minute="00",
             post_sBody="rsync -avzhP --update /onedrive/resource/img/ /www/wwwroot/img.dayepao.com/img/\n"
-            "rclone sync -P --exclude '{panel,file_history}/' /www/backup onedrive:VPS/backup"
+            "rclone sync --exclude '{panel,file_history}/' /www/backup onedrive:VPS/backup"
         )
     )
