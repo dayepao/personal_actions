@@ -2,72 +2,57 @@ import datetime
 import os
 import time
 
-from bs4 import BeautifulSoup
-
-from utils_dayepao import get_method, post_method
-
-# pip install httpx
+from utils_dayepao import dayepao_push, get_tags_with_certain_attrs
 
 PUSH_KEY = os.environ.get("PUSH_KEY")
-STREAMERS = {"楚河": "998"}  # "主播名称（随意）" : "房间号"
+STREAMERS = {"楚河": "998"}  # {"主播名称（随意）": "房间号"}
 
 
-def check_status(streamer_id):
+def generate_list(STREAMERS: dict) -> list[dict]:
+    streamers_list = []
+    for key, value in STREAMERS.items():
+        streamers_list.append({"name": key, "id": value, "status": check_status(value)})
+    return streamers_list
+
+
+def check_status(streamer_id: str):
+    status = "未在直播"
     url = "https://www.huya.com/" + streamer_id
-    res = get_method(url, headers, max_retries=0)
-    html = res.text
-    soup = BeautifulSoup(html, 'html.parser')
-    items = soup.find_all(class_='host-prevStartTime')
-    if not items:
-        status = '正在直播'
-    else:
-        status = "未在直播"
+    if not get_tags_with_certain_attrs(url=url, headers=headers, attrs={"class": "host-prevStartTime"}, max_retries=0)[0]:
+        time.sleep(10)
+        if not get_tags_with_certain_attrs(url=url, headers=headers, attrs={"class": "host-prevStartTime"}, max_retries=0)[0]:
+            status = "正在直播"
     return status
 
 
-def push(pushstr):
-    pushurl = "https://push.dayepao.com/?pushkey=" + PUSH_KEY
-    pushdata = {
-        "touser": "@all",
-        "msgtype": "text",
-        "agentid": 1000002,
-        "text": {
-            "content": pushstr
-        },
-        "safe": 0,
-        "enable_id_trans": 0,
-        "enable_duplicate_check": 0,
-        "duplicate_check_interval": 0
-    }
-    post_method(pushurl, postjson=pushdata, timeout=10)
-
-
 def mainblock():
-    streamers_status = {}
+    print("正在初始化...")
+    streamer_dict_list = generate_list(STREAMERS)
+    print(streamer_dict_list)
     print("正在监控" + str(list(STREAMERS.keys())) + "是否开播")
-
-    for streamer_name, streamer_id in STREAMERS.items():
-        streamers_status[streamer_name] = check_status(streamer_id)
 
     while True:
         now = datetime.datetime.now()
         now = now.strftime("%Y-%m-%d %H:%M:%S")
         pushstr = ""
-        for streamer_name, streamer_id in STREAMERS.items():
-            status = check_status(streamer_id)
-            if status == "正在直播":
-                if streamers_status[streamer_name] == "未在直播":
-                    pushstr += streamer_name + " 正在直播\n"
-                streamers_status[streamer_name] = '正在直播'
+        for streamer_dict in streamer_dict_list:
+            if (status := check_status(streamer_dict["id"])) == "正在直播":
+                if streamer_dict["status"] == "未在直播":
+                    pushstr += streamer_dict["name"] + " 正在直播\n"
+                streamer_dict["status"] = status
             else:
-                if streamers_status[streamer_name] == "正在直播":
-                    pushstr += streamer_name + " 下播了\n"
-                streamers_status[streamer_name] = "未在直播"
+                if streamer_dict["status"] == "正在直播":
+                    pushstr += streamer_dict["name"] + " 下播了\n"
+                streamer_dict["status"] = status
 
         if pushstr:
             pushstr = now + "\n\n" + pushstr
             print(pushstr)
-            push(pushstr)
+            print(dayepao_push(pushstr, PUSH_KEY))
+
+        streamers_status = {}
+        for streamer_dict in streamer_dict_list:
+            streamers_status[streamer_dict["name"]] = streamer_dict["status"]
 
         print(now + " " + str(streamers_status))
         time.sleep(30)

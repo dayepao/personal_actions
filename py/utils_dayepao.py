@@ -70,7 +70,11 @@ def post_method(url: str, postdata=None, postjson=None, headers: dict = None, ti
 
 
 def dayepao_push(pushstr: str, pushkey: str = ""):
-    pushurl = "https://push.dayepao.com/?pushkey=" + (os.environ.get("PUSH_KEY") if os.environ.get("PUSH_KEY") else pushkey)
+    try:
+        pushurl = "https://push.dayepao.com/?pushkey=" + pushkey
+    except Exception as e:
+        print(sys._getframe().f_code.co_name + ": " + str(e))
+        pushurl = "https://push.dayepao.com/?pushkey="
     pushdata = {
         "touser": "@all",
         "msgtype": "text",
@@ -131,16 +135,18 @@ def download_file(file_path: str, file_url: str, headers: dict = None):
         f.write(file_content)
 
 
-def get_tags_with_certain_attrs(url: str, headers: dict = None, attrs: dict[str, str] = None, c: httpx.Client = None):
+def get_tags_with_certain_attrs(url: str, headers: dict = None, attrs: dict[str, str] = None, max_retries=5, c: httpx.Client = None):
     """获得网页指定属性的标签
+
+    attrs: 标签属性
+    max_retries: 最大尝试次数，默认为 5 次，为 0 时禁用
 
     返回`(tags, tags_content)`
 
     tags: 标签列表
     tags_content: 标签内容列表
-    attrs: 标签属性
     """
-    res = get_method(url, headers, c=c)
+    res = get_method(url, headers, max_retries=max_retries, c=c)
     soup = BeautifulSoup(res.text, 'html.parser')
     temp_tags = list(soup.find_all(attrs=attrs))
     tags = []
