@@ -23,5 +23,5 @@ def get_info(code: str):
     return info
 
 
-stock_info = get_info("600157")
+stock_info = get_info("831726")
 print(stock_info)

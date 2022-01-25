@@ -2,13 +2,8 @@ import datetime
 import os
 import time
 
-from apscheduler.events import (EVENT_JOB_ERROR, EVENT_JOB_MISSED,
-                                JobExecutionEvent)
-from apscheduler.schedulers.background import BackgroundScheduler
-
-from utils_dayepao import dayepao_push, get_tags_with_certain_attrs
-
-# pip install apscheduler
+from utils_dayepao import (creat_apscheduler, dayepao_push,
+                           get_tags_with_certain_attrs)
 
 PUSH_KEY = os.environ.get("PUSH_KEY")
 STREAMERS = {"楚河": "998"}  # {"主播名称（随意）": "房间号"}
@@ -25,24 +20,26 @@ def get_status(streamer_id: str):
     status = "未在直播"
     url = "https://www.huya.com/" + streamer_id
     if not get_tags_with_certain_attrs(url=url, headers=headers, attrs={"class": "host-prevStartTime"}, max_retries=0)[0]:
-        time.sleep(10)
-        if not get_tags_with_certain_attrs(url=url, headers=headers, attrs={"class": "host-prevStartTime"}, max_retries=0)[0]:
-            status = "正在直播"
+        status = "正在直播"
     return status
 
 
-def check_job(streamer_dict_list):
+def check_job(streamer_dict_list: list[dict]):
     now = datetime.datetime.now()
     now = now.strftime("%Y-%m-%d %H:%M:%S")
     pushstr = ""
     for streamer_dict in streamer_dict_list:
         if (status := get_status(streamer_dict["id"])) == "正在直播":
             if streamer_dict["status"] == "未在直播":
-                pushstr += streamer_dict["name"] + " 正在直播\n"
+                time.sleep(10)  # 10s后再检测一次，防止误报
+                if (status := get_status(streamer_dict["id"])) == "正在直播":
+                    pushstr += streamer_dict["name"] + " 正在直播\n"
             streamer_dict["status"] = status
         else:
             if streamer_dict["status"] == "正在直播":
-                pushstr += streamer_dict["name"] + " 下播了\n"
+                time.sleep(10)
+                if (status := get_status(streamer_dict["id"])) == "未在直播":
+                    pushstr += streamer_dict["name"] + " 下播了\n"
             streamer_dict["status"] = status
 
     if pushstr:
@@ -56,26 +53,27 @@ def check_job(streamer_dict_list):
     print(now + " " + str(streamers_status))
 
 
-def apscheduler_event_handler(event: JobExecutionEvent):
-    if event.exception:
-        pushstr = "开播监控出现异常\nTraceback (most recent call last):\n{}\n{}".format(str(event.traceback), str(event.exception))
-    else:
-        pushstr = "开播监控出现异常\n任务被跳过\n原定执行时间: {}".format(str(event.scheduled_run_time))
-
-    print(dayepao_push(pushstr, PUSH_KEY))
-
-
 if __name__ == '__main__':
-    headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36 Edg/88.0.705.68', 'X-Forwarded-For': '121.238.47.136'}
+    headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36 Edg/97.0.1072.69', 'X-Forwarded-For': '121.238.47.136'}
     print("正在初始化...")
     streamer_dict_list = generate_list(STREAMERS)
+    print(streamer_dict_list)
     print("正在监控" + str(list(STREAMERS.keys())) + "是否开播")
 
-    sched = BackgroundScheduler()
+    sched_job_list = [
+        {
+            "func": check_job,
+            "trigger": "cron",
+            "args": [streamer_dict_list],
+            "kwargs": {},
+            "name": "开播监控",
+            "max_instances": 1,
+            "second": "*/30",
+            "timezone": "Asia/Shanghai"
+        }
+    ]
 
-    sched.add_job(check_job, "cron", args=[streamer_dict_list], second="*/30", timezone="Asia/Shanghai")
-    sched.add_listener(apscheduler_event_handler, EVENT_JOB_ERROR | EVENT_JOB_MISSED)
-
+    sched = creat_apscheduler(sched_job_list, pushkey=PUSH_KEY)
     sched.start()
 
     while True:

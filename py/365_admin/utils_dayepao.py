@@ -1,21 +1,28 @@
+import datetime
 import hashlib
 import os
 import re
 import subprocess
 import sys
 import time
+from functools import partial
 from queue import Queue
 from threading import Thread
 
 import __main__
+import apscheduler.job
 import chardet
 import httpx
+from apscheduler.events import (EVENT_JOB_ERROR, EVENT_JOB_MISSED,
+                                JobExecutionEvent)
+from apscheduler.schedulers.background import BackgroundScheduler
 from bs4 import BeautifulSoup
 
 """
 pip install httpx
 pip install beautifulsoup4
 pip install chardet
+pip install apscheduler
 """
 
 
@@ -230,6 +237,58 @@ def cmd_dayepao(cmd: str | list, encoding: str = None):
     cmd_thread.setDaemon(True)
     cmd_thread.start()
     return out_queue, err_queue
+
+
+def creat_apscheduler(sched_job_list: list[dict], pushkey: str = None):
+    """sched_job_list: [sched_job1, sched_job2, ...]
+
+    sched_job: {"func": func, "trigger": "date | interval | cron", "args": [], "kwargs": {}, "name": "name", "max_instances": 1, "second": "*/30", "timezone": "Asia/Shanghai"}
+    """
+
+    # 定时任务事件处理
+    def job_event_handler(sched: BackgroundScheduler, err_count: list[int | float], event: JobExecutionEvent):
+        if (time.time() - err_count[1]) > 60:
+            err_count[0] = 0
+
+        err_count[0] += 1
+        err_count[1] = time.time()
+
+        job: apscheduler.job.Job = sched.get_job(event.job_id)
+        now = datetime.datetime.now()
+        now = now.strftime("%Y-%m-%d %H:%M:%S")
+
+        if event.exception:
+            pushstr = "{}\n{}第{}次出现异常\nTraceback (most recent call last):\n{}\n{}\n".format(
+                str(now),
+                str(job.name),
+                str(err_count[0]),
+                str(event.traceback),
+                str(event.exception)
+            )
+        else:
+            pushstr = "{}\n{}第{}次出现异常\n任务被跳过\n原定执行时间: \n{}\n".format(
+                str(now),
+                str(job.name),
+                str(err_count[0]),
+                str(event.scheduled_run_time)
+            )
+
+        if err_count[0] >= 3:
+            sched.pause()
+            pushstr += "短时间内出现3次异常，定时任务已暂停"
+
+        print(pushstr)
+        if pushkey:
+            print(dayepao_push(pushstr, pushkey))
+
+    sched = BackgroundScheduler()
+    err_count = [0, time.time()]
+
+    # 添加定时任务
+    for sched_job in sched_job_list:
+        sched.add_job(**sched_job)
+    sched.add_listener(partial(job_event_handler, sched, err_count), EVENT_JOB_ERROR | EVENT_JOB_MISSED)
+    return sched
 
 
 def update_self():
