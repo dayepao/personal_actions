@@ -76,16 +76,21 @@ def post_method(url: str, postdata=None, postjson=None, headers: dict = None, ti
         sys.exit(sys._getframe().f_code.co_name + ": " + "Max retries exceeded")
 
 
-def dayepao_push(pushstr: str, pushkey: str = ""):
+def dayepao_push(
+    pushstr: str,
+    pushkey: str = "",
+    pushurl: str = "https://push.dayepao.com/",
+    agentid: str = "1000002",
+):
     try:
-        pushurl = "https://push.dayepao.com/?pushkey=" + pushkey
+        pushurl = "{}?pushkey={}".format(pushurl, pushkey)
     except Exception as e:
         print(sys._getframe().f_code.co_name + ": " + str(e))
         pushurl = "https://push.dayepao.com/?pushkey="
     pushdata = {
         "touser": "@all",
         "msgtype": "text",
-        "agentid": 1000002,
+        "agentid": agentid,
         "text": {
             "content": pushstr
         },
