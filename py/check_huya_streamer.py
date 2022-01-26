@@ -69,7 +69,6 @@ if __name__ == '__main__':
             "name": "开播监控",
             "max_instances": 1,
             "second": "*/30",
-            "timezone": "Asia/Shanghai"
         }
     ]
 

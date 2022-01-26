@@ -2,14 +2,19 @@ import datetime
 import json
 import os
 import sys
+import time
 
-from utils_dayepao import dayepao_push, get_method
+from utils_dayepao import creat_apscheduler, dayepao_push, get_method
 
 # 6开头：上证，1
 # 0或3开头：深证，0
 # 4或8开头：北证，0
 
-PUSH_KEY = os.environ.get("PUSH_KEY") or ""
+PUSH_KEY = os.environ.get("PUSH_KEY")
+CODE_LIST = ["600157"]
+CODE_CERTAINPRICE_DICT = {
+    "600157": "1.80",
+}
 
 
 def get_info(code: str):
@@ -93,14 +98,38 @@ def certain_price_push(code_certainPrice_dict: dict):
     if pushstr:
         print(pushstr)
         print(dayepao_push(pushstr, PUSH_KEY))
+    else:
+        print(now + " 没有股票达到预定价格")
 
 
-code_list = ["600157", "300157"]
-# code_list = []
-daily_push(code_list)
+if __name__ == '__main__':
+    headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36 Edg/97.0.1072.69', 'X-Forwarded-For': '121.238.47.136'}
+    print("开始股价监控...")
 
-code_certainPrice_dict = {
-    "600157": "1.81",
-    "300157": "1.81",
-}
-# certain_price_push(code_certainPrice_dict)
+    sched_job_list = [
+        {
+            "func": daily_push,
+            "trigger": "cron",
+            "args": [CODE_LIST],
+            "kwargs": {},
+            "name": "每日股价监控",
+            "max_instances": 1,
+            "hour": "10",
+        },
+        {
+            "func": certain_price_push,
+            "trigger": "cron",
+            "args": [CODE_CERTAINPRICE_DICT],
+            "kwargs": {},
+            "name": "特定股价监控",
+            "max_instances": 1,
+            "hour": "9-11, 13-15",
+            "minute": "*/10",
+        },
+    ]
+
+    sched = creat_apscheduler(sched_job_list, PUSH_KEY)
+    sched.start()
+
+    while True:
+        time.sleep(5)
