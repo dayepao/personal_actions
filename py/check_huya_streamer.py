@@ -72,7 +72,11 @@ if __name__ == '__main__':
         }
     ]
 
-    sched = creat_apscheduler(sched_job_list, pushkey=PUSH_KEY)
+    push_option = {
+        "pushkey": PUSH_KEY,
+    }
+
+    sched = creat_apscheduler(sched_job_list, push_option)
     sched.start()
 
     while True:

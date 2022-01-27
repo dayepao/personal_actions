@@ -11,9 +11,9 @@ from utils_dayepao import creat_apscheduler, dayepao_push, get_method
 # 4或8开头：北证，0
 
 PUSH_KEY = os.environ.get("PUSH_KEY")
-CODE_LIST = ["600157"]
+CODE_LIST = ["600157", "300498"]
 CODE_CERTAINPRICE_DICT = {
-    "600157": "1.80",
+    "600157": "1.86",
 }
 
 
@@ -70,7 +70,7 @@ def daily_push(code_list: list[str]):
 
     if pushstr:
         print(pushstr)
-        print(dayepao_push(pushstr, PUSH_KEY))
+        print(dayepao_push(pushstr, PUSH_KEY, pushurl="https://chenchenzi.lcx1214.workers.dev/"))
 
 
 def certain_price_push(code_certainPrice_dict: dict):
@@ -97,7 +97,7 @@ def certain_price_push(code_certainPrice_dict: dict):
 
     if pushstr:
         print(pushstr)
-        print(dayepao_push(pushstr, PUSH_KEY))
+        print(dayepao_push(pushstr, PUSH_KEY, pushurl="https://chenchenzi.lcx1214.workers.dev/"))
     else:
         print(now + " 没有股票达到预定价格")
 
@@ -128,7 +128,11 @@ if __name__ == '__main__':
         },
     ]
 
-    sched = creat_apscheduler(sched_job_list, PUSH_KEY)
+    push_option = {
+        "pushkey": "",
+    }
+
+    sched = creat_apscheduler(sched_job_list, push_option)
     sched.start()
 
     while True:

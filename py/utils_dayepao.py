@@ -78,7 +78,7 @@ def post_method(url: str, postdata=None, postjson=None, headers: dict = None, ti
 
 def dayepao_push(
     pushstr: str,
-    pushkey: str = "",
+    pushkey: str,
     pushurl: str = "https://push.dayepao.com/",
     agentid: str = "1000002",
 ):
@@ -244,8 +244,9 @@ def cmd_dayepao(cmd: str | list, encoding: str = None):
     return out_queue, err_queue
 
 
-def creat_apscheduler(sched_job_list: list[dict], pushkey: str = None, timezone: str = "Asia/Shanghai"):
+def creat_apscheduler(sched_job_list: list[dict], push_option: dict = {}, timezone: str = "Asia/Shanghai"):
     """sched_job_list: [sched_job1, sched_job2, ...]
+    push_option: {"pushkey": "", "pushurl": "https://push.dayepao.com/", "agentid": "1000002"}
 
     sched_job: {"func": func, "trigger": "date | interval | cron", "args": [], "kwargs": {}, "name": "name", "max_instances": 1, "second": "*/30", "timezone": "Asia/Shanghai"}
     """
@@ -283,8 +284,8 @@ def creat_apscheduler(sched_job_list: list[dict], pushkey: str = None, timezone:
             pushstr += "短时间内出现3次异常，定时任务已暂停"
 
         print(pushstr)
-        if pushkey:
-            print(dayepao_push(pushstr, pushkey))
+        if "pushkey" in push_option:
+            print(dayepao_push(pushstr, **push_option))
 
     sched = BackgroundScheduler(timezone=timezone)
     err_count = [0, time.time()]
