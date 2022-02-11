@@ -17,6 +17,19 @@ CODE_CERTAINPRICE_DICT = {
 }
 
 
+def generate_code_certainPrice_list(CODE_CERTAINPRICE_DICT: dict) -> list[dict]:
+    code_certainPrice_list = []
+    for key, value in CODE_CERTAINPRICE_DICT.items():
+        status = "未达到"
+        try:
+            price = float(get_info(key)["price"])
+            status = "未达到" if price < float(value) else "已达到"
+        except Exception as e:
+            print(sys._getframe().f_code.co_name + ": " + str(e))
+        code_certainPrice_list.append({"code": key, "certainPrice": value, "status": status})
+    return code_certainPrice_list
+
+
 def get_info(code: str):
     res = {
         "f43": "-",
@@ -45,6 +58,7 @@ def get_info(code: str):
     info["yesterday_price"] = str(res["f60"])
     info["change"] = str(res["f169"])
     info["changePercent"] = str(res["f170"]) + "%"
+
     return info
 
 
@@ -73,36 +87,43 @@ def daily_push(code_list: list[str]):
         print(dayepao_push(pushstr, PUSH_KEY, pushurl="https://chenchenzi.lcx1214.workers.dev/"))
 
 
-def certain_price_push(code_certainPrice_dict: dict):
+def certain_price_push(code_certainPrice_list: list[dict]):
     now = datetime.datetime.now()
     now = now.strftime("%Y-%m-%d %H:%M:%S")
     pushstr = ""
 
     count = 1
-    for code, certainPrice in code_certainPrice_dict.items():
-        info = get_info(code)
+
+    for code_certainPrice_status in code_certainPrice_list:
+        info = get_info(code_certainPrice_status["code"])
         try:
-            if float(info["price"]) >= float(certainPrice):
-                if count == 1:
-                    pushstr = now + "\n\n有股票达到预定价格\n"
-                pushstr += \
-                    "\n第{}支股票:\n".format(str(count)) + \
-                    "名称: {}\n".format(str(info["name"])) + \
-                    "代码: {}\n".format(str(info["code"])) + \
-                    "当前价格: {}\n".format(str(info["price"])) + \
-                    "预定价格: {}\n".format(str(certainPrice))
-                count += 1
+            if float(info["price"]) >= float(code_certainPrice_status["certainPrice"]):
+                if code_certainPrice_status["status"] == "未达到":
+                    if count == 1:
+                        pushstr = now + "\n\n有股票达到预定价格\n"
+                    pushstr += \
+                        "\n第{}支股票:\n".format(str(count)) + \
+                        "名称: {}\n".format(str(info["name"])) + \
+                        "代码: {}\n".format(str(info["code"])) + \
+                        "当前价格: {}\n".format(str(info["price"])) + \
+                        "预定价格: {}\n".format(str(code_certainPrice_status["certainPrice"]))
+                    count += 1
+                    code_certainPrice_status["status"] = "已达到"
+            else:
+                code_certainPrice_status["status"] = "未达到"
         except Exception as e:
             print(sys._getframe().f_code.co_name + ": " + str(e))
 
     if pushstr:
         print(pushstr)
         print(dayepao_push(pushstr, PUSH_KEY, pushurl="https://chenchenzi.lcx1214.workers.dev/"))
+        print(now + " " + str(code_certainPrice_list))
     else:
-        print(now + " 没有股票达到预定价格")
+        print(now + " " + str(code_certainPrice_list))
 
 
 if __name__ == '__main__':
+    code_certainPrice_list = generate_code_certainPrice_list(CODE_CERTAINPRICE_DICT)
     headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36 Edg/97.0.1072.69', 'X-Forwarded-For': '121.238.47.136'}
     print("开始股价监控...")
 
@@ -119,7 +140,7 @@ if __name__ == '__main__':
         {
             "func": certain_price_push,
             "trigger": "cron",
-            "args": [CODE_CERTAINPRICE_DICT],
+            "args": [code_certainPrice_list],
             "kwargs": {},
             "name": "特定股价监控",
             "max_instances": 1,
