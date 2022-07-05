@@ -7,12 +7,13 @@ from utils_dayepao import (creat_apscheduler, dayepao_push,
 
 PUSH_KEY = os.environ.get("PUSH_KEY")
 STREAMERS = {"楚河": "998"}  # {"主播名称（随意）": "房间号"}
+MAX_PUSH_COUNT = 5  # 每个主播每天最多推送次数，0点清零
 
 
 def generate_list(STREAMERS: dict) -> list[dict]:
     streamers_list = []
     for key, value in STREAMERS.items():
-        streamers_list.append({"name": key, "id": value, "status": get_status(value)})
+        streamers_list.append({"name": key, "id": value, "status": get_status(value), "counter": 0})
     return streamers_list
 
 
@@ -29,17 +30,14 @@ def check_job(streamer_dict_list: list[dict]):
     now = now.strftime("%Y-%m-%d %H:%M:%S")
     pushstr = ""
     for streamer_dict in streamer_dict_list:
-        if (status := get_status(streamer_dict["id"])) == "正在直播":
+        if ((status := get_status(streamer_dict["id"])) == "正在直播") and (streamer_dict["counter"] < MAX_PUSH_COUNT):
             if streamer_dict["status"] == "未在直播":
-                time.sleep(10)  # 10s后再检测一次，防止误报
-                if (status := get_status(streamer_dict["id"])) == "正在直播":
-                    pushstr += streamer_dict["name"] + " 正在直播\n"
+                pushstr += streamer_dict["name"] + " 正在直播\n"
+                streamer_dict["counter"] += 1  # 每推送一次开播，计数器加1
             streamer_dict["status"] = status
         else:
             if streamer_dict["status"] == "正在直播":
-                time.sleep(10)
-                if (status := get_status(streamer_dict["id"])) == "未在直播":
-                    pushstr += streamer_dict["name"] + " 下播了\n"
+                pushstr += streamer_dict["name"] + " 下播了\n"
             streamer_dict["status"] = status
 
     if pushstr:
@@ -53,6 +51,11 @@ def check_job(streamer_dict_list: list[dict]):
     print(now + " " + str(streamers_status))
 
 
+def reset_counter(streamer_dict_list: list[dict]):
+    for streamer_dict in streamer_dict_list:
+        streamer_dict["counter"] = 0
+
+
 if __name__ == '__main__':
     headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36 Edg/97.0.1072.69', 'X-Forwarded-For': '121.238.47.136'}
     print("正在初始化...")
@@ -62,14 +65,22 @@ if __name__ == '__main__':
 
     sched_job_list = [
         {
-            "func": check_job,
-            "trigger": "cron",
-            "args": [streamer_dict_list],
-            "kwargs": {},
             "name": "开播监控",
+            "func": check_job,
+            "args": [streamer_dict_list],
+            "trigger": "cron",
+            "minute": "*/5",
+            "next_run_time": datetime.datetime.now() + datetime.timedelta(seconds=5),
             "max_instances": 1,
-            "second": "*/30",
-        }
+        },
+        {
+            "name": "重置计数器",
+            "func": reset_counter,
+            "args": [streamer_dict_list],
+            "trigger": "cron",
+            "hour": "0",
+            "max_instances": 1,
+        },
     ]
 
     push_option = {

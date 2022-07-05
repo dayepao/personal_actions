@@ -248,9 +248,14 @@ def cmd_dayepao(cmd: str | list, encoding: str = None):
 
 def creat_apscheduler(sched_job_list: list[dict], push_option: dict = {}, timezone: str = "Asia/Shanghai"):
     """sched_job_list: [sched_job1, sched_job2, ...]
-    push_option: {"pushkey": "", "pushurl": "https://push.dayepao.com/", "agentid": "1000002"}
 
-    sched_job: {"func": func, "trigger": "date | interval | cron", "args": [], "kwargs": {}, "name": "name", "max_instances": 1, "second": "*/30", "timezone": "Asia/Shanghai"}
+    push_option: 错误推送参数
+
+    {"pushkey": "", "pushurl": "https://push.dayepao.com/", "agentid": "1000002"}
+
+    sched_job: 计划任务示例
+
+    {"name": "name", "id": "", "func": func, "args": [], "kwargs": {}, "trigger": "date | interval | cron", "second": "*/30", "next_run_time": datetime.datetime.now() + datetime.timedelta(seconds=5), "max_instances": 1, "timezone": "Asia/Shanghai"}
     """
 
     # 定时任务事件处理
