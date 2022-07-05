@@ -30,14 +30,20 @@ def check_job(streamer_dict_list: list[dict]):
     now = now.strftime("%Y-%m-%d %H:%M:%S")
     pushstr = ""
     for streamer_dict in streamer_dict_list:
-        if ((status := get_status(streamer_dict["id"])) == "正在直播") and (streamer_dict["counter"] < MAX_PUSH_COUNT):
+        if (status := get_status(streamer_dict["id"])) == "正在直播":
             if streamer_dict["status"] == "未在直播":
-                pushstr += streamer_dict["name"] + " 正在直播\n"
-                streamer_dict["counter"] += 1  # 每推送一次开播，计数器加1
+                if streamer_dict["counter"] < MAX_PUSH_COUNT:
+                    pushstr += streamer_dict["name"] + " 正在直播\n"
+                    streamer_dict["counter"] += 1  # 每推送一次开播，计数器加1
+                    if streamer_dict["counter"] == MAX_PUSH_COUNT:
+                        pushstr += streamer_dict["name"] + " 已达到今日开播推送次数上限({MAX_PUSH_COUNT}次)\n".format(MAX_PUSH_COUNT=MAX_PUSH_COUNT)
             streamer_dict["status"] = status
         else:
             if streamer_dict["status"] == "正在直播":
-                pushstr += streamer_dict["name"] + " 下播了\n"
+                if streamer_dict["counter"] <= MAX_PUSH_COUNT:
+                    pushstr += streamer_dict["name"] + " 下播了\n"
+                    if streamer_dict["counter"] == MAX_PUSH_COUNT:
+                        streamer_dict["counter"] += 1  # 计数器加1，避免重复推送下播通知
             streamer_dict["status"] = status
 
     if pushstr:
@@ -48,7 +54,7 @@ def check_job(streamer_dict_list: list[dict]):
     for streamer_dict in streamer_dict_list:
         streamers_status[streamer_dict["name"]] = streamer_dict["status"]
 
-    print(now + " " + str(streamers_status))
+    print("{now} {streamers_status}".format(now=now, streamers_status=streamers_status))
 
 
 def reset_counter(streamer_dict_list: list[dict]):
