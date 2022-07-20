@@ -7,7 +7,7 @@ from utils_dayepao import get_method, post_method
 
 GH_ACTOR = os.environ.get('GH_ACTOR')
 PUSH_KEY = os.environ.get('PUSH_KEY')
-REPOS = ["AutoApiS", "uptime-status", "onedrive-cf-index"]  # 仓库名称
+REPOS = ["AutoApiS", "uptime-status", "onedrive-vercel-index"]  # 仓库名称
 
 
 if __name__ == '__main__':
