@@ -14,7 +14,7 @@ jobs:
         sudo timedatectl set-timezone 'Asia/Shanghai'
     - name: Update keepalive
       run: | 
-        repos="personal_actions backup onedrive-cf-index" #仓库名称
+        repos="personal_actions backup" #仓库名称
         str="$(date)\n\n"
         for repo in $repos
         do

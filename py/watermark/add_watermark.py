@@ -38,7 +38,7 @@ def get_image_dominant_color(image: Image.Image):
             continue
 
         saturation = colorsys.rgb_to_hsv(r / 255.0, g / 255.0, b / 255.0)[1]  # 获得HSV色彩空间饱和度，0-1
-        y = min((abs(r * 2104 + g * 4130 + b * 802 + 4096 + 131072) >> 13), 235)  # 获得YUV色彩空间亮度，
+        y = min((abs(r * 2104 + g * 4130 + b * 802 + 4096 + 131072) >> 13), 235)  # 获得YUV色彩空间亮度
         y = (y - 16.0) / (235 - 16)  # 将亮度从 16-235 放缩到 0-1
         # 忽略高亮色
         if y > 0.9:
@@ -113,6 +113,11 @@ def add_text_watermark_to_image(img_path: str, text: str, font_path: str = resou
     img.save("{}_wm.{}".format(os.path.splitext(img_path)[0], os.path.splitext(img_path)[1]), quality=90)
     # 关闭图片
     img.close()
+
+
+# 给PDF添加文字水印
+def add_text_watermark_to_pdf(pdf_path: str, text: str, font_path: str = resource_path(os.path.join('fonts', 'SourceHanSansCN-Regular.otf')), font_size: int | str = "auto", color: str = "#696969", opacity: int = 30, angle: int = 20, with_stroke: bool = True):
+    pass
 
 
 if __name__ == "__main__":
