@@ -81,6 +81,7 @@ def dayepao_push(
     pushkey: str,
     pushurl: str = "https://push.dayepao.com/",
     agentid: str = "1000002",
+    touser: str = "@all",
 ):
     try:
         pushurl = "{}?pushkey={}".format(pushurl, pushkey)
@@ -88,7 +89,7 @@ def dayepao_push(
         print(sys._getframe().f_code.co_name + ": " + str(e))
         pushurl = "https://push.dayepao.com/?pushkey="
     pushdata = {
-        "touser": "@all",
+        "touser": touser,
         "msgtype": "text",
         "agentid": agentid,
         "text": {
