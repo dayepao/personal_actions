@@ -232,7 +232,7 @@ def add_text_watermark_to_pdf(pdf_path: str, text: str, font_path: str = resourc
             w = 0
             while w < size[0]:
                 tw.fill_textbox(text_rect, text, font=font, fontsize=font_size)
-                text_rect += fitz.Rect(1.1 * font_length, 0, 1.1 * font_length + 100, 0)
+                text_rect += fitz.Rect(font_length + 50, 0, font_length + 50, 0)
                 w += font_length
             text_rect += fitz.Rect(0, 4 * font_size, 0, 4 * font_size)
             h += (font_size * 1.5)

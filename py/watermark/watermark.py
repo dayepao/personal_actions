@@ -147,7 +147,10 @@ class mainwindow(QMainWindow, watermark_ui.Ui_MainWindow):
     def add_watermark(self):
         # 处理文件
         try:
-            self.supported_files
+            if len(self.supported_files) == 0:
+                self.lineEdit.setText("请选择图片或PDF文件")
+                self.clear_tableWidget()
+                return
         except Exception:
             self.lineEdit.setText("请选择图片或PDF文件")
             return
@@ -161,6 +164,7 @@ class mainwindow(QMainWindow, watermark_ui.Ui_MainWindow):
 
         def on_thread_finished():
             self.lineEdit.setText("处理完成")
+            self.supported_files = []
             self.enable_ui()
 
         self.add_watermark_thread.finished.connect(on_thread_finished)
