@@ -8,22 +8,25 @@ from PySide6.QtWidgets import (QAbstractItemView, QApplication, QFileDialog,
                                QTableWidget, QTableWidgetItem, QToolTip)
 
 import watermark_ui
+from add_watermark import (add_text_watermark_to_image,
+                           add_text_watermark_to_pdf)
 
 
 class add_watermark_thread_work(QThread):
-    signal = Signal(tuple)
+    signal = Signal(int)
 
-    def __init__(self, supported_files: list[tuple], parent: None = None) -> None:
+    def __init__(self, supported_files: list[tuple], wm_text: str, parent: None = None) -> None:
         super().__init__(parent=parent)
         self.supported_files = supported_files
-
-    def get_file_list(self):
-        pass
+        self.wm_text = wm_text
 
     def run(self):
-        print(self.supported_files)
-        time.sleep(5)
-        print(1)
+        for file in self.supported_files:
+            if file[1].split(".")[-1] == "pdf":
+                add_text_watermark_to_pdf(file[1], self.wm_text)
+            else:
+                add_text_watermark_to_image(file[1], self.wm_text)
+            self.signal.emit(file[0])
 
 
 class mainwindow(QMainWindow, watermark_ui.Ui_MainWindow):
@@ -143,8 +146,16 @@ class mainwindow(QMainWindow, watermark_ui.Ui_MainWindow):
 
     def add_watermark(self):
         # 处理文件
+        try:
+            self.supported_files
+        except Exception:
+            self.lineEdit.setText("请选择图片或PDF文件")
+            return
+        if not self.lineEdit_2.text():
+            self.lineEdit.setText("水印内容不能为空")
+            return
         self.disable_ui()
-        self.add_watermark_thread = add_watermark_thread_work(self.supported_files)
+        self.add_watermark_thread = add_watermark_thread_work(self.supported_files, self.lineEdit_2.text())
         self.lineEdit.setText("正在处理...")
         self.add_watermark_thread.start()
 
@@ -153,6 +164,12 @@ class mainwindow(QMainWindow, watermark_ui.Ui_MainWindow):
             self.enable_ui()
 
         self.add_watermark_thread.finished.connect(on_thread_finished)
+
+        def set_status(row_num):
+            self.tableWidget.setItem(row_num, 0, QTableWidgetItem("已完成"))
+            self.tableWidget.item(row_num, 0).setBackground(QColor(0, 255, 0, 100))
+
+        self.add_watermark_thread.signal.connect(set_status)
 
 
 if __name__ == '__main__':

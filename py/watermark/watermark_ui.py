@@ -86,9 +86,9 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Watermark", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"\u6c34\u5370\u5185\u5bb9: ", None))
         ___qtablewidgetitem = self.tableWidget.horizontalHeaderItem(0)
-        ___qtablewidgetitem.setText(QCoreApplication.translate("MainWindow", u"\u6587\u4ef6", None));
+        ___qtablewidgetitem.setText(QCoreApplication.translate("MainWindow", u"\u72b6\u6001", None));
         ___qtablewidgetitem1 = self.tableWidget.horizontalHeaderItem(1)
-        ___qtablewidgetitem1.setText(QCoreApplication.translate("MainWindow", u"\u72b6\u6001", None));
+        ___qtablewidgetitem1.setText(QCoreApplication.translate("MainWindow", u"\u6587\u4ef6", None));
         self.pushButton_2.setText(QCoreApplication.translate("MainWindow", u"\u5904\u7406", None))
         self.pushButton.setText(QCoreApplication.translate("MainWindow", u"\u6d4f\u89c8", None))
     # retranslateUi
