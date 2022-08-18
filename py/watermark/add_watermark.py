@@ -2,10 +2,10 @@ import colorsys
 import io
 import os
 import sys
+from collections import Counter
 
 import fitz
 from PIL import Image, ImageDraw, ImageFont
-from collections import Counter
 
 # pip install pillow
 # pip install pymupdf
@@ -196,7 +196,7 @@ def add_text_watermark_to_pdf_old(pdf_path: str, text: str, font_path: str = res
 # https://pymupdf.readthedocs.io/en/latest/shape.html#Shape.insert_textbox
 # https://pymupdf.readthedocs.io/en/latest/textwriter.html#textwriter
 # 给PDF添加文字水印
-def add_text_watermark_to_pdf(pdf_path: str, text: str, font_path: str = resource_path(os.path.join('fonts', 'SourceHanSansCN-Regular.otf')), font_size: int | str = "auto", color: str = "#696969", opacity: int = 30, angle: int = 20, with_stroke: bool = True):
+def add_text_watermark_to_pdf(pdf_path: str, text: str, font_path: str = resource_path(os.path.join('fonts', 'SourceHanSansCN-Regular.otf')), font_size: int | str = "auto", color: str = "#696969", opacity: int = 30, angle: int = 20):
     assert os.path.exists(pdf_path), "PDF不存在"
     # 打开PDF
     size_dict = {}
