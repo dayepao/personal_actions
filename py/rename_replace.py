@@ -2,7 +2,7 @@ import copy
 import os
 
 cur_paths = ["Z:\\"]
-replace_list = [("：", " - "), (":", " - "), ("  ", " ")]
+replace_list = [("：", " - "), (":", " - "), ("？", "#"), ("  ", " ")]
 
 
 def rename_and_return_child_dir(path, replace_list):
