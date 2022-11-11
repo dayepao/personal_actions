@@ -3,6 +3,7 @@ import re
 import sys
 
 from utils_dayepao import get_self_dir
+from rename_replace import rename_replace
 
 
 # 删除指定后缀的文件
@@ -92,6 +93,10 @@ if __name__ == "__main__":
         os.mkdir(root_path)
         print("创建目录: ", root_path)
 
+    print("开始处理文件名中不受支持的字符")
+    rename_replace(root_path, [("：", " - "), (":", " - "), ("？", "#"), ("  ", " ")])
+
+    print("开始重命名")
     filename_map = get_filename_map(root_path)
     # print(json.dumps(filename_map, indent=4, ensure_ascii=False))
 

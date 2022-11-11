@@ -31,9 +31,11 @@ def rename_and_return_child_dir(path, replace_list):
     return child_dir
 
 
-if __name__ == "__main__":
-    cur_paths = ["Z:\\"]
-    replace_list = [("：", " - "), (":", " - "), ("？", "#"), ("  ", " ")]
+def rename_replace(path, replace_list):
+    if type(path) == list:
+        cur_paths = path
+    else:
+        cur_paths = [path]
     print("正在处理")
     while True:
         temp_dir = []
@@ -46,3 +48,9 @@ if __name__ == "__main__":
         if cur_paths == []:
             break
     print("处理完成")
+
+
+if __name__ == "__main__":
+    path = ["Y:\\", "Z:\\"]
+    replace_list = [("：", " - "), (":", " - "), ("？", "#"), ("  ", " ")]
+    rename_replace(path, replace_list)
