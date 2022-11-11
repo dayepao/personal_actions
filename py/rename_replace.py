@@ -1,9 +1,6 @@
 import copy
 import os
 
-cur_paths = ["Z:\\"]
-replace_list = [("：", " - "), (":", " - "), ("？", "#"), ("  ", " ")]
-
 
 def rename_and_return_child_dir(path, replace_list):
     child_dir = []
@@ -34,13 +31,18 @@ def rename_and_return_child_dir(path, replace_list):
     return child_dir
 
 
-while True:
-    temp_dir = []
-    for cur_path in cur_paths:
-        cur_child_dir = rename_and_return_child_dir(cur_path, replace_list)
-        if len(cur_child_dir) == 0:
-            continue
-        temp_dir.extend(cur_child_dir)
-    cur_paths = copy.deepcopy(temp_dir)
-    if cur_paths == []:
-        break
+if __name__ == "__main__":
+    cur_paths = ["Z:\\"]
+    replace_list = [("：", " - "), (":", " - "), ("？", "#"), ("  ", " ")]
+    print("正在处理")
+    while True:
+        temp_dir = []
+        for cur_path in cur_paths:
+            cur_child_dir = rename_and_return_child_dir(cur_path, replace_list)
+            if len(cur_child_dir) == 0:
+                continue
+            temp_dir.extend(cur_child_dir)
+        cur_paths = copy.deepcopy(temp_dir)
+        if cur_paths == []:
+            break
+    print("处理完成")
