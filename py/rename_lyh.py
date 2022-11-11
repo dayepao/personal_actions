@@ -91,7 +91,6 @@ if __name__ == "__main__":
     if not os.path.exists(root_path):
         os.mkdir(root_path)
         print("创建目录: ", root_path)
-        sys.exit(0)
 
     filename_map = get_filename_map(root_path)
     # print(json.dumps(filename_map, indent=4, ensure_ascii=False))
@@ -111,3 +110,4 @@ if __name__ == "__main__":
                 print("重命名: ", old_name, " >>>>>> ", new_name)
 
     print("处理完成")
+    input("按回车键退出")
