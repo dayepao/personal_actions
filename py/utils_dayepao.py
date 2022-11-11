@@ -9,6 +9,7 @@ from functools import partial
 from queue import Queue
 from threading import Thread
 
+import __main__
 import apscheduler.job
 import chardet
 import httpx
@@ -122,8 +123,11 @@ def get_self_dir():
     py_dir: 当前.py文件所在文件夹路径
     py_name: 当前.py文件名
     """
-    py_path = os.path.realpath(__file__)
-    py_dir, py_name = os.path.split(os.path.realpath(__file__))
+    py_path = os.path.realpath(__main__.__file__)
+    py_dir, py_name = os.path.split(py_path)
+    if os.path.splitext(__file__)[1] != ".py":
+        py_path = os.path.realpath(sys.executable)
+        py_dir, py_name = os.path.split(py_path)
     return py_path, py_dir, py_name
 
 
