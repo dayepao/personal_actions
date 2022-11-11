@@ -90,7 +90,7 @@ if __name__ == "__main__":
     root_path = os.path.join(get_self_dir()[1], "rename_lyh")
     if not os.path.exists(root_path):
         os.mkdir(root_path)
-        print("创建目录：", root_path)
+        print("创建目录: ", root_path)
         sys.exit(0)
 
     filename_map = get_filename_map(root_path)
@@ -102,12 +102,12 @@ if __name__ == "__main__":
             new_path = os.path.join(root_path, new_name)
             if old_path != new_path:
                 if os.path.exists(new_path):
-                    if input("文件已存在：{}，是否删除？[y/N]".format(new_path)) in ("y", "Y"):
+                    if input("文件已存在: {}，是否删除？[y/N]".format(new_path)) in ("y", "Y"):
                         os.remove(new_path)
                     else:
                         print("请手动处理后重新运行程序")
                         sys.exit(0)
                 os.rename(old_path, new_path)
-                print("重命名：", old_name, " >>>>>> ", new_name)
+                print("重命名: ", old_name, " >>>>>> ", new_name)
 
     print("处理完成")
