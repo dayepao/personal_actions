@@ -88,7 +88,7 @@ def get_filename_map(root_path):
 
 
 if __name__ == "__main__":
-    root_path = os.path.join(get_self_dir()[1], "rename_lyh")
+    root_path = os.path.join(get_self_dir()[1], "rename_media")
     if not os.path.exists(root_path):
         os.mkdir(root_path)
         print("创建目录: ", root_path)
