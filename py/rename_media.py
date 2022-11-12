@@ -1,9 +1,10 @@
+import copy
 import os
 import re
 import sys
 
-from utils_dayepao import get_self_dir
 from rename_replace import rename_replace
+from utils_dayepao import get_self_dir
 
 
 # 删除指定后缀的文件
@@ -17,7 +18,7 @@ def delete_useless_file(path):
 
 # 识别文件名中的集数
 def get_episode_num(file_name: str):
-    is_pure_num = re.search(r"^\d+$", os.path.splitext(file_name)[0])
+    is_pure_num = re.search(re.compile(r"^\d+$"), os.path.splitext(file_name)[0])
     if is_pure_num:
         file_name = "e{}".format(file_name)
 
@@ -33,12 +34,16 @@ def get_episode_num(file_name: str):
     file_name = file_name.replace("sp", "e")
     file_name = file_name.replace("e", "e0")
     file_name = file_name.replace("00", "0")
-    episode_num = re.search(r".*e(\d+)[^0-9]*", file_name)
+    episode_num = re.findall(re.compile(r"e(\d+)[^0-9]*"), file_name)
+    temp_episode_num = copy.deepcopy(episode_num)
+    for num in temp_episode_num:
+        if num == "0":
+            episode_num.remove(num)
     if episode_num:
-        if episode_num.group(1).startswith("0") and len(episode_num.group(1)) == 3 and episode_num.group(1)[0] == "0":
-            episode_num = episode_num.group(1)[1:]
+        if episode_num[0].startswith("0") and len(episode_num[0]) == 3 and episode_num[0][0] == "0":
+            episode_num = episode_num[0][1:]
         else:
-            episode_num = episode_num.group(1)
+            episode_num = episode_num[0]
     return episode_num if episode_num else None
 
 
@@ -97,6 +102,7 @@ if __name__ == "__main__":
     rename_replace(root_path, [("：", " - "), (":", " - "), ("？", "#"), ("  ", " ")])
 
     print("开始重命名")
+    print("正在处理")
     filename_map = get_filename_map(root_path)
     # print(json.dumps(filename_map, indent=4, ensure_ascii=False))
 
