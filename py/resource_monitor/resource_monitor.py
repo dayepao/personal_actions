@@ -11,9 +11,12 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QTextEdit
 class mainwindow(QMainWindow):
     def __init__(self, screen_num: int = 0, parent=None):
         super().__init__(parent)
-        self.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint)
+        # self.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint)  # 设置窗口置顶
         self.setWindowTitle("resource_monitor by @dayepao")
-        self.screen = QGuiApplication.screens()[screen_num]
+        try:
+            self.screen = QGuiApplication.screens()[screen_num]
+        except IndexError:
+            self.screen = QGuiApplication.primaryScreen()
         self.setGeometry(self.screen.geometry())  # 设置窗口大小为屏幕大小
         self.TextEdit = QTextEdit(self)
         self.TextEdit.setGeometry(0, 0, self.geometry().width(), self.geometry().height())
