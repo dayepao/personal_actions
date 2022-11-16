@@ -23,6 +23,7 @@ def get_episode_num(file_name: str):
         file_name = "e{}".format(file_name)
 
     file_name = file_name.replace("BDE4", "")
+    file_name = file_name.replace("[", "e")
     file_name = file_name.replace("(", "")
     file_name = file_name.replace(")", "")
     file_name = file_name.replace(" ", "")
@@ -34,10 +35,10 @@ def get_episode_num(file_name: str):
     file_name = file_name.replace("sp", "e")
     file_name = file_name.replace("e", "e0")
     file_name = file_name.replace("00", "0")
-    episode_num = re.findall(re.compile(r"e(\d+)[^0-9]*"), file_name)
+    episode_num = re.findall(re.compile(r"e(\d+)[^0-9]"), file_name)
     temp_episode_num = copy.deepcopy(episode_num)
     for num in temp_episode_num:
-        if num == "0":
+        if num == "0" or int(num) > 100:
             episode_num.remove(num)
     if episode_num:
         if episode_num[0].startswith("0") and len(episode_num[0]) == 3 and episode_num[0][0] == "0":
@@ -69,7 +70,7 @@ def get_filename_map(root_path):
         delete_useless_file(video_path)
         for season in os.listdir(video_path):
             season_path = os.path.join(video_path, season)
-            if not os.path.isdir(season_path):
+            if (not os.path.isdir(season_path)) or ("Season" not in season and "season" not in season):
                 continue
             delete_useless_file(season_path)
             for file in os.listdir(season_path):
