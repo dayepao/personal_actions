@@ -8,20 +8,10 @@ from sub_thread import resource_monitor
 # pip install PySide6
 # pip install psutil
 
-# apt install task-gnome-desktop
-
-# vi /etc/gdm3/daemon.conf
-# 在 security 下面添加 AllowRoot=true
-# 保存后退出vi
-# vi /etc/pam.d/gdm-password /etc/pam.d/gdm3-autologin
-
-# 注释掉这一行 auth required pam_succeed_if.so user != root quiet_success
-# #auth required pam_succeed_if.so user != root quiet_success
-# 保存后退出vi
-
 
 # apt install libegl1-mesa
 # apt install libqt5gui5
+# export DISPLAY=:0
 
 
 class mainwindow(QMainWindow):
@@ -77,8 +67,8 @@ class mainwindow(QMainWindow):
         if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
             if event.key() == Qt.Key.Key_Q:
                 self.stop()
-            if event.key() == Qt.Key.Key_L:
-                self.resource_monitor_thread.get_system_utilization_thread.quit()
+            # if event.key() == Qt.Key.Key_L:
+            #     self.resource_monitor_thread.get_system_utilization_thread.quit()
                 # self.resource_monitor_thread.quit()
 
 
