@@ -16,6 +16,47 @@ def delete_useless_file(path):
                 os.remove(child_path)
 
 
+def get_left_same_part(file_list):
+    left_same_part = ""
+    i = 0
+    flag = True
+    for i in range(len(file_list[0])):
+        left_same_part += file_list[0][i]
+        for file in file_list:
+            if left_same_part != file[:i+1]:
+                left_same_part = left_same_part[:-1]
+                flag = False
+            if not flag:
+                break
+        i += 1
+        if not flag:
+            break
+    return left_same_part
+
+
+def get_right_same_part(file_list):
+    right_same_part = ""
+    i = 0
+    flag = True
+    for i in range(len(file_list[0])):
+        right_same_part = file_list[0][-i-1] + right_same_part
+        for file in file_list:
+            if right_same_part != file[-i-1:]:
+                right_same_part = right_same_part[1:]
+                flag = False
+            if not flag:
+                break
+        i += 1
+        if not flag:
+            break
+
+    if os.path.splitext(right_same_part)[1] != "":
+        right_same_part = os.path.splitext(right_same_part)[0]
+    else:
+        right_same_part = ""
+    return right_same_part
+
+
 # 识别文件名中的集数
 def get_episode_num(file_name: str):
     is_pure_num = re.search(re.compile(r"^\d+$"), os.path.splitext(file_name)[0])
@@ -23,6 +64,8 @@ def get_episode_num(file_name: str):
         file_name = "e{}".format(file_name)
 
     file_name = file_name.replace("BDE4", "")
+    file_name = file_name.replace("【", "[")
+    file_name = file_name.replace("】", "]")
     file_name = file_name.replace("[", "e")
     file_name = file_name.replace("(", "")
     file_name = file_name.replace(")", "")
@@ -57,9 +100,52 @@ def handle_error(none_name, duplicate_name):
         print("\033[1;31m存在重复: \033[0m")
         for old_name, new_name in duplicate_name.items():
             print("    {} >>>>>> {}".format(old_name, new_name))
+    print("")
 
 
-def get_filename_map(root_path):
+def get_filename_map_same_part_removal(root_path):
+    print("正在尝试使用去除重复部分的方法重命名...")
+    filename_map = {}
+    none_name = []
+    delete_useless_file(root_path)
+    for video_name in os.listdir(root_path):
+        video_path = os.path.join(root_path, video_name)
+        if not os.path.isdir(video_path):
+            continue
+        delete_useless_file(video_path)
+        for season in os.listdir(video_path):
+            season_path = os.path.join(video_path, season)
+            if (not os.path.isdir(season_path)) or ("Season" not in season and "season" not in season):
+                continue
+            delete_useless_file(season_path)
+            file_list = os.listdir(season_path)
+            left_same_part = get_left_same_part(file_list)
+            right_same_part = get_right_same_part(file_list)
+            file_dict = {}
+            for file in file_list:
+                file_dict[file] = file.replace(left_same_part, "").replace(right_same_part, "")
+            for file, temp_file in file_dict.items():
+                file_path = os.path.join(season_path, file)
+                if not os.path.isfile(file_path):
+                    continue
+                if (episode_num := get_episode_num(temp_file)):
+                    filename_map[os.path.join(video_name, season, file)] = os.path.join(video_name, season, "{} S{}E{}.mp4".format(video_name, season[-2:], episode_num))
+                else:
+                    none_name.append(os.path.join(video_name, season, file))
+
+    new_name_list = list(filename_map.values())
+    duplicate_name = {}
+    for old_name, new_name in filename_map.items():
+        if new_name_list.count(new_name) > 1:
+            duplicate_name[old_name] = new_name
+    if none_name or duplicate_name:
+        handle_error(none_name, duplicate_name)
+        return None
+    return filename_map
+
+
+def get_filename_map_regular(root_path):
+    print("正在尝试使用正则表达式识别文件名...")
     filename_map = {}
     none_name = []
     delete_useless_file(root_path)
@@ -104,7 +190,9 @@ if __name__ == "__main__":
 
     print("开始重命名")
     print("正在处理")
-    filename_map = get_filename_map(root_path)
+
+    if not (filename_map := get_filename_map_regular(root_path)):
+        filename_map = get_filename_map_same_part_removal(root_path)
     # print(json.dumps(filename_map, indent=4, ensure_ascii=False))
 
     if filename_map:
