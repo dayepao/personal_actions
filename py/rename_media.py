@@ -17,6 +17,10 @@ def delete_useless_file(path):
 
 
 def get_left_same_part(file_list):
+    # 判断文件数量是否为1
+    if len(file_list) == 1:
+        return ""
+
     left_same_part = ""
     i = 0
     flag = True
@@ -31,10 +35,19 @@ def get_left_same_part(file_list):
         i += 1
         if not flag:
             break
+
+    # 判断最后一个字符是否为数字
+    if left_same_part and left_same_part[-1].isdigit():
+        left_same_part = left_same_part[:-1]
+
     return left_same_part
 
 
 def get_right_same_part(file_list):
+    # 判断文件数量是否为1
+    if len(file_list) == 1:
+        return ""
+
     right_same_part = ""
     i = 0
     flag = True
@@ -50,10 +63,15 @@ def get_right_same_part(file_list):
         if not flag:
             break
 
-    if os.path.splitext(right_same_part)[1] != "":
-        right_same_part = os.path.splitext(right_same_part)[0]
-    else:
+    # 去除后缀
+    right_same_part, ext = os.path.splitext(right_same_part)
+    if ext == "":
         right_same_part = ""
+
+    # 判断第一个字符是否为数字
+    if right_same_part and right_same_part[0].isdigit():
+        right_same_part = right_same_part[1:]
+
     return right_same_part
 
 
@@ -83,12 +101,15 @@ def get_episode_num(file_name: str):
     for num in temp_episode_num:
         if num == "0" or int(num) > 100:
             episode_num.remove(num)
-    if episode_num:
+    if episode_num and len(episode_num) == 1:
         if episode_num[0].startswith("0") and len(episode_num[0]) == 3 and episode_num[0][0] == "0":
             episode_num = episode_num[0][1:]
         else:
             episode_num = episode_num[0]
-    return episode_num if episode_num else None
+    else:
+        episode_num = None
+
+    return episode_num
 
 
 def handle_error(none_name, duplicate_name):
