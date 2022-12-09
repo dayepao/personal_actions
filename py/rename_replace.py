@@ -6,28 +6,16 @@ def rename_and_return_child_dir(path, replace_list):
     child_dir = []
     for child_name in os.listdir(path):
         child_path = os.path.join(path, child_name)
-        if os.path.isfile(child_path):
-            # 重命名操作
-            temp_name = child_name
-            for replace_tuple in replace_list:
-                temp_name = temp_name.replace(replace_tuple[0], replace_tuple[1])
-            new_name = temp_name
-            # if new_name != child_name and (not os.path.exists(child_path.replace("Z:\\\\server", r"C:\\Users\ll057\OneDrive - lyhscu\VPS"))):
-            if new_name != child_name:
-                print((child_path, os.path.join(path, new_name)))
-                os.rename(child_path, os.path.join(path, new_name))
-        if os.path.isdir(child_path):
-            # 重命名操作
-            temp_name = child_name
-            for replace_tuple in replace_list:
-                temp_name = temp_name.replace(replace_tuple[0], replace_tuple[1])
-            new_name = temp_name
-            if new_name != child_name:
-                print((child_path, os.path.join(path, new_name)))
-                os.rename(child_path, os.path.join(path, new_name))
-                child_dir.append(os.path.join(path, new_name))
-            else:
-                child_dir.append(child_path)
+        temp_name = child_name
+        for replace_tuple in replace_list:
+            temp_name = temp_name.replace(replace_tuple[0], replace_tuple[1])
+        new_name = temp_name
+        new_child_path = os.path.join(path, new_name)
+        if new_name != child_name:
+            print(f"{child_path}  --->  {new_child_path}")
+            os.rename(child_path, new_child_path)
+        if os.path.isdir(new_child_path):
+            child_dir.append(new_child_path)
     return child_dir
 
 
@@ -52,5 +40,5 @@ def rename_replace(path, replace_list):
 
 if __name__ == "__main__":
     path = ["Y:\\", "Z:\\"]
-    replace_list = [("：", " - "), (":", " - "), ("？", "#"), ("  ", " ")]
+    replace_list = [("：", " - "), (":", " - "), ("", " - "), ("？", "#"), ("  ", " ")]
     rename_replace(path, replace_list)
