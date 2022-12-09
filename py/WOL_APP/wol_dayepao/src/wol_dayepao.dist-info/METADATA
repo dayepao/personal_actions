@@ -1,0 +1,11 @@
+Metadata-Version: 2.1
+Briefcase-Version: 0.3.11
+Name: wol_dayepao
+Formal-Name: WOL_Dayepao
+App-ID: com.example.wol_dayepao
+Version: 0.0.1
+Home-page: https://example.com/wol_dayepao
+Download-URL: https://example.com/wol_dayepao
+Author: Dayepao
+Author-email: dayepao@example.com
+Summary: Wake up the specified host through preset trigger conditions
