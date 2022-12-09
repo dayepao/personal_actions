@@ -7,6 +7,7 @@ import ipaddress
 import json
 import os
 import socket
+import struct
 import sys
 
 import __main__
@@ -85,7 +86,7 @@ class WOL_Dayepao(toga.App):
             "mac_address": "",
             "broadcast_address": self.get_broadcast_address(),
             "port": "9",
-            "ip_address": ""
+            "ip_address": "",
         }
 
     # 读取配置文件
@@ -212,10 +213,73 @@ class WOL_Dayepao(toga.App):
         self.save_config(widget)
         if not self.check_config():
             return
-        print("start")
+        self.wake_on_lan(self.config_dict["mac_address"], self.config_dict["broadcast_address"], int(self.config_dict["port"]))
 
     def stop(self, widget):
         print("stop")
+
+    def get_checksum(self, data: bytes):
+        """
+        计算校验和
+        """
+        checksum = 0
+        count_to = (len(data) // 2) * 2
+        count = 0
+        while count < count_to:
+            this_val = data[count + 1] * 256 + data[count]
+            checksum += this_val
+            checksum &= 0xffffffff
+            count += 2
+        if count_to < len(data):
+            checksum += data[len(data) - 1]
+            checksum &= 0xffffffff
+        checksum = (checksum >> 16) + (checksum & 0xffff)
+        checksum += (checksum >> 16)
+        answer = ~checksum
+        answer &= 0xffff
+        answer = answer >> 8 | (answer << 8 & 0xff00)
+        return answer
+
+    def ping_to_ip_address(self, ip_address: str, timeout: int = 5):
+        """
+        ping IP 地址
+        """
+        # 构造 ICMP 包
+        icmp_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
+        icmp_socket.settimeout(timeout)
+        icmp_socket.bind(("", 0))
+        icmp_id = (os.getpid() & 0xFFFF) | 0x8000
+        icmp_sequence = 1
+        icmp_checksum = 0
+        icmp_header = struct.pack("!BBHHH", 8, 0, icmp_checksum, icmp_id, icmp_sequence)
+        icmp_data = bytes("abcdefghijklmnopqrstuvwabcdefghi", "utf-8")
+        icmp_checksum = self.get_checksum(icmp_header + icmp_data)
+        icmp_header = struct.pack("!BBHHH", 8, 0, icmp_checksum, icmp_id, icmp_sequence)
+        icmp_packet = icmp_header + icmp_data
+        # 发送 ICMP 包
+        icmp_socket.sendto(icmp_packet, 0, (ip_address, 80))
+        # 接收 ICMP 包
+        try:
+            icmp_socket.recvfrom(1024)
+        except socket.timeout:
+            return False
+        return True
+
+    # wake on lan
+    def wake_on_lan(self, mac_address: str, broadcast_address, port, secure_on_password: str = None):
+        """
+        唤醒远程电脑
+        """
+        # 构造 Magic Packet
+        mac_address = mac_address.replace(":", "")
+        magic_packet = "F" * 12 + mac_address * 16
+        if secure_on_password:
+            magic_packet += secure_on_password.replace(":", "")
+        magic_packet = bytes.fromhex(magic_packet)
+        # 发送 Magic Packet
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            s.sendto(magic_packet, (broadcast_address, port))
 
     def get_self_dir(self):
         """获取自身路径
