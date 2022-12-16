@@ -207,7 +207,9 @@ if __name__ == "__main__":
         print("创建目录: ", root_path)
 
     print("开始处理文件名中不受支持的字符")
-    rename_replace(root_path, [("：", " - "), (":", " - "), ("？", "#"), ("  ", " ")])
+    print("正在处理")
+    rename_replace(root_path, [("：", " - "), (":", " - "), ("", " - "), ("？", "#"), ("  ", " ")])
+    print("处理完成")
 
     print("开始重命名")
     print("正在处理")

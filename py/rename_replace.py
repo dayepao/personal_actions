@@ -19,7 +19,7 @@ def rename_and_return_child_dir(path, replace_list):
     return child_dir
 
 
-def rename_replace(path, replace_list):
+def rename_replace_old(path, replace_list):
     if type(path) == list:
         cur_paths = path
     else:
@@ -38,7 +38,28 @@ def rename_replace(path, replace_list):
     print("处理完成")
 
 
+def rename_replace(paths, replace_list):
+    if type(paths) not in [list, tuple, str]:
+        print("paths 参数类型错误")
+        return
+    if type(paths) == str:
+        paths = [paths]
+    for path in paths:
+        for root, dirs, files in os.walk(path, topdown=False):  # topdown=False 从下往上遍历
+            for old_name in dirs + files:
+                old_path = os.path.join(root, old_name)
+                temp_name: str = old_name
+                for replace_tuple in replace_list:
+                    temp_name = temp_name.replace(replace_tuple[0], replace_tuple[1])
+                new_name = temp_name
+                new_path = os.path.join(root, new_name)
+                if new_name != old_name:
+                    print(f"{old_path}  --->  {new_path}")
+                    os.rename(old_path, new_path)
+
+
 if __name__ == "__main__":
-    path = ["Y:\\", "Z:\\"]
+    paths = ["Y:\\", "Z:\\"]
     replace_list = [("：", " - "), (":", " - "), ("", " - "), ("？", "#"), ("  ", " ")]
-    rename_replace(path, replace_list)
+    # rename_replace_old(path, replace_list)
+    rename_replace(paths, replace_list)
