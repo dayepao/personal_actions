@@ -12,7 +12,7 @@ def delete_useless_file(path):
     for child_name in os.listdir(path):
         child_path = os.path.join(path, child_name)
         if os.path.isfile(child_path):
-            if child_name.endswith((".torrent", ".txt", ".url", ".srt", ".ass", ".ssa", ".nfo", ".jpg", ".png")):
+            if child_name.endswith((".torrent", ".txt", ".url", ".srt", ".ass", ".ssa", ".nfo", ".jpg", ".png", ".xltd")):
                 os.remove(child_path)
 
 
@@ -76,7 +76,7 @@ def get_right_same_part(file_list):
 
 
 # 识别文件名中的集数
-def get_episode_num(file_name: str):
+def get_episode_num(file_name: str, episode_num_len: int = 2):
     is_pure_num = re.search(re.compile(r"^\d+$"), os.path.splitext(file_name)[0])
     if is_pure_num:
         file_name = "e{}".format(file_name)
@@ -94,18 +94,13 @@ def get_episode_num(file_name: str):
     file_name = file_name.replace("S", "s")
     file_name = file_name.replace("ep", "e")
     file_name = file_name.replace("sp", "e")
-    file_name = file_name.replace("e", "e0")
-    file_name = file_name.replace("00", "0")
     episode_num = re.findall(re.compile(r"e(\d+)[^0-9]"), file_name)
     temp_episode_num = copy.deepcopy(episode_num)
     for num in temp_episode_num:
-        if num == "0" or int(num) > 100:
+        if num == "0" or int(num) > 700:
             episode_num.remove(num)
     if episode_num and len(episode_num) == 1:
-        if episode_num[0].startswith("0") and len(episode_num[0]) == 3 and episode_num[0][0] == "0":
-            episode_num = episode_num[0][1:]
-        else:
-            episode_num = episode_num[0]
+        episode_num = str(int(episode_num[0])).rjust(episode_num_len, "0")
     else:
         episode_num = None
 
@@ -140,6 +135,7 @@ def get_filename_map_same_part_removal(root_path):
                 continue
             delete_useless_file(season_path)
             file_list = os.listdir(season_path)
+            episode_num_len = max(len(str(len(file_list))), 2)
             left_same_part = get_left_same_part(file_list)
             right_same_part = get_right_same_part(file_list)
             file_dict = {}
@@ -149,7 +145,7 @@ def get_filename_map_same_part_removal(root_path):
                 file_path = os.path.join(season_path, file)
                 if not os.path.isfile(file_path):
                     continue
-                if (episode_num := get_episode_num(temp_file)):
+                if (episode_num := get_episode_num(temp_file, episode_num_len)):
                     filename_map[os.path.join(video_name, season, file)] = os.path.join(video_name, season, "{} S{}E{}.mp4".format(video_name, season[-2:], episode_num))
                 else:
                     none_name.append(os.path.join(video_name, season, file))
@@ -180,11 +176,13 @@ def get_filename_map_regular(root_path):
             if (not os.path.isdir(season_path)) or ("Season" not in season and "season" not in season):
                 continue
             delete_useless_file(season_path)
-            for file in os.listdir(season_path):
+            file_list = os.listdir(season_path)
+            episode_num_len = max(len(str(len(file_list))), 2)
+            for file in file_list:
                 file_path = os.path.join(season_path, file)
                 if not os.path.isfile(file_path):
                     continue
-                if (episode_num := get_episode_num(file)):
+                if (episode_num := get_episode_num(file, episode_num_len)):
                     filename_map[os.path.join(video_name, season, file)] = os.path.join(video_name, season, "{} S{}E{}.mp4".format(video_name, season[-2:], episode_num))
                 else:
                     none_name.append(os.path.join(video_name, season, file))
@@ -214,8 +212,8 @@ if __name__ == "__main__":
     print("开始重命名")
     print("正在处理")
 
-    if not (filename_map := get_filename_map_regular(root_path)):
-        filename_map = get_filename_map_same_part_removal(root_path)
+    if not (filename_map := get_filename_map_same_part_removal(root_path)):
+        filename_map = get_filename_map_regular(root_path)
     # print(json.dumps(filename_map, indent=4, ensure_ascii=False))
 
     if filename_map:
