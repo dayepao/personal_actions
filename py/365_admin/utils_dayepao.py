@@ -26,7 +26,7 @@ pip install apscheduler
 """
 
 
-def get_method(url: str, headers: dict = None, timeout=5, max_retries=5, c: httpx.Client = None):
+def get_method(url: str, headers: dict = None, timeout=5, verify: bool = True, max_retries=5, c: httpx.Client = None):
     """
     timeout: 超时时间,单位秒(s), 默认为 5 秒, 为 `None` 时禁用
     max_retries: 最大尝试次数, 默认为 5 次, 为 0 时禁用
@@ -35,9 +35,9 @@ def get_method(url: str, headers: dict = None, timeout=5, max_retries=5, c: http
     while (k <= max_retries) or (max_retries == 0):
         try:
             if c is not None:
-                res = c.get(url, headers=headers, timeout=timeout)
+                res = c.get(url, headers=headers, timeout=timeout, verify=verify)
             else:
-                res = httpx.get(url, headers=headers, timeout=timeout)
+                res = httpx.get(url, headers=headers, timeout=timeout, verify=verify)
         except Exception as e:
             k = k + 1
             print(sys._getframe().f_code.co_name + ": " + str(e))
@@ -51,7 +51,7 @@ def get_method(url: str, headers: dict = None, timeout=5, max_retries=5, c: http
         sys.exit(sys._getframe().f_code.co_name + ": " + "Max retries exceeded")
 
 
-def post_method(url: str, postdata=None, postjson=None, headers: dict = None, timeout=5, max_retries=5, c: httpx.Client = None):
+def post_method(url: str, postdata=None, postjson=None, headers: dict = None, timeout=5, verify: bool = True, max_retries=5, c: httpx.Client = None):
     """
     timeout: 超时时间, 单位秒(s), 默认为 5 秒, 为 `None` 时禁用
     max_retries: 最大尝试次数, 默认为 5 次, 为 0 时禁用
@@ -60,9 +60,9 @@ def post_method(url: str, postdata=None, postjson=None, headers: dict = None, ti
     while (k <= max_retries) or (max_retries == 0):
         try:
             if c is not None:
-                res = c.post(url, data=postdata, json=postjson, headers=headers, timeout=timeout)
+                res = c.post(url, data=postdata, json=postjson, headers=headers, timeout=timeout, verify=verify)
             else:
-                res = httpx.post(url, data=postdata, json=postjson, headers=headers, timeout=timeout)
+                res = httpx.post(url, data=postdata, json=postjson, headers=headers, timeout=timeout, verify=verify)
         except Exception as e:
             k = k + 1
             print(sys._getframe().f_code.co_name + ": " + str(e))
