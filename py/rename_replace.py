@@ -60,6 +60,6 @@ def rename_replace(paths, replace_list):
 
 if __name__ == "__main__":
     paths = ["Y:\\", "Z:\\"]
-    replace_list = [("：", " - "), (":", " - "), ("", " - "), ("？", "#"), ("  ", " ")]
+    replace_list = [(":", " - "), ("", " - "), ("？", "#"), ("  ", " ")]
     # rename_replace_old(path, replace_list)
     rename_replace(paths, replace_list)
