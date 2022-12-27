@@ -76,7 +76,7 @@ if __name__ == '__main__':
             "args": [streamer_dict_list],
             "trigger": "cron",
             "minute": "*/5",
-            "next_run_time": datetime.datetime.now() + datetime.timedelta(seconds=5),
+            "next_run_time": datetime.datetime.now() + datetime.timedelta(seconds=10),
             "max_instances": 1,
         },
         {
