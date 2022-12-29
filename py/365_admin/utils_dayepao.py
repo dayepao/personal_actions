@@ -128,6 +128,11 @@ def get_self_dir():
     return py_path, py_dir, py_name
 
 
+def get_resource_path(relative_path):
+    base_path = os.path.split(os.path.realpath(__main__.__file__))[0]
+    return os.path.join(base_path, relative_path)
+
+
 def get_file_hash(file_path: str, name: str = "md5"):
     """获取文件哈希值
 
@@ -217,15 +222,15 @@ def cmd_dayepao(cmd: str | list, encoding: str = None):
     返回 (out_queue, err_queue)
     """
     class cmd_thread_work(Thread):
-        def __init__(self, out_queue: Queue, err_queue: Queue, cmd: str | list, encoding: str) -> None:
+        def __init__(self, queue_list: list[Queue], cmd: str | list, encoding: str) -> None:
             super().__init__()
-            self.out_queue = out_queue
-            self.err_queue = err_queue
+            self.out_queue, self.err_queue, self.returncode_queue = queue_list
             self.cmd = cmd
             self.encoding = encoding
+            self.shell = bool(isinstance(cmd, str))
 
         def run(self):
-            with subprocess.Popen(self.cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
+            with subprocess.Popen(self.cmd, shell=self.shell, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
                 # for line in proc.stdout.readlines():
                 while (line := proc.stdout.readline()) != b'':
                     chardet_result = chardet.detect(line)
@@ -237,13 +242,16 @@ def cmd_dayepao(cmd: str | list, encoding: str = None):
                     encoding = self.encoding or (chardet_result["encoding"] if chardet_result["confidence"] >= 0.8 else None) or "gb18030"
                     self.err_queue.put(line.decode(encoding, "ignore").replace("\r\n", ""))
                 self.err_queue.put(b'')
+                proc.wait()
+                self.returncode_queue.put(proc.returncode)
 
     out_queue = Queue()
     err_queue = Queue()
-    cmd_thread = cmd_thread_work(out_queue=out_queue, err_queue=err_queue, cmd=cmd, encoding=encoding)
+    returncode_queue = Queue()
+    cmd_thread = cmd_thread_work(queue_list=[out_queue, err_queue, returncode_queue], cmd=cmd, encoding=encoding)
     cmd_thread.setDaemon(True)
     cmd_thread.start()
-    return out_queue, err_queue
+    return out_queue, err_queue, returncode_queue
 
 
 def creat_apscheduler(sched_job_list: list[dict], push_option: dict = {}, timezone: str = "Asia/Shanghai"):
