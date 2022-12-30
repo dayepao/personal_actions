@@ -1,6 +1,5 @@
 from PySide6.QtGui import QDragEnterEvent, QDropEvent
-
-from hash_lyh import mainwindow
+from PySide6.QtWidgets import QMainWindow
 
 
 def lineEdit_dragEnterEvent(event: QDragEnterEvent):
@@ -10,7 +9,7 @@ def lineEdit_dragEnterEvent(event: QDragEnterEvent):
         event.ignore()
 
 
-def lineEdit_dropEvent(window: mainwindow, event: QDropEvent):
+def lineEdit_dropEvent(window: QMainWindow, event: QDropEvent):
     window.clear_lineEdit()
     window.filename = event.mimeData().urls()[0].toLocalFile()
     window.lineEdit.setText(str(window.filename))

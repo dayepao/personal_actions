@@ -1,6 +1,8 @@
 import psutil
 from PySide6.QtCore import QThread, QTimer, Signal
 
+# pip install psutil
+
 # https://psutil.readthedocs.io/en/latest/
 
 
