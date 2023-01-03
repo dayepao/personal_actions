@@ -146,7 +146,7 @@ def get_filename_map_same_part_removal(root_path):
                 if not os.path.isfile(file_path):
                     continue
                 if (episode_num := get_episode_num(temp_file, episode_num_len)):
-                    filename_map[os.path.join(video_name, season, file)] = os.path.join(video_name, season, "{} S{}E{}.mp4".format(video_name, season[-2:], episode_num))
+                    filename_map[os.path.join(video_name, season, file)] = os.path.join(video_name, season, "{} - S{}E{}.mp4".format(video_name, season[-2:], episode_num))
                 else:
                     none_name.append(os.path.join(video_name, season, file))
 
@@ -183,7 +183,7 @@ def get_filename_map_regular(root_path):
                 if not os.path.isfile(file_path):
                     continue
                 if (episode_num := get_episode_num(file, episode_num_len)):
-                    filename_map[os.path.join(video_name, season, file)] = os.path.join(video_name, season, "{} S{}E{}.mp4".format(video_name, season[-2:], episode_num))
+                    filename_map[os.path.join(video_name, season, file)] = os.path.join(video_name, season, "{} - S{}E{}.mp4".format(video_name, season[-2:], episode_num))
                 else:
                     none_name.append(os.path.join(video_name, season, file))
 
