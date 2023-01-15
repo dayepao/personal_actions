@@ -11,6 +11,8 @@ for file in os.listdir(target_dir):
             print("正在处理文件: " + file)
             ps = "{} -o \"{}\" \"{}\"".format(get_resource_path("musicdecrypto.exe"), target_dir, file_path)
             ps = "{} --update-metadata --overwrite -o \"{}\" -i \"{}\"".format(get_resource_path("um.exe"), target_dir, file_path)
+            # https://git.unlock-music.dev/um
+
             # print(ps)
             out_queue, err_queue, returncode_queue = cmd_dayepao(ps)
             # while (result := out_queue.get()) != b"":
