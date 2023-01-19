@@ -31,6 +31,9 @@ for i in range(len(waves)):
     _, _, SA[i] = dynamic_calculator.nigam_jennings(waves[i], am, Ts, xi)
     SA[i] = SA[i] / 9.8
     ax.plot(Ts, SA[i], label=waves[i][2])
+    # _, _, A = dynamic_calculator.fft_sdof(waves[i], am, Ts, xi)
+    # A = A / 9.8
+    # ax.plot(Ts, A, label=waves[i][2]+"(FFT)")
 SAV = np.average(SA, axis=0)
 ax.plot(Ts, SAV, label="均值反应谱")
 

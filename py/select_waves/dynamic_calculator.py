@@ -105,7 +105,7 @@ def newmark_beta(wave, am, Ts, xi, beta=1/6, gamma=1/2):
 
 
 def nigam_jennings(wave, am, Ts, xi):
-    """newmark-beta 积分求解单自由度结构地震荷载下的响应
+    """nigam_jennings 求解单自由度结构地震荷载下的响应
     :param wave: 地震时程
     :param am: 时程波加速度峰值(m/s^2)
     :param Ts: 谱周期
@@ -116,7 +116,7 @@ def nigam_jennings(wave, am, Ts, xi):
     Ag = Ag * am  # 时程加速度序列(放大到指定峰值)
 
     # 初始化结构参数
-    # m = 1.0
+    # m = 1
 
     U_R = np.zeros(len(Ts))  # 结构相对位移谱
     V_R = np.zeros(len(Ts))  # 结构相对速度谱
@@ -127,7 +127,7 @@ def nigam_jennings(wave, am, Ts, xi):
         wd = wn * np.sqrt(1 - xi ** 2)  # 阻尼圆频率
         # k = wn ** 2 * m
         # c = 2 * m * wn * xi
-        # 1. 积分参数赋值
+        # 参数赋值
         a11 = np.exp(-xi * wn * dt) * (xi / np.sqrt(1 - xi ** 2) * np.sin(wd * dt) + np.cos(wd * dt))
         a12 = np.exp(-xi * wn * dt) / wd * np.sin(wd * dt)
         a21 = -wn / np.sqrt(1 - xi ** 2) * np.exp(-xi * wn * dt) * np.sin(wd * dt)
@@ -153,7 +153,7 @@ def nigam_jennings(wave, am, Ts, xi):
 
 
 def fft_sdof(wave, am, Ts, xi):
-    """newmark-beta 积分求解单自由度结构地震荷载下的响应
+    """fft 求解单自由度结构地震荷载下的响应
     :param wave: 地震时程
     :param am: 时程波加速度峰值(m/s^2)
     :param Ts: 谱周期
@@ -163,27 +163,33 @@ def fft_sdof(wave, am, Ts, xi):
     dt = T[1] - T[0]  # 时程时间间隔
     Ag = Ag * am  # 时程加速度序列(放大到指定峰值)
 
-    # 为了加速傅里叶变换，对时程进行补零处理，补零点数为2的整数次幂且大于或等于时程点数
+    # 为了加速傅里叶变换且获得更高精度，对时程进行补零处理，补零点数为2的整数次幂且大于或等于时程点数
     # 这是由于某些算法(例如 Cooley-Tukey/Radix-2)针对2的整数次幂的输入进行了优化
-    Nfft = 2 ** int(np.ceil(np.log2(len(T))))  # fft点数
+    Nfft = 2 ** (int(np.ceil(np.log2(len(T)))) + 0)  # fft点数，越多精度越高，但计算量也越大
     Agf = np.fft.fft(Ag, Nfft)  # 对地震动加速度序列作傅里叶变换
     f = np.fft.fftfreq(Nfft, d=dt)  # fft频率序列
-    omega = 2 * np.pi * f  # fft角频率序列
+    wn_bar = 2 * np.pi * f  # fft角频率序列
 
     # Agf = np.fft.fft(Ag)  # 对地震动加速度序列作傅里叶变换
     # f = np.fft.fftfreq(len(Ag), d=dt)  # fft频率序列
-    # omega = 2 * np.pi * f  # fft角频率序列
+    # wn_bar = 2 * np.pi * f  # fft角频率序列
 
     U_R = np.zeros(len(Ts))  # 结构相对位移谱
     V_R = np.zeros(len(Ts))  # 结构相对速度谱
     A = np.zeros(len(Ts))  # 结构绝对加速度谱
 
+    # 初始化结构参数
+    m = 1
+
     for i in range(len(Ts)):
         wn = 2 * np.pi / Ts[i]  # 无阻尼圆频率
-        H = 1 / (omega ** 2 - 2 * omega * xi * wn * 1j - wn ** 2)  # fft传递函数
-        u_r = np.fft.ifft(Agf * H).real  # 快速Fourier逆变换并取实部，结构相对位移
-        v_r = np.fft.ifft(Agf * H * omega * 1j).real  # 快速Fourier逆变换并取实部，结构相对速度
-        a = np.fft.ifft(-Agf * H * omega ** 2 + Agf).real  # 快速Fourier逆变换并取实部，结构绝对加速度
+        k = wn ** 2 * m  # 刚度
+        beta_n = wn_bar / wn
+        # H = 1 / (wn ** 2 + 2 * wn_bar * xi * wn * 1j - wn_bar ** 2)  # fft传递函数
+        H = (1 / k) * (1 / (1 - beta_n ** 2 + 2 * xi * beta_n * 1j))  # fft传递函数
+        u_r = np.fft.ifft(-m * Agf * H).real  # 快速Fourier逆变换并取实部，结构相对位移
+        v_r = np.fft.ifft(-m * Agf * H * wn_bar * 1j).real  # 快速Fourier逆变换并取实部，结构相对速度
+        a = np.fft.ifft(-(-m * Agf * H) * wn_bar ** 2 + Agf).real  # 快速Fourier逆变换并取实部，结构绝对加速度
         U_R[i] = np.max(np.abs(u_r))  # 结构最大位移
         V_R[i] = np.max(np.abs(v_r))  # 结构最大速度
         A[i] = np.max(np.abs(a))  # 结构最大加速度
