@@ -24,15 +24,15 @@ waves = load_waves.load_waves(wave_files)
 # 计算地震响应谱并绘制
 plt.rcParams['font.sans-serif'] = ['SIMSUN']  # 用来正常显示中文标签
 plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
-fig = plt.figure()
+fig = plt.figure(figsize=(12, 8))
 ax = fig.add_subplot(1, 1, 1)
 SA = np.zeros((len(waves), len(Ts)))
 for i in range(len(waves)):
-    print("({}/{}) 正在计算{}的反应谱...".format(i + 1, len(waves), waves[i][2]))
+    print("({}/{}) 正在计算 {} 的反应谱...".format(i + 1, len(waves), waves[i][2]))
     _, _, SA[i] = dynamic_solver.nigam_jennings(waves[i], am, Ts, xi)
     SA[i] = SA[i] / 9.8
     ax.plot(Ts, SA[i], label=waves[i][2], color="#505050", linewidth=0.5, alpha=0.8)
-    # _, _, A = dynamic_calculator.fft_sdof(waves[i], am, Ts, xi)
+    # _, _, A = dynamic_solver.fft_sdof(waves[i], am, Ts, xi)
     # A = A / 9.8
     # ax.plot(Ts, A, label=waves[i][2]+"(FFT)")
 SAV = np.average(SA, axis=0)

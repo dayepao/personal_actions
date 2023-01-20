@@ -10,8 +10,8 @@ def newmark_beta_deprecated(wave, am, Ts, xi, beta=1/6, gamma=1/2):
     :param beta: newmark-beta 积分系数
     :param gamma: newmark-beta 积分系数
     """
-    T, Ag, _ = wave  # 时程时间序列, 时程加速度序列, 时程名称
-    dt = T[1] - T[0]  # 时程时间间隔
+    Tw, Ag, _ = wave  # 时程时间序列, 时程加速度序列, 时程名称
+    dt = Tw[1] - Tw[0]  # 时程时间间隔
     Ag = Ag * am  # 时程加速度序列(放大到指定峰值)
 
     U_R = np.zeros(len(Ts))  # 结构相对位移谱
@@ -38,15 +38,15 @@ def newmark_beta_deprecated(wave, am, Ts, xi, beta=1/6, gamma=1/2):
         u0 = 0  # 初始位移
         v0 = 0  # 初始速度
         a0 = 0  # 初始加速度
-        u_r = np.zeros(len(T))  # 结构相对位移(从时程第一个点开始)
-        v_r = np.zeros(len(T))  # 结构相对速度(从时程第一个点开始)
-        a_r = np.zeros(len(T))  # 结构相对加速度(从时程第一个点开始)
-        a = np.zeros(len(T))  # 结构绝对加速度(从时程第一个点开始)
+        u_r = np.zeros(len(Tw))  # 结构相对位移(从时程第一个点开始)
+        v_r = np.zeros(len(Tw))  # 结构相对速度(从时程第一个点开始)
+        a_r = np.zeros(len(Tw))  # 结构相对加速度(从时程第一个点开始)
+        a = np.zeros(len(Tw))  # 结构绝对加速度(从时程第一个点开始)
         u_r[0] = 1 / ke * (-m * Ag[0] + m * (n0 * u0 + n2 * v0 + n3 * a0) + c * (n1 * u0 + n4 * v0 + n5 * a0))
         v_r[0] = n1 * (u_r[0] - u0) - n4 * v0 - n5 * a0
         a_r[0] = n0 * (u_r[0] - u0) - n2 * v0 - n3 * a0
         # 3. newmark-beta 积分求解
-        for j in range(1, len(T)):
+        for j in range(1, len(Tw)):
             u_r[j] = 1 / ke * (-m * Ag[j] + m * (n0 * u_r[j - 1] + n2 * v_r[j - 1] + n3 * a_r[j - 1]) + c * (n1 * u_r[j - 1] + n4 * v_r[j - 1] + n5 * a_r[j - 1]))
             v_r[j] = n1 * (u_r[j] - u_r[j - 1]) - n4 * v_r[j - 1] - n5 * a_r[j - 1]
             a_r[j] = n0 * (u_r[j] - u_r[j - 1]) - n2 * v_r[j - 1] - n3 * a_r[j - 1]
@@ -66,8 +66,8 @@ def newmark_beta(wave, am, Ts, xi, beta=1/6, gamma=1/2):
     :param beta: newmark-beta 积分系数
     :param gamma: newmark-beta 积分系数
     """
-    T, Ag, _ = wave  # 时程时间间隔, 时程时间序列, 时程加速度序列, 时程名称
-    dt = T[1] - T[0]  # 时程时间间隔
+    Tw, Ag, _ = wave  # 时程时间间隔, 时程时间序列, 时程加速度序列, 时程名称
+    dt = Tw[1] - Tw[0]  # 时程时间间隔
     Ag = Ag * am  # 时程加速度序列(放大到指定峰值)
 
     # 初始化结构参数
@@ -86,12 +86,12 @@ def newmark_beta(wave, am, Ts, xi, beta=1/6, gamma=1/2):
         n2 = m / (beta * dt) + (gamma / beta - 1) * c
         n3 = (1/(2 * beta) - 1) * m + dt * (gamma / (2 * beta) - 1) * c
         k_hat = k + n1
-        u_r = np.zeros(len(T))  # 结构相对位移(从时程第一个点开始)
-        v_r = np.zeros(len(T))  # 结构相对速度(从时程第一个点开始)
-        a_r = np.zeros(len(T))  # 结构相对加速度(从时程第一个点开始)
-        a = np.zeros(len(T))  # 结构绝对加速度(从时程第一个点开始)
+        u_r = np.zeros(len(Tw))  # 结构相对位移(从时程第一个点开始)
+        v_r = np.zeros(len(Tw))  # 结构相对速度(从时程第一个点开始)
+        a_r = np.zeros(len(Tw))  # 结构相对加速度(从时程第一个点开始)
+        a = np.zeros(len(Tw))  # 结构绝对加速度(从时程第一个点开始)
         a_r[0] = -Ag[0]
-        for j in range(1, len(T)):
+        for j in range(1, len(Tw)):
             p_e = -m * Ag[j] + n1 * u_r[j - 1] + n2 * v_r[j - 1] + n3 * a_r[j - 1]
             u_r[j] = p_e / k_hat
             v_r[j] = gamma / (beta * dt) * (u_r[j] - u_r[j - 1]) + (1 - gamma / beta) * v_r[j - 1] + dt * (1 - gamma / (2 * beta)) * a_r[j - 1]
@@ -111,8 +111,8 @@ def nigam_jennings(wave, am, Ts, xi):
     :param Ts: 谱周期
     :param xi: 阻尼比
     """
-    T, Ag, _ = wave  # 时程时间间隔, 时程时间序列, 时程加速度序列, 时程名称
-    dt = T[1] - T[0]  # 时程时间间隔
+    Tw, Ag, _ = wave  # 时程时间间隔, 时程时间序列, 时程加速度序列, 时程名称
+    dt = Tw[1] - Tw[0]  # 时程时间间隔
     Ag = Ag * am  # 时程加速度序列(放大到指定峰值)
 
     # 初始化结构参数
@@ -136,12 +136,12 @@ def nigam_jennings(wave, am, Ts, xi):
         b12 = -np.exp(-xi * wn * dt) * (((2 * xi ** 2 - 1) / (wn ** 2 * dt)) * np.sin(wd * dt) / wd + 2 * xi / (wn ** 3 * dt) * np.cos(wd * dt)) - 1 / wn ** 2 + 2 * xi / (wn ** 3 * dt)
         b21 = -1 / wn ** 2 * (-1 / dt + np.exp(-xi * wn * dt) * ((wn / np.sqrt(1 - xi ** 2) + xi / (dt * np.sqrt(1 - xi ** 2))) * np.sin(wd * dt) + 1 / dt * np.cos(wd * dt)))
         b22 = -1 / (wn ** 2 * dt) * (1 - np.exp(-xi * wn * dt)*(xi / np.sqrt(1 - xi ** 2) * np.sin(wd * dt) + np.cos(wd * dt)))
-        u_r = np.zeros(len(T))  # 结构相对位移(从时程第一个点开始)
-        v_r = np.zeros(len(T))  # 结构相对速度(从时程第一个点开始)
-        a_r = np.zeros(len(T))  # 结构相对加速度(从时程第一个点开始)
-        a = np.zeros(len(T))  # 结构绝对加速度(从时程第一个点开始)
+        u_r = np.zeros(len(Tw))  # 结构相对位移(从时程第一个点开始)
+        v_r = np.zeros(len(Tw))  # 结构相对速度(从时程第一个点开始)
+        a_r = np.zeros(len(Tw))  # 结构相对加速度(从时程第一个点开始)
+        a = np.zeros(len(Tw))  # 结构绝对加速度(从时程第一个点开始)
         a_r[0] = -Ag[0]
-        for j in range(1, len(T)):
+        for j in range(1, len(Tw)):
             u_r[j] = a11 * u_r[j - 1] + a12 * v_r[j - 1] + b11 * Ag[j - 1] + b12 * Ag[j]
             v_r[j] = a21 * u_r[j - 1] + a22 * v_r[j - 1] + b21 * Ag[j - 1] + b22 * Ag[j]
             a_r[j] = -Ag[j] - wn ** 2 * u_r[j] - 2 * xi * wn * v_r[j]
@@ -159,13 +159,13 @@ def fft_sdof(wave, am, Ts, xi):
     :param Ts: 谱周期
     :param xi: 阻尼比
     """
-    T, Ag, _ = wave  # 时程时间间隔, 时程时间序列, 时程加速度序列, 时程名称
-    dt = T[1] - T[0]  # 时程时间间隔
+    Tw, Ag, _ = wave  # 时程时间间隔, 时程时间序列, 时程加速度序列, 时程名称
+    dt = Tw[1] - Tw[0]  # 时程时间间隔
     Ag = Ag * am  # 时程加速度序列(放大到指定峰值)
 
     # 为了加速傅里叶变换且获得更高精度，对时程进行补零处理，补零点数为2的整数次幂且大于或等于时程点数
     # 这是由于某些算法(例如 Cooley-Tukey/Radix-2)针对2的整数次幂的输入进行了优化
-    Nfft = 2 ** (int(np.ceil(np.log2(len(T)))) + 0)  # fft点数，越多精度越高，但计算量也越大
+    Nfft = 2 ** (int(np.ceil(np.log2(len(Tw)))) + 0)  # fft点数，越多精度越高，但计算量也越大
     Agf = np.fft.fft(Ag, Nfft)  # 对地震动加速度序列作傅里叶变换
     f = np.fft.fftfreq(Nfft, d=dt)  # fft频率序列
     wn_bar = 2 * np.pi * f  # fft角频率序列
