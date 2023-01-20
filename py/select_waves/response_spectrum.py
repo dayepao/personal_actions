@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-import dynamic_calculator
+import dynamic_solver
 import load_waves
 
 # ("地震波文件路径", 时程时间间隔, "地震波名称(可选)")
@@ -28,14 +28,15 @@ fig = plt.figure()
 ax = fig.add_subplot(1, 1, 1)
 SA = np.zeros((len(waves), len(Ts)))
 for i in range(len(waves)):
-    _, _, SA[i] = dynamic_calculator.nigam_jennings(waves[i], am, Ts, xi)
+    print("({}/{}) 正在计算{}的反应谱...".format(i + 1, len(waves), waves[i][2]))
+    _, _, SA[i] = dynamic_solver.nigam_jennings(waves[i], am, Ts, xi)
     SA[i] = SA[i] / 9.8
-    ax.plot(Ts, SA[i], label=waves[i][2])
+    ax.plot(Ts, SA[i], label=waves[i][2], color="#505050", linewidth=0.5, alpha=0.8)
     # _, _, A = dynamic_calculator.fft_sdof(waves[i], am, Ts, xi)
     # A = A / 9.8
     # ax.plot(Ts, A, label=waves[i][2]+"(FFT)")
 SAV = np.average(SA, axis=0)
-ax.plot(Ts, SAV, label="均值反应谱")
+ax.plot(Ts, SAV, label="均值反应谱", color="#FF0000", linewidth=1.5, linestyle="--")
 
 ax.legend()
 x_major_ticks = np.arange(0, 6.1, 1)
