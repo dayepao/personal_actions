@@ -154,6 +154,18 @@ def nigam_jennings(wave, am, Ts, xi):
 
 def fft_sdof(wave, am, Ts, xi):
     """fft 求解单自由度结构地震荷载下的响应
+
+    U(wn_bar * j) = F(wn_bar * j) * H(wn_bar * j);
+
+    V(wn_bar * j) = U(wn_bar * j) * wn_bar * j;
+
+    A(wn_bar * j) = V(wn_bar * j) * wn_bar * j = -U(wn_bar * j) * wn_bar ** 2
+
+    其中:
+        f(t) = -m * Ag(t)
+
+        F(wn_bar * j) = -m * Agf(wn_bar * j)
+
     :param wave: 地震时程
     :param am: 时程波加速度峰值(m/s^2)
     :param Ts: 谱周期
