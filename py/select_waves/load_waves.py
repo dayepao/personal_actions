@@ -10,6 +10,7 @@ def load_waves(wave_files):
     :param wave_files: 地震时程数据文件列表
     :return: 地震时程数据列表[(时程时间, 时程加速度, 时程名称)]
     """
+    wave_files = wave_files if isinstance(wave_files, list) else [wave_files]
     waves = []
     for wave_file in wave_files:
         wave_data = np.loadtxt(wave_file[0])
