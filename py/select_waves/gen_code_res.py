@@ -2,7 +2,7 @@ import numpy as np
 
 
 def gen_code_res_gb50011(alpha_max, Tg, xi, Ts):
-    """生成GB50011-2010 《建筑抗震设计规范》中的反应谱
+    """生成《建筑抗震设计规范》(GB50011-2010) 中的反应谱
     :param alpha_max: 地震影响系数最大值
     :param Tg: 场地特征周期
     :param xi: 阻尼比

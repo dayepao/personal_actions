@@ -17,7 +17,7 @@ def load_waves(wave_files):
         wave_data = wave_data if wave_data.ndim == 1 else wave_data[:, 1]
         # 归一化
         wave_data = wave_data / np.max(np.abs(wave_data))
-        Tw = np.arange(0, len(wave_data) * wave_file[1], wave_file[1])  # 时程时间
+        Tw = np.arange(0, np.round(len(wave_data) * wave_file[1], len(str(wave_file[1]).split(".")[1])), wave_file[1])  # 时程时间
         waves.append((Tw, wave_data, wave_file[2] if len(wave_file) == 3 else os.path.splitext(os.path.basename(wave_file[0]))[0]))
     return waves
 
