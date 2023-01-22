@@ -13,7 +13,7 @@ def load_waves(wave_files):
     wave_files = wave_files if isinstance(wave_files, list) else [wave_files]
     waves = []
     for wave_file in wave_files:
-        wave_data = np.loadtxt(wave_file[0])
+        wave_data = np.loadtxt(wave_file[0]) if np.loadtxt(wave_file[0], max_rows=1).reshape((-1,))[0] < 300 else np.loadtxt(wave_file[0], skiprows=1)
         wave_data = wave_data if wave_data.ndim == 1 else wave_data[:, 1]
         # 归一化
         wave_data = wave_data / np.max(np.abs(wave_data))
