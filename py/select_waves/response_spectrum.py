@@ -12,7 +12,7 @@ wave_files = [
     (r"BorregoMtn_NO_40-PW 8000 0.005.txt", 0.005),
 ]
 
-T = [2.861, 2.761]  # 结构前n个周期
+T = [2.782, 2.761, 2.329]  # 结构前n个周期
 
 
 xi = 0.05  # 阻尼比
@@ -29,8 +29,8 @@ fig = plt.figure(figsize=(12, 8))
 ax = fig.add_subplot(1, 1, 1)
 
 # 生成规范反应谱并绘制
-alpha = gen_code_res.gen_code_res_gb50011(alpha_max, Tg, xi, Ts) * 9.8
-ax.plot(Ts, alpha, label="规范反应谱", color="#000000", linewidth=2)
+alpha = gen_code_res.gen_code_res_gbt51408(alpha_max, Tg, xi, Ts) * 9.81
+ax.plot(Ts, alpha, label="规范设计加速度反应谱", color="#000000", linewidth=2)
 
 # 加载地震时程数据
 waves = load_waves.load_waves(wave_files)
@@ -43,11 +43,12 @@ SA = np.zeros((len(waves), len(Ts)))
 for i in range(len(waves)):
     print("({}/{}) 正在计算 {} 的反应谱...".format(i + 1, len(waves), waves[i][2]))
     _, _, SA[i] = dynamic_solver.nigam_jennings(waves[i], am, Ts, xi)
-    # SA[i] = SA[i] / 9.8
+    # SA[i] = SA[i] / 9.81
     ax.plot(Ts, SA[i], label=waves[i][2], color="#505050", linewidth=0.5, alpha=0.8)
-    print("{} 反应谱指定周期点与规范谱误差为: {}".format(waves[i][2], str(utils_sw.get_deviation_at_T(T, Ts, SA[i], alpha)))) if len(T) > 0 else None
+    # ax.plot(Ts, SA[i], label=waves[i][2], linewidth=1.5, alpha=0.8)
+    print("{}{} 反应谱指定周期点与规范谱误差为: {}".format(" "*(len(str(i+1))+len(str(len(waves)))+4), waves[i][2], str(utils_sw.get_deviation_at_T(T, Ts, SA[i], alpha)))) if len(T) > 0 else None
     # _, _, A = dynamic_solver.fft_sdof(waves[i], am, Ts, xi)
-    # A = A / 9.8
+    # A = A / 9.81
     # ax.plot(Ts, A, label=waves[i][2]+"(FFT)")
 SAV = np.average(SA, axis=0)
 ax.plot(Ts, SAV, label="均值反应谱", color="#FF0000", linewidth=2, linestyle="--")
