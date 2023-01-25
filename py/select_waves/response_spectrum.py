@@ -46,7 +46,7 @@ waves = load_waves.load_waves(wave_files)
 SA = np.zeros((len(waves), len(Ts)))
 for i in range(len(waves)):
     print("({}/{}) 正在计算 {} 的反应谱...".format(i + 1, len(waves), waves[i][2]))
-    _, _, SA[i] = dynamic_solver.newmark_beta(waves[i], am, Ts, xi)
+    _, _, SA[i] = dynamic_solver.nigam_jennings(waves[i], am, Ts, xi)
     SA[i][SA[i] > 1e4] = np.nan
     SA[i] = SA[i] if is_ms2 else SA[i] / 9.81
     ax.plot(Ts, SA[i], label=waves[i][2], color="#505050", linewidth=0.5, alpha=0.8)  # 画出反应谱
