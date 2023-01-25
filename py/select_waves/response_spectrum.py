@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+import calculate_code_alpha
 import dynamic_solver
-import gen_code_res
 import load_waves
 import utils_sw
 
@@ -32,8 +32,9 @@ fig = plt.figure(figsize=(12, 8))
 ax = fig.add_subplot(1, 1, 1)
 
 # 生成规范反应谱并绘制
-alpha = gen_code_res.gen_code_res_gbt51408(alpha_max, Tg, xi, Ts)
-ax.plot(Ts, alpha if not is_ms2 else alpha * 9.81, label="规范设计加速度反应谱", color="#000000", linewidth=2)
+alpha: np.ndarray = np.vectorize(calculate_code_alpha.calculate_code_alpha_gbt51408)(alpha_max, Tg, xi, Ts)
+SA_code = alpha if not is_ms2 else alpha * 9.81
+ax.plot(Ts, SA_code, label="规范设计加速度反应谱", color="#000000", linewidth=2)
 
 # 加载地震时程数据
 waves = load_waves.load_waves(wave_files)
@@ -50,13 +51,13 @@ for i in range(len(waves)):
     SA[i] = SA[i] if is_ms2 else SA[i] / 9.81
     ax.plot(Ts, SA[i], label=waves[i][2], color="#505050", linewidth=0.5, alpha=0.8)  # 画出反应谱
     # ax.plot(Ts, SA[i], label=waves[i][2], linewidth=1.5, alpha=0.8)  # 画出反应谱
-    print("{}{} 反应谱指定周期点与规范谱误差为: {}".format(" "*(len(str(i+1))+len(str(len(waves)))+4), waves[i][2], str(utils_sw.get_deviation_at_T(T, Ts, SA[i], alpha)))) if len(T) > 0 else None
+    print("{}{} 反应谱指定周期点与规范谱误差为: {}".format(" "*(len(str(i+1))+len(str(len(waves)))+4), waves[i][2], str(utils_sw.get_deviation_at_T(T, Ts, SA[i], SA_code)))) if len(T) > 0 else None
     # _, _, A = dynamic_solver.fft_sdof(waves[i], am, Ts, xi)
     # A = A / 9.81
     # ax.plot(Ts, A, label=waves[i][2]+"(FFT)")
 SAV = np.average(SA, axis=0)
 ax.plot(Ts, SAV, label="均值反应谱", color="#FF0000", linewidth=2, linestyle="--")
-print("\n{} 指定周期点与规范谱误差为: {}".format("均值反应谱", str(utils_sw.get_deviation_at_T(T, Ts, SAV, alpha)))) if len(T) > 0 else None
+print("\n{} 指定周期点与规范谱误差为: {}".format("均值反应谱", str(utils_sw.get_deviation_at_T(T, Ts, SAV, SA_code)))) if len(T) > 0 else None
 
 ax.legend()
 x_major_ticks, x_minor_ticks, y_major_ticks, y_minor_ticks = utils_sw.get_axis_ticks(Ts, SA)
