@@ -19,7 +19,10 @@ xi = 0.05  # 阻尼比
 alpha_max = 0.24  # 地震影响系数最大值
 am = 1.1  # 时程波加速度峰值(m/s^2)
 Tg = 0.4  # 场地特征周期
-Ts = np.arange(0.01, 6, 0.01)  # 谱周期序列，dt/Ts[i] <= 0.55时，Newmark-Beta算法收敛
+
+is_ms2 = True  # 是否使用m/s^2为单位
+
+Ts = np.arange(0.01, 6 + 1e-4, 0.01)  # 谱周期序列，dt/Ts[i] <= 0.55时，Newmark-Beta算法收敛
 
 
 # 创建画布
@@ -29,8 +32,8 @@ fig = plt.figure(figsize=(12, 8))
 ax = fig.add_subplot(1, 1, 1)
 
 # 生成规范反应谱并绘制
-alpha = gen_code_res.gen_code_res_gbt51408(alpha_max, Tg, xi, Ts) * 9.81
-ax.plot(Ts, alpha, label="规范设计加速度反应谱", color="#000000", linewidth=2)
+alpha = gen_code_res.gen_code_res_gbt51408(alpha_max, Tg, xi, Ts)
+ax.plot(Ts, alpha if not is_ms2 else alpha * 9.81, label="规范设计加速度反应谱", color="#000000", linewidth=2)
 
 # 加载地震时程数据
 waves = load_waves.load_waves(wave_files)
@@ -38,14 +41,15 @@ waves = load_waves.load_waves(wave_files)
 # load_waves.plot_waves(waves)
 
 
-# 计算地震响应谱并绘制
+# 计算地震反应谱并绘制
 SA = np.zeros((len(waves), len(Ts)))
 for i in range(len(waves)):
     print("({}/{}) 正在计算 {} 的反应谱...".format(i + 1, len(waves), waves[i][2]))
-    _, _, SA[i] = dynamic_solver.nigam_jennings(waves[i], am, Ts, xi)
-    # SA[i] = SA[i] / 9.81
-    ax.plot(Ts, SA[i], label=waves[i][2], color="#505050", linewidth=0.5, alpha=0.8)
-    # ax.plot(Ts, SA[i], label=waves[i][2], linewidth=1.5, alpha=0.8)
+    _, _, SA[i] = dynamic_solver.newmark_beta(waves[i], am, Ts, xi)
+    SA[i][SA[i] > 1e4] = np.nan
+    SA[i] = SA[i] if is_ms2 else SA[i] / 9.81
+    ax.plot(Ts, SA[i], label=waves[i][2], color="#505050", linewidth=0.5, alpha=0.8)  # 画出反应谱
+    # ax.plot(Ts, SA[i], label=waves[i][2], linewidth=1.5, alpha=0.8)  # 画出反应谱
     print("{}{} 反应谱指定周期点与规范谱误差为: {}".format(" "*(len(str(i+1))+len(str(len(waves)))+4), waves[i][2], str(utils_sw.get_deviation_at_T(T, Ts, SA[i], alpha)))) if len(T) > 0 else None
     # _, _, A = dynamic_solver.fft_sdof(waves[i], am, Ts, xi)
     # A = A / 9.81
@@ -55,10 +59,9 @@ ax.plot(Ts, SAV, label="均值反应谱", color="#FF0000", linewidth=2, linestyl
 print("\n{} 指定周期点与规范谱误差为: {}".format("均值反应谱", str(utils_sw.get_deviation_at_T(T, Ts, SAV, alpha)))) if len(T) > 0 else None
 
 ax.legend()
-x_major_ticks = np.arange(0, 6.1, 1)
-x_minor_ticks = np.arange(0, 6.1, 0.2)
-y_major_ticks = np.arange(0, int(np.max(SA) * 10) / 10 + 0.11, 0.5)
-y_minor_ticks = np.arange(0, int(np.max(SA) * 10) / 10 + 0.11, 0.1)
+x_major_ticks, x_minor_ticks, y_major_ticks, y_minor_ticks = utils_sw.get_axis_ticks(Ts, SA)
+ax.set_xlim(0, np.max(x_major_ticks))
+ax.set_ylim(0, np.max(y_major_ticks))
 ax.set_xticks(x_major_ticks)
 ax.set_xticks(x_minor_ticks, minor=True)
 ax.set_yticks(y_major_ticks)
@@ -66,5 +69,5 @@ ax.set_yticks(y_minor_ticks, minor=True)
 ax.grid(which='major', alpha=0.7)
 ax.grid(which='minor', alpha=0.2)
 ax.set_xlabel("T(s)")
-ax.set_ylabel("a(m/s$^2$)")
+ax.set_ylabel("a(m/s$^2$)") if is_ms2 else ax.set_ylabel("a(g)")
 plt.show()

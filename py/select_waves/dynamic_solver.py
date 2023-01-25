@@ -1,6 +1,8 @@
+import numba as nb
 import numpy as np
 
 
+@nb.njit
 def newmark_beta_deprecated(wave, am, Ts, xi, beta=1/6, gamma=1/2):
     """newmark-beta 积分求解单自由度结构地震荷载下的响应
     :param wave: 地震时程
@@ -57,6 +59,7 @@ def newmark_beta_deprecated(wave, am, Ts, xi, beta=1/6, gamma=1/2):
     return U_R, V_R, A
 
 
+@nb.njit
 def newmark_beta(wave, am, Ts, xi, beta=1/6, gamma=1/2):
     """newmark-beta 积分求解单自由度结构地震荷载下的响应
     :param wave: 地震时程
@@ -104,6 +107,7 @@ def newmark_beta(wave, am, Ts, xi, beta=1/6, gamma=1/2):
     return U_R, V_R, A
 
 
+@nb.njit
 def nigam_jennings(wave, am, Ts, xi):
     """nigam_jennings 求解单自由度结构地震荷载下的响应
     :param wave: 地震时程
@@ -152,6 +156,7 @@ def nigam_jennings(wave, am, Ts, xi):
     return U_R, V_R, A
 
 
+@nb.njit
 def fft_sdof(wave, am, Ts, xi):
     """fft 求解单自由度结构地震荷载下的响应
 
