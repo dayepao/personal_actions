@@ -37,5 +37,7 @@ def plot_waves(waves):
         ax.set_title(wave[2])
         ax.set_xlabel("t(s)")
         ax.set_ylabel("a(m/s^2)")
+        ax.set_xlim(0, np.max(wave[0]))
+        ax.set_ylim(-1, 1)
         ax.set_yticks(y_major_ticks)
     plt.show()

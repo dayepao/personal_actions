@@ -25,6 +25,11 @@ is_ms2 = True  # 是否使用m/s^2为单位
 Ts = np.arange(0.01, 6 + 1e-4, 0.01)  # 谱周期序列，dt/Ts[i] <= 0.55时，Newmark-Beta算法收敛
 
 
+# 加载地震时程数据
+waves = load_waves.load_waves(wave_files)
+# 绘制地震时程数据
+# load_waves.plot_waves(waves)
+
 # 创建画布
 plt.rcParams['font.sans-serif'] = ['SIMSUN']  # 用来正常显示中文标签
 plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
@@ -36,17 +41,12 @@ alpha: np.ndarray = np.vectorize(calculate_code_alpha.calculate_code_alpha_gbt51
 SA_code = alpha if not is_ms2 else alpha * 9.81
 ax.plot(Ts, SA_code, label="规范设计加速度反应谱", color="#000000", linewidth=2)
 
-# 加载地震时程数据
-waves = load_waves.load_waves(wave_files)
-# 绘制地震时程数据
-# load_waves.plot_waves(waves)
-
 
 # 计算地震反应谱并绘制
 SA = np.zeros((len(waves), len(Ts)))
 for i in range(len(waves)):
     print("({}/{}) 正在计算 {} 的反应谱...".format(i + 1, len(waves), waves[i][2]))
-    _, _, SA[i] = dynamic_solver.nigam_jennings(waves[i], am, Ts, xi)
+    _, _, SA[i] = np.vectorize(dynamic_solver.get_res, excluded=["wave"])(wave=waves[i], am=am, xi=xi, T=Ts)
     SA[i][SA[i] > 1e4] = np.nan
     SA[i] = SA[i] if is_ms2 else SA[i] / 9.81
     ax.plot(Ts, SA[i], label=waves[i][2], color="#505050", linewidth=0.5, alpha=0.8)  # 画出反应谱
