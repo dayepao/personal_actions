@@ -13,7 +13,7 @@ def get_deviation_at_T(T, Ts, SA_i, SA_code):
     deviation = []
     for i in range(len(T)):
         idx = np.argmin(np.abs(Ts - T[i]))
-        # deviation.append((np.round(Ts[idx], len(str(Ts[1] - Ts[0]).split(".")[1])), str(np.abs(SA_i[idx] - alpha[idx]) / alpha[idx] * 100) + "%"))
+        # deviation.append((np.round(Ts[idx], len(str(Ts[1] - Ts[0]).split(".")[1])), str(np.round(np.abs(SA_i[idx] - SA_code[idx]) / SA_code[idx] * 100, 2)) + "%"))
         deviation.append((T[i], str(np.round(np.abs(SA_i[idx] - SA_code[idx]) / SA_code[idx] * 100, 2)) + "%"))
     return deviation
 

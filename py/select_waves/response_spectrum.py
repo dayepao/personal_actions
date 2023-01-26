@@ -37,7 +37,7 @@ fig = plt.figure(figsize=(12, 8))
 ax = fig.add_subplot(1, 1, 1)
 
 # 生成规范反应谱并绘制
-alpha: np.ndarray = np.vectorize(calculate_code_alpha.calculate_code_alpha_gbt51408)(alpha_max, Tg, xi, Ts)
+alpha: np.ndarray = np.vectorize(calculate_code_alpha.calculate_code_alpha_gb50011)(alpha_max, Tg, xi, Ts)
 SA_code = alpha if not is_ms2 else alpha * 9.81
 ax.plot(Ts, SA_code, label="规范设计加速度反应谱", color="#000000", linewidth=2)
 
