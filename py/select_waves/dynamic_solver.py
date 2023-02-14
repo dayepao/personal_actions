@@ -95,7 +95,7 @@ def newmark_beta(wave, am, xi, T, beta=1/6, gamma=1/2):
 
 @nb.njit
 def nigam_jennings(wave, am, xi, T):
-    """nigam_jennings 求解单自由度结构地震荷载下的响应
+    """nigam-jennings 求解单自由度结构地震荷载下的响应
     :param wave: 地震时程
     :param am: 时程波加速度峰值(m/s^2)
     :param xi: 阻尼比
