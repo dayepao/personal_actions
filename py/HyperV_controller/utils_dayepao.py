@@ -117,15 +117,15 @@ def make_dir(path: str):
 def get_self_dir():
     """获取自身路径
 
-    返回`(py_path, py_dir, py_name)`
+    返回`(self_path, self_dir, self_name)`
 
-    py_path: 当前.py文件完整路径 (包括文件名)
-    py_dir: 当前.py文件所在文件夹路径
-    py_name: 当前.py文件名
+    self_path: 当前程序文件完整路径 (包括文件名)
+    self_dir: 当前程序文件所在文件夹路径
+    self_name: 当前程序文件名
     """
-    py_path = os.path.realpath(__main__.__file__) if os.path.splitext(__file__)[1] == ".py" else os.path.realpath(sys.executable)
-    py_dir, py_name = os.path.split(py_path)
-    return py_path, py_dir, py_name
+    self_path = os.path.realpath(__main__.__file__) if os.path.splitext(__file__)[1] == ".py" else os.path.realpath(sys.executable)
+    self_dir, self_name = os.path.split(self_path)
+    return self_path, self_dir, self_name
 
 
 def get_resource_path(relative_path):
@@ -323,13 +323,16 @@ def creat_apscheduler(sched_job_list: list[dict], push_option: dict = {}, timezo
 
 
 def update_self():
-    self_path, self_dir = get_self_dir()[0:2]
-    for filename in os.listdir(self_dir):
-        if (os.path.isdir(os.path.join(self_dir, filename))) and (os.path.exists(old_path := os.path.join(self_dir, filename, "utils_dayepao.py"))) and (get_file_hash(self_path) != get_file_hash(old_path)):
-            with open(self_path, "rb") as f:
-                new_content = f.read()
-            with open(old_path, "wb") as f:
-                f.write(new_content)
+    self_path, self_dir, _ = get_self_dir()
+    for root, _, files in os.walk(self_dir):
+        for file in files:
+            if file == "utils_dayepao.py":
+                old_path = os.path.join(root, file)
+                if get_file_hash(self_path) != get_file_hash(old_path):
+                    with open(self_path, "rb") as f:
+                        new_content = f.read()
+                    with open(old_path, "wb") as f:
+                        f.write(new_content)
 
 
 if __name__ == "__main__":
