@@ -18,13 +18,18 @@ def GPS_exif_is_empty(filename):
 def datetime_in_filename_and_exif_is_different(filename):
     """Check if datetime in filename and exif is different"""
     exif_dict = piexif.load(filename)
-    if exif_dict["Exif"]:
+    if piexif.ExifIFD.DateTimeOriginal in exif_dict["Exif"]:
         date_time = exif_dict["Exif"][piexif.ExifIFD.DateTimeOriginal]
-        date_time = datetime.datetime.strptime(date_time.decode("utf-8"), "%Y:%m:%d %H:%M:%S")
-        date_time_from_filename = get_date_time_from_filename(filename)
-        if date_time_from_filename:
-            if date_time_from_filename[0] != date_time:
-                return True
+    elif piexif.ImageIFD.DateTime in exif_dict["0th"]:
+        date_time = exif_dict["0th"][piexif.ImageIFD.DateTime]
+    else:
+        print("No datetime in exif: {}".format(filename))
+        return False
+    date_time = datetime.datetime.strptime(date_time.decode("utf-8"), "%Y:%m:%d %H:%M:%S")
+    date_time_from_filename = get_date_time_from_filename(filename)
+    if date_time_from_filename:
+        if date_time_from_filename + datetime.timedelta(hours=8) != date_time:
+            return True
     return False
 
 
@@ -39,4 +44,4 @@ def check_photos(directory, check_function):
 
 
 if __name__ == "__main__":
-    check_photos(r"photos", GPS_exif_is_empty)
+    check_photos(r"photos", datetime_in_filename_and_exif_is_different)

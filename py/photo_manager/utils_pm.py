@@ -19,15 +19,14 @@ def get_exif(filename, ifd_tuple: tuple = ("0th", "Exif", "GPS", "1st")):
 
 
 def get_date_time_from_filename(filename):
-    date = re.match(re.compile(r'.*?_(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2}).*'), os.path.basename(filename))
+    date = re.match(re.compile(r'.*?(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2}).*'), os.path.basename(filename))
     if date and (len(date.groups()) == 6):
         try:
             date_time = datetime.datetime(int(date.group(1)), int(date.group(2)), int(date.group(3)), int(date.group(4)), int(date.group(5)), int(date.group(6)))
         except Exception as e:
             print(sys._getframe().f_code.co_name + ": " + str(e))
             return None
-        utc_date_time = date_time + datetime.timedelta(hours=-8)
-        return (date_time, utc_date_time)
+        return date_time
     return None
 
 
@@ -61,7 +60,7 @@ def dms2d(deg, mnt, sec):
 
 def set_Exif_exif(filename, date_time: datetime.datetime = None):
     if date_time is None:
-        date_time = get_date_time_from_filename(filename)[0]
+        date_time = get_date_time_from_filename(filename)
     exif_ifd = {
         piexif.ExifIFD.OffsetTime: b"+08:00",
         piexif.ExifIFD.OffsetTimeOriginal: b"+08:00",
@@ -85,7 +84,7 @@ def set_GPS_exif(filename, latitude: float, longitude: float, date_time: datetim
     longitude = ("W" if longitude < 0 else "E", d2dms(abs(longitude)))
 
     if date_time is None:
-        date_time = get_date_time_from_filename(filename)[0]
+        date_time = get_date_time_from_filename(filename)
 
     utc_date_time = date_time + datetime.timedelta(hours=-8)
 
@@ -108,10 +107,11 @@ def set_GPS_exif(filename, latitude: float, longitude: float, date_time: datetim
 
 
 if __name__ == "__main__":
-    # for file in os.listdir(r"\新建文件夹"):
+    # path = r"新建文件夹"
+    # for file in os.listdir(path):
     #     if file.endswith(".jpg"):
-    #         set_GPS_exif(r"\新建文件夹\{}".format(file), 31.003302, 104.21614097222222)
+    #         set_GPS_exif(os.path.join(path, file), 31.003302, 104.21614097222222)
     # set_GPS_exif(r"\IMG_20190914_153157.jpg", 31.003302, 104.21614097222222)
     # set_Exif_exif(r"-1e7efef544fdd5b4.jpg", datetime.datetime(2018, 6, 13, 11, 14, 35))
-    # print(get_lat_lon(r"\IMG_20190914_144521_1.jpg"))
-    get_exif(r"")
+    print(get_date_time_from_filename(r"20230206_094257_E0036B09.jpg"))
+    # get_exif(r"")
