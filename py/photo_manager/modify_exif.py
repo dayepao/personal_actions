@@ -42,13 +42,11 @@ def copy_exif(src, dst, ifd_tuple: tuple = ("0th", "Exif", "GPS", "1st")):
 def get_lat_lon(filename):
     exif_dict = piexif.load(filename)
     if exif_dict["GPS"]:
-        latref = exif_dict["GPS"][piexif.GPSIFD.GPSLatitudeRef].decode("utf-8")
         lat = exif_dict["GPS"][piexif.GPSIFD.GPSLatitude]
-        lonref = exif_dict["GPS"][piexif.GPSIFD.GPSLongitudeRef].decode("utf-8")
         lon = exif_dict["GPS"][piexif.GPSIFD.GPSLongitude]
-        lat = dms2d(lat[0][0] / lat[0][1], lat[1][0] / lat[1][1], lat[2][0] / lat[2][1])
-        lon = dms2d(lon[0][0] / lon[0][1], lon[1][0] / lon[1][1], lon[2][0] / lon[2][1])
-    return (latref, lat), (lonref, lon)
+        lat = dms2d(lat[0][0] / lat[0][1], lat[1][0] / lat[1][1], lat[2][0] / lat[2][1]) * (-1 if exif_dict["GPS"][piexif.GPSIFD.GPSLatitudeRef] == b"S" else 1)
+        lon = dms2d(lon[0][0] / lon[0][1], lon[1][0] / lon[1][1], lon[2][0] / lon[2][1]) * (-1 if exif_dict["GPS"][piexif.GPSIFD.GPSLongitudeRef] == b"W" else 1)
+    return lat, lon
 
 
 def d2dms(d):
@@ -76,18 +74,15 @@ def set_Exif_exif(filename, date_time: datetime.datetime = None):
     get_exif(filename, ("Exif",))
 
 
-def set_GPS_exif(filename, latitude: tuple, longitude: tuple, date_time: datetime.datetime = None):
+def set_GPS_exif(filename, latitude: float, longitude: float, date_time: datetime.datetime = None):
     """
-    r"IMG_20181029_225228.jpg", ("N", 30.60903033714247), ("E", 103.78470976163908), datetime.datetime(2018, 10, 29, 22, 52, 28)
+    r"IMG_20181029_225228.jpg", 30.60903033714247, 103.78470976163908, datetime.datetime(2018, 10, 29, 22, 52, 28)
     """
-    assert isinstance(latitude, tuple) and isinstance(longitude, tuple)
-    assert latitude[0] in ("N", "S")
-    assert longitude[0] in ("E", "W")
-    assert 0 <= latitude[1] <= 90
-    assert 0 <= longitude[1] <= 180
+    assert isinstance(latitude, float) and isinstance(longitude, float)
+    assert -90 <= latitude <= 90 and -180 <= longitude <= 180
 
-    latitude = (latitude[0], d2dms(latitude[1]))
-    longitude = (longitude[0], d2dms(longitude[1]))
+    latitude = ("S" if latitude < 0 else "N", d2dms(abs(latitude)))
+    longitude = ("W" if longitude < 0 else "E", d2dms(abs(longitude)))
 
     if date_time is None:
         date_time = get_date_time_from_filename(filename)[0]
@@ -107,12 +102,16 @@ def set_GPS_exif(filename, latitude: tuple, longitude: tuple, date_time: datetim
     }
     original_ifd = piexif.load(filename)
     original_ifd["GPS"].update(gps_ifd)
+    original_ifd["Exif"].pop(piexif.ExifIFD.SceneType) if piexif.ExifIFD.SceneType in original_ifd["Exif"] else None
     piexif.insert(piexif.dump(original_ifd), filename)
     get_exif(filename, ("GPS",))
 
 
 if __name__ == "__main__":
-    # set_GPS_exif(r"-57f688eeb9b6b912.jpg", get_lat_lon(r"IMG_20180613_121423.jpg")[0], get_lat_lon(r"IMG_20180613_121423.jpg")[1], date_time=datetime.datetime(2018, 6, 13, 11, 14, 35))
+    for file in os.listdir(r"\新建文件夹"):
+        if file.endswith(".jpg"):
+            set_GPS_exif(r"\新建文件夹\{}".format(file), 31.003302, 104.21614097222222)
+    # set_GPS_exif(r"\IMG_20190914_153157.jpg", 31.003302, 104.21614097222222)
     # set_Exif_exif(r"-1e7efef544fdd5b4.jpg", datetime.datetime(2018, 6, 13, 11, 14, 35))
-    get_exif(r"-57f688eeb9b6b912.jpg")
-    # print(get_date_time_from_filename(r"IMG_20181029_225228.jpg"))
+    # print(get_lat_lon(r"\IMG_20190914_144521_1.jpg"))
+    # get_exif(r"\IMG_20190914_144521_1.jpg")
