@@ -108,10 +108,10 @@ def set_GPS_exif(filename, latitude: float, longitude: float, date_time: datetim
 
 
 if __name__ == "__main__":
-    for file in os.listdir(r"\新建文件夹"):
-        if file.endswith(".jpg"):
-            set_GPS_exif(r"\新建文件夹\{}".format(file), 31.003302, 104.21614097222222)
+    # for file in os.listdir(r"\新建文件夹"):
+    #     if file.endswith(".jpg"):
+    #         set_GPS_exif(r"\新建文件夹\{}".format(file), 31.003302, 104.21614097222222)
     # set_GPS_exif(r"\IMG_20190914_153157.jpg", 31.003302, 104.21614097222222)
     # set_Exif_exif(r"-1e7efef544fdd5b4.jpg", datetime.datetime(2018, 6, 13, 11, 14, 35))
     # print(get_lat_lon(r"\IMG_20190914_144521_1.jpg"))
-    # get_exif(r"\IMG_20190914_144521_1.jpg")
+    get_exif(r"")
