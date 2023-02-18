@@ -1,28 +1,24 @@
+import datetime
 import os
 
 import piexif
-import datetime
-from utils_pm import get_date_time_from_filename
+
+from utils_pm import get_date_time_from_exif, get_date_time_from_filename
 
 
 def GPS_exif_is_empty(filename):
     """Check if GPS exif is empty"""
     exif_dict = piexif.load(filename)
-    if (not exif_dict["GPS"]) or (not exif_dict["GPS"][piexif.GPSIFD.GPSLatitude]) or (not exif_dict["GPS"][piexif.GPSIFD.GPSLongitude]):
+    if (not exif_dict["GPS"]) or (piexif.GPSIFD.GPSLatitude not in exif_dict["GPS"]) or (piexif.GPSIFD.GPSLongitude not in exif_dict["GPS"]):
         return True
-    if exif_dict["GPS"][piexif.GPSIFD.GPSLatitude] == (0, 0, 0) and exif_dict["GPS"][piexif.GPSIFD.GPSLongitude] == (0, 0, 0):
+    if exif_dict["GPS"][piexif.GPSIFD.GPSLatitude] == ((0, 1), (0, 1), (0, 100)) and exif_dict["GPS"][piexif.GPSIFD.GPSLongitude] == ((0, 1), (0, 1), (0, 100)):
         return True
     return False
 
 
-def datetime_in_filename_and_exif_is_different(filename):
+def date_time_in_filename_and_exif_is_different(filename):
     """Check if datetime in filename and exif is different"""
-    exif_dict = piexif.load(filename)
-    if piexif.ExifIFD.DateTimeOriginal in exif_dict["Exif"]:
-        date_time = exif_dict["Exif"][piexif.ExifIFD.DateTimeOriginal]
-    elif piexif.ImageIFD.DateTime in exif_dict["0th"]:
-        date_time = exif_dict["0th"][piexif.ImageIFD.DateTime]
-    else:
+    if not (date_time := get_date_time_from_exif(filename)):
         print("No datetime in exif: {}".format(filename))
         return False
     date_time = datetime.datetime.strptime(date_time.decode("utf-8"), "%Y:%m:%d %H:%M:%S")
@@ -33,15 +29,25 @@ def datetime_in_filename_and_exif_is_different(filename):
     return False
 
 
+def date_time_in_exif_is_empty(filename):
+    """Check if datetime in exif is empty"""
+    if get_date_time_from_exif(filename):
+        return False
+    return True
+
+
 def check_photos(directory, check_function):
     """Check photos in directory"""
-    for root, dirs, files in os.walk(directory):
+    results = []
+    for root, _, files in os.walk(directory):
         for file in files:
             if file.lower().endswith((".jpg", ".jpeg")):
                 filename = os.path.join(root, file)
                 if check_function(filename):
-                    print(filename)
+                    results.append(filename)
+    return results
 
 
 if __name__ == "__main__":
-    check_photos(r"photos", datetime_in_filename_and_exif_is_different)
+    for result in check_photos(r"Camera", date_time_in_exif_is_empty):
+        print(result)
