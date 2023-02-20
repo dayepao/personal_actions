@@ -40,26 +40,30 @@ def get_date_time_from_filename(filepath):
     return None
 
 
-def get_date_time_from_exif(filepath, offset_time: str = "+08:00"):
+def get_date_time_from_exif(filepath):
     exif_dict = piexif.load(filepath)
     if piexif.ExifIFD.DateTimeOriginal in exif_dict["Exif"]:
         date_time_str = exif_dict["Exif"][piexif.ExifIFD.DateTimeOriginal].decode("utf-8")
+    elif piexif.ExifIFD.DateTimeDigitized in exif_dict["Exif"]:
+        date_time_str = exif_dict["Exif"][piexif.ExifIFD.DateTimeDigitized].decode("utf-8")
     elif piexif.ImageIFD.DateTime in exif_dict["0th"]:
         date_time_str = exif_dict["0th"][piexif.ImageIFD.DateTime].decode("utf-8")
     else:
-        return None
+        return None, None
+    assert isinstance(date_time_str, str)
 
     date_time = None
+    offset_time = re.match(re.compile(r'.*?([\+\-]\d{2}:\d{2})'), date_time_str)
+    if offset_time:
+        offset_time = offset_time.group(1)
+        date_time_str = date_time_str.replace(offset_time, "")
+
     try:
         date_time = datetime.datetime.strptime(date_time_str, "%Y:%m:%d %H:%M:%S")
     except Exception:
         pass
-    try:
-        date_time = datetime.datetime.strptime(date_time_str, "%Y:%m:%d %H:%M:%S{}".format(offset_time))
-    except Exception:
-        pass
 
-    return date_time
+    return date_time, offset_time
 
 
 def copy_exif(src, dst, target_ifd: tuple | str = ("0th", "Exif", "GPS", "1st")):
@@ -94,26 +98,30 @@ def dms2d(deg, mnt, sec):
     return deg + mnt / 60 + sec / 3600
 
 
-def set_date_time_in_Exif_exif(filepath, date_time: datetime.datetime = None, offset_time: str = "+08:00"):
+def set_date_time_in_Exif_exif(filepath, date_time: datetime.datetime = None, offset_time: str = "+08:00", visible: bool = True):
     if date_time is None:
         date_time = get_date_time_from_filename(filepath)
+
     if date_time is None:
         print("date_time is None: {}".format(filepath))
-    else:
-        exif_ifd = {
-            piexif.ExifIFD.OffsetTime: offset_time,
-            piexif.ExifIFD.OffsetTimeOriginal: offset_time,
-            piexif.ExifIFD.DateTimeOriginal: date_time.strftime("%Y:%m:%d %H:%M:%S{}".format(offset_time)),
-            piexif.ExifIFD.DateTimeDigitized: date_time.strftime("%Y:%m:%d %H:%M:%S{}".format(offset_time)),
-        }
-        original_ifd = piexif.load(filepath)
-        original_ifd["Exif"].update(exif_ifd)
-        original_ifd["Exif"].pop(piexif.ExifIFD.SceneType) if piexif.ExifIFD.SceneType in original_ifd["Exif"] else None
-        piexif.insert(piexif.dump(original_ifd), filepath)
+        return False
+
+    exif_ifd = {
+        piexif.ExifIFD.OffsetTime: offset_time,
+        piexif.ExifIFD.OffsetTimeOriginal: offset_time,
+        piexif.ExifIFD.DateTimeOriginal: date_time.strftime("%Y:%m:%d %H:%M:%S{}".format(offset_time)),
+        piexif.ExifIFD.DateTimeDigitized: date_time.strftime("%Y:%m:%d %H:%M:%S{}".format(offset_time)),
+    }
+    original_ifd = piexif.load(filepath)
+    original_ifd["Exif"].update(exif_ifd)
+    original_ifd["Exif"].pop(piexif.ExifIFD.SceneType) if piexif.ExifIFD.SceneType in original_ifd["Exif"] else None
+    piexif.insert(piexif.dump(original_ifd), filepath)
+    if visible:
         print_exif(filepath, "Exif")
+    return True
 
 
-def set_GPS_exif(filepath, latitude: float | int, longitude: float | int, date_time: datetime.datetime = None):
+def set_GPS_exif(filepath, latitude: float | int, longitude: float | int, date_time: datetime.datetime = None, visible: bool = True):
     """
     r"IMG_20181029_225228.jpg", 30.60903033714247, 103.78470976163908, datetime.datetime(2018, 10, 29, 22, 52, 28)
     """
@@ -125,6 +133,10 @@ def set_GPS_exif(filepath, latitude: float | int, longitude: float | int, date_t
 
     if date_time is None:
         date_time = get_date_time_from_exif(filepath)
+
+    if date_time is None:
+        print("date_time is None: {}".format(filepath))
+        return False
 
     utc_date_time = date_time + datetime.timedelta(hours=-8)
 
@@ -143,15 +155,18 @@ def set_GPS_exif(filepath, latitude: float | int, longitude: float | int, date_t
     original_ifd["GPS"].update(gps_ifd)
     original_ifd["Exif"].pop(piexif.ExifIFD.SceneType) if piexif.ExifIFD.SceneType in original_ifd["Exif"] else None
     piexif.insert(piexif.dump(original_ifd), filepath)
-    print_exif(filepath, "GPS")
+    if visible:
+        print_exif(filepath, "GPS")
+    return True
 
 
-def fix_date_time_in_exif(filepath):
-    date_time = get_date_time_from_exif(filepath)
+def fix_date_time_in_exif(filepath, offset_time: str = "+08:00"):
+    date_time, original_offset_time = get_date_time_from_exif(filepath)
     if date_time:
-        set_date_time_in_Exif_exif(filepath, date_time)
-    else:
-        print("date_time is None: {}".format(filepath))
+        if original_offset_time:
+            return bool(original_offset_time == offset_time)
+        return set_date_time_in_Exif_exif(filepath, date_time, offset_time=offset_time, visible=False)
+    return False
 
 
 # 文件夹去重
@@ -178,6 +193,8 @@ def convert_to_jpg(filepath):
         img.save(new_filepath, "JPEG")
         if os.path.exists(new_filepath) and os.path.getsize(new_filepath) > 0:
             os.remove(filepath)
+            return True
+    return False
 
 
 if __name__ == "__main__":
