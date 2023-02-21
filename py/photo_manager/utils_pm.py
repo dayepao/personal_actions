@@ -26,19 +26,23 @@ def print_exif(filepath, target_ifd: tuple | str = ("0th", "Exif", "GPS", "1st")
 
 
 def get_date_time_from_filename(filepath):
-    re_list = [
+    re_str_list = [
         r".*?(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2}).*",  # 手机照片
         r".*?(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2}).*",  # 手机截图
         r".*?(\d{4})-(\d{2})-(\d{2}) (\d{2})(\d{2})(\d{2}).*"  # 电脑截图
     ]
-    date = None
-    for re_str in re_list:
-        if date := re.match(re.compile(re_str), os.path.basename(filepath)):
+    date_time_result = None
+    for re_str in re_str_list:
+        if date_time_result := re.match(re.compile(re_str), os.path.basename(filepath)):
             break
 
-    if date:
+    date_time_tuple = None
+    if date_time_result:
+        date_time_tuple = tuple(map(int, date_time_result.groups()))
+
+    if date_time_tuple:
         try:
-            date_time = datetime.datetime(int(date.group(1)), int(date.group(2)), int(date.group(3)), int(date.group(4)), int(date.group(5)), int(date.group(6)))
+            date_time = datetime.datetime(*date_time_tuple)
         except Exception as e:
             print(sys._getframe().f_code.co_name + ": " + str(e))
             return None
