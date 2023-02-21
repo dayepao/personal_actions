@@ -26,11 +26,17 @@ def print_exif(filepath, target_ifd: tuple | str = ("0th", "Exif", "GPS", "1st")
 
 
 def get_date_time_from_filename(filepath):
-    date = re.match(re.compile(r'.*?(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2}).*'), os.path.basename(filepath))
-    if not date:
-        date = re.match(re.compile(r'.*?(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2}).*'), os.path.basename(filepath))
+    re_list = [
+        r".*?(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2}).*",  # 手机照片
+        r".*?(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2}).*",  # 手机截图
+        r".*?(\d{4})-(\d{2})-(\d{2}) (\d{2})(\d{2})(\d{2}).*"  # 电脑截图
+    ]
+    date = None
+    for re_str in re_list:
+        if date := re.match(re.compile(re_str), os.path.basename(filepath)):
+            break
 
-    if date and (len(date.groups()) == 6):
+    if date:
         try:
             date_time = datetime.datetime(int(date.group(1)), int(date.group(2)), int(date.group(3)), int(date.group(4)), int(date.group(5)), int(date.group(6)))
         except Exception as e:
