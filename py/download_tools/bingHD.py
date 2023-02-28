@@ -7,7 +7,7 @@ import re
 
 from bs4 import BeautifulSoup
 
-from utils_dayepao import get_method, post_method
+from utils_dayepao import get_method, dayepao_push
 
 
 def download():
@@ -56,17 +56,4 @@ download()
 
 para.pushstr = para.pushstr + "当前bingHD文件数：" + str(num()) + "\n\n"
 
-pushurl = "https://push.dayepao.com/?pushkey=" + "Your_Push_Key"
-pushdata = {
-    "touser": "@all",
-    "msgtype": "text",
-    "agentid": 1000002,
-    "text": {
-        "content": para.pushstr
-    },
-    "safe": 0,
-    "enable_id_trans": 0,
-    "enable_duplicate_check": 0,
-    "duplicate_check_interval": 0
-}
-post_method(pushurl, postjson=pushdata, timeout=10)
+dayepao_push(para.pushstr, "Your_Push_Key")
