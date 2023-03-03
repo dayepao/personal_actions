@@ -1,6 +1,7 @@
 import imghdr
 import os
 import time
+from pathlib import Path
 
 from bs4 import BeautifulSoup
 
@@ -18,7 +19,7 @@ def download():
         url = "https://tbing.cn/detail/" + str(key)
         filename = get_self_dir()[1] + "\\bing\\" + str(key) + ".jpg"
         print("正在下载: " + filename)
-        if not os.path.exists(filename):
+        if not Path(filename).exists():
             res = get_method(url)
             html = res.text
             if str(html) == "Error":

@@ -317,7 +317,7 @@ def update_self():
     for root, _, files in os.walk(self_dir):
         for file in files:
             if file == "utils_dayepao.py":
-                old_path = Path(root).joinpath(file)
+                old_path = Path(root, file)
                 if get_file_hash(self_path) != get_file_hash(old_path):
                     with open(self_path, "rb") as f:
                         new_content = f.read()

@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 # .\ffmpeg.exe -i "111.mp4" -map 0 -c:a copy -c:s copy -c:v libx264 "111_end.mp4"
 
@@ -21,18 +22,17 @@ def download():
     os.chdir('downloads')
     filenames = os.listdir('.')
     for filename in filenames:
-        portion = os.path.splitext(filename)
-        if portion[1] == ".flv":
-            new_filename = portion[0]+".mp4"
+        if Path(filename).suffix == ".flv":
+            new_filename = Path(filename).with_suffix(".mp4")
             main = "..\\ffmpeg.exe -loglevel quiet -i \"" + \
-                filename + "\" -c copy \"" + new_filename + "\""
+                filename + "\" -c copy \"" + str(new_filename) + "\""
             r_v = os.system(main)
             os.remove(filename)
             print(r_v)
     os.chdir(os.pardir)
 
 
-if os.path.exists('downloads'):
+if Path('downloads').exists():
     download()
 else:
     os.mkdir('downloads')

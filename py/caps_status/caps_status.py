@@ -2,6 +2,7 @@ import ctypes
 import os
 import sys
 import time
+from pathlib import Path
 
 import PySide6
 from pynput import keyboard
@@ -42,8 +43,8 @@ class check_caps_status_work(QThread):
 class TrayIcon(QSystemTrayIcon):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.caps_ico = resource_path(os.path.join('ico', 'caps.ico'))
-        self.small_ico = resource_path(os.path.join('ico', 'small.ico'))
+        self.caps_ico = get_resource_path(Path('ico', 'caps.ico'))
+        self.small_ico = get_resource_path(Path('ico', 'small.ico'))
         self.setIcon(QIcon(self.small_ico))
         self.showMenu()
         self.activated.connect(self.iconClied)
@@ -83,9 +84,9 @@ class TrayIcon(QSystemTrayIcon):
         sys.exit()
 
 
-def resource_path(relative_path):
-    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_path, relative_path)
+def get_resource_path(relative_path):
+    base_path = getattr(sys, '_MEIPASS', Path(__file__).resolve().parent)
+    return Path(base_path, relative_path)
 
 
 if __name__ == "__main__":

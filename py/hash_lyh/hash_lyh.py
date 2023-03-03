@@ -1,6 +1,7 @@
 import hashlib
 import os
 import sys
+from pathlib import Path
 
 from PySide6.QtCore import QEvent, QObject, QThread, Signal
 from PySide6.QtWidgets import QApplication, QFileDialog, QMainWindow
@@ -22,7 +23,7 @@ class get_file_hash_thread_work(QThread):
         self.flag = 1
         for key in self.hash_task:
             hashstr = hashlib.new(key)
-            size = os.path.getsize(self.filename)
+            size = Path(self.filename).stat().st_size
             hashed = 0
             with open(self.filename, 'rb') as fileobj:
                 while (tempdata := fileobj.read(40960)) != b"":
