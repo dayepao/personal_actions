@@ -51,6 +51,7 @@ def get_date_time_from_filename(filepath):
 
 
 def get_date_time_from_exif(filepath):
+    """return date_time, offset_time"""
     exif_dict = piexif.load(filepath)
     if piexif.ExifIFD.DateTimeOriginal in exif_dict["Exif"]:
         date_time_str = exif_dict["Exif"][piexif.ExifIFD.DateTimeOriginal].decode("utf-8")
@@ -142,7 +143,7 @@ def set_GPS_exif(filepath, latitude: float | int, longitude: float | int, date_t
     longitude = ("W" if longitude < 0 else "E", d2dms(abs(longitude)))
 
     if date_time is None:
-        date_time = get_date_time_from_exif(filepath)
+        date_time = get_date_time_from_exif(filepath)[0]
 
     if date_time is None:
         print("date_time is None: {}".format(filepath))
