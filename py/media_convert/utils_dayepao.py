@@ -6,6 +6,7 @@ import subprocess
 import sys
 import time
 from functools import partial
+from pathlib import Path
 from queue import Queue
 from threading import Thread
 
@@ -103,17 +104,6 @@ def dayepao_push(
     return post_method(pushurl, postjson=pushdata, timeout=10).text
 
 
-def make_dir(path: str):
-    """创建路径
-
-    `make_dir(file_path[:file_path.rfind('\\')])`
-
-    file_path: 文件完整路径 (包括文件名)
-    """
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-
 def get_self_dir():
     """获取自身路径
 
@@ -123,14 +113,14 @@ def get_self_dir():
     self_dir: 当前程序文件所在文件夹路径
     self_name: 当前程序文件名
     """
-    self_path = os.path.realpath(__main__.__file__) if os.path.splitext(__file__)[1] == ".py" else os.path.realpath(sys.executable)
-    self_dir, self_name = os.path.split(self_path)
+    self_path = Path(__main__.__file__).resolve() if Path(__file__).suffix == ".py" else Path(sys.executable).resolve()
+    self_dir, self_name = self_path.parent, self_path.name
     return self_path, self_dir, self_name
 
 
 def get_resource_path(relative_path):
-    base_path = os.path.split(os.path.realpath(__main__.__file__))[0]
-    return os.path.join(base_path, relative_path)
+    base_path = Path(__main__.__file__).resolve().parent
+    return base_path.joinpath(relative_path)
 
 
 def get_file_hash(file_path: str, name: str = "md5"):
@@ -148,7 +138,7 @@ def get_file_hash(file_path: str, name: str = "md5"):
 def download_file(file_path: str, file_url: str, headers: dict = None):
     """下载文件到指定路径
     """
-    make_dir(file_path[:file_path.rfind('\\')])
+    Path(file_path).parent.mkdir(parents=True, exist_ok=True)
     file_content = get_method(file_url, headers=headers).content
     with open(file_path, "wb") as f:
         f.write(file_content)
@@ -327,7 +317,7 @@ def update_self():
     for root, _, files in os.walk(self_dir):
         for file in files:
             if file == "utils_dayepao.py":
-                old_path = os.path.join(root, file)
+                old_path = Path(root).joinpath(file)
                 if get_file_hash(self_path) != get_file_hash(old_path):
                     with open(self_path, "rb") as f:
                         new_content = f.read()
