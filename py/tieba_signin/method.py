@@ -4,6 +4,7 @@ import random
 import re
 import sys
 import time
+from pathlib import Path
 
 import execjs
 import httpx
@@ -102,7 +103,7 @@ def get_mouse_pwd():
 
 
 def get_BSK(tbs):
-    path = os.path.join('.', 'js', 'bsk.js')
+    path = Path('.', 'js', 'bsk.js')
     with open(path, 'r') as f:
         source = f.read()
     return execjs.compile(source).call('solve_bsk', tbs)

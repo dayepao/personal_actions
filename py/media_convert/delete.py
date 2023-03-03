@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from utils_dayepao import get_self_dir
 
@@ -7,7 +8,7 @@ target_dir = "C:\\Users\\ll057\\Music"
 # target_dir = "C:\\Users\\ll057\\Music\\VipSongsDownload"
 
 for file in os.listdir(target_dir):
-    if os.path.isfile(file_path := os.path.join(target_dir, file)):
+    if (file_path := Path(target_dir, file)).is_file():
         rm_tuple = []
         rm_tuple.append("flac")
         rm_tuple.append("ogg")

@@ -7,7 +7,7 @@ target_dir = get_self_dir()[1]
 target_dir = "C:\\Users\\ll057\\Music\\VipSongsDownload"
 
 for file in os.listdir(target_dir):
-    if os.path.isfile(file_path := Path(target_dir, file)):
+    if (file_path := Path(target_dir, file)).is_file():
         if file.endswith((".mflac", ".mgg")):
             print("正在处理文件: " + file)
             ps = "{} -o \"{}\" \"{}\"".format(get_resource_path("musicdecrypto.exe"), target_dir, file_path)

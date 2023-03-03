@@ -3,6 +3,7 @@ import io
 import os
 import sys
 from collections import Counter
+from pathlib import Path
 
 import fitz
 from PIL import Image, ImageDraw, ImageFont
@@ -12,9 +13,9 @@ from PIL import Image, ImageDraw, ImageFont
 
 
 # 获取资源文件路径
-def resource_path(relative_path):
-    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_path, relative_path)
+def get_resource_path(relative_path):
+    base_path = getattr(sys, '_MEIPASS', Path(__file__).resolve().parent)
+    return Path(base_path, relative_path)
 
 
 # 将16进制颜色转换为RGBA颜色
@@ -73,8 +74,8 @@ def get_most_freq_value_in_dict(dic: dict):
 
 
 # 给图片添加文字水印
-def add_text_watermark_to_image(img_path: str, text: str, font_path: str = resource_path(os.path.join('fonts', 'SourceHanSansCN-Regular.otf')), font_size: int | str = "auto", color: str = "#696969", opacity: int = 30, angle: int = 20, with_stroke: bool = True):
-    assert os.path.exists(img_path), "图片不存在"
+def add_text_watermark_to_image(img_path: str, text: str, font_path: str = str(get_resource_path(Path('fonts', 'SourceHanSansCN-Regular.otf'))), font_size: int | str = "auto", color: str = "#696969", opacity: int = 30, angle: int = 20, with_stroke: bool = True):
+    assert Path(img_path).exists(), "图片不存在"
     draw_kargs = {}  # 水印参数
     draw_kargs["xy"] = (0, 0)
     # 打开图片
@@ -118,20 +119,20 @@ def add_text_watermark_to_image(img_path: str, text: str, font_path: str = resou
     img.paste(text_canvas, (int((img.size[0] - text_canvas_size) / 2), int((img.size[1] - text_canvas_size) / 2)), text_canvas)
     # img.show()
     # 保存图片
-    if os.path.splitext(img_path)[1] != ".png":
+    if Path(img_path).suffix != ".png":
         img = img.convert("RGB")
-    img.save("{}_wm.{}".format(os.path.splitext(img_path)[0], os.path.splitext(img_path)[1]), quality=90)
+    img.save(Path(img_path).with_stem(Path(img_path).stem + "_wm"), quality=90)
     # 关闭图片
     img.close()
 
 
 # https://pymupdf.readthedocs.io/en/latest/page.html#Page.insert_image
 # 给PDF添加文字水印（初版）
-def add_text_watermark_to_pdf_old(pdf_path: str, text: str, font_path: str = resource_path(os.path.join('fonts', 'SourceHanSansCN-Regular.otf')), font_size: int | str = "auto", color: str = "#696969", opacity: int = 30, angle: int = 20, with_stroke: bool = True):
+def add_text_watermark_to_pdf_old(pdf_path: str, text: str, font_path: str = str(get_resource_path(Path('fonts', 'SourceHanSansCN-Regular.otf'))), font_size: int | str = "auto", color: str = "#696969", opacity: int = 30, angle: int = 20, with_stroke: bool = True):
     """
     生成整页水印图片后合并
     """
-    assert os.path.exists(pdf_path), "PDF不存在"
+    assert Path(pdf_path).exists(), "PDF不存在"
     draw_kargs = {}  # 水印参数
     draw_kargs["xy"] = (0, 0)
     # 打开PDF
@@ -189,15 +190,15 @@ def add_text_watermark_to_pdf_old(pdf_path: str, text: str, font_path: str = res
         watermark_rect = fitz.Rect(x0, y0, x1, y1)
         page.insert_image(watermark_rect, stream=watermark_dict[size_dict[page.number]][0])
     # 保存PDF
-    pdf.save("{}_wm.pdf".format(os.path.splitext(pdf_path)[0]), garbage=3, deflate=True)
+    pdf.save(Path(pdf_path).with_stem(Path(pdf_path).stem + "_wm"), garbage=3, deflate=True)
 
 
 # https://pymupdf.readthedocs.io/en/latest/page.html#Page.write_text
 # https://pymupdf.readthedocs.io/en/latest/shape.html#Shape.insert_textbox
 # https://pymupdf.readthedocs.io/en/latest/textwriter.html#textwriter
 # 给PDF添加文字水印
-def add_text_watermark_to_pdf(pdf_path: str, text: str, font_path: str = resource_path(os.path.join('fonts', 'SourceHanSansCN-Regular.otf')), font_size: int | str = "auto", color: str = "#696969", opacity: int = 30, angle: int = 20):
-    assert os.path.exists(pdf_path), "PDF不存在"
+def add_text_watermark_to_pdf(pdf_path: str, text: str, font_path: str = str(get_resource_path(Path('fonts', 'SourceHanSansCN-Regular.otf'))), font_size: int | str = "auto", color: str = "#696969", opacity: int = 30, angle: int = 20):
+    assert Path(pdf_path).exists(), "PDF不存在"
     # 打开PDF
     size_dict = {}
     size_list = []
@@ -244,10 +245,10 @@ def add_text_watermark_to_pdf(pdf_path: str, text: str, font_path: str = resourc
         watermark_dict[size_dict[page.number]].write_text(page, morph=rotate_morph)
         # page.write_text(writers=watermark_dict[size_dict[page.number]])
     # 保存PDF
-    pdf.save("{}_wm.pdf".format(os.path.splitext(pdf_path)[0]), garbage=3, deflate=True)
+    pdf.save(Path(pdf_path).with_stem(Path(pdf_path).stem + "_wm"), garbage=3, deflate=True)
 
 
 if __name__ == "__main__":
     # add_text_watermark_to_image(resource_path("test.jpg"), '测试水印', color="#ff0000")
     # add_text_watermark_to_pdf(resource_path("test.pdf"), '测试水印abcdefghijklmnopqrstuvwxyz')
-    add_text_watermark_to_pdf(resource_path("test.pdf"), '测试水印abcdefghijklmnopqrstuvwxyz')
+    add_text_watermark_to_pdf(get_resource_path("test.pdf"), '测试水印abcdefghijklmnopqrstuvwxyz')

@@ -1,5 +1,6 @@
 import datetime
 import os
+from pathlib import Path
 
 import piexif
 
@@ -40,7 +41,7 @@ def check_photos(directory, check_function):
     results = []
     for root, _, files in os.walk(directory):
         for file in files:
-            filepath = os.path.join(root, file)
+            filepath = str(Path(root, file))
             if file.lower().endswith((".jpg", ".jpeg")):
                 if check_function(filepath):
                     results.append(filepath)

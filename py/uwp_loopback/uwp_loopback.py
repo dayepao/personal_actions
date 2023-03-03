@@ -3,15 +3,15 @@ import os
 import subprocess
 import sys
 from functools import partial
+from pathlib import Path
 
+import uwp_loopback_ui
+from get_uwp_list import get_enabled_sid_list, get_uwp_list
 from PySide6 import QtWidgets
 from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtGui import QColor, QIcon, QPixmap
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QCheckBox,
                                QHBoxLayout, QHeaderView, QMainWindow, QWidget)
-
-import uwp_loopback_ui
-from get_uwp_list import get_enabled_sid_list, get_uwp_list
 
 # pyinstall --uac-admin
 
@@ -136,8 +136,8 @@ class mainwindow(QMainWindow, uwp_loopback_ui.Ui_MainWindow):
         self.set_list('初始化')
 
     def set_header_check_box(self):
-        self.checked_img = resource_path(os.path.join('img', 'checked.png'))
-        self.unchecked_img = resource_path(os.path.join('img', 'unchecked.png'))
+        self.checked_img = get_resource_path(Path('img', 'checked.png'))
+        self.unchecked_img = get_resource_path(Path('img', 'unchecked.png'))
         # self.tableWidget.horizontalHeaderItem(0).setIcon(QIcon(QPixmap(self.checked_img)))
         # self.checked_cachekey = self.tableWidget.horizontalHeaderItem(0).icon().cacheKey()
         self.tableWidget.horizontalHeaderItem(0).setIcon(QIcon(QPixmap(self.unchecked_img)))
@@ -268,9 +268,9 @@ class mainwindow(QMainWindow, uwp_loopback_ui.Ui_MainWindow):
         self.tableWidget.setCellWidget(i, 0, check_box_widget)
 
 
-def resource_path(relative_path):
-    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_path, relative_path)
+def get_resource_path(relative_path):
+    base_path = getattr(sys, '_MEIPASS', Path(__file__).resolve().parent)
+    return Path(base_path, relative_path)
 
 
 def is_admin():

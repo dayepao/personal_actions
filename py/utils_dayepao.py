@@ -123,7 +123,7 @@ def get_resource_path(relative_path):
     return base_path.joinpath(relative_path)
 
 
-def get_file_hash(file_path: str, name: str = "md5"):
+def get_file_hash(file_path, name: str = "md5"):
     """获取文件哈希值
 
     name: 哈希算法, 可选: 'md5', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512', 'blake2b', 'blake2s', 'sha3_224', 'sha3_256', 'sha3_384', 'sha3_512', 'shake_128', 'shake_256'

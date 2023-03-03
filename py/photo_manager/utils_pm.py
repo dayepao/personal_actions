@@ -2,6 +2,7 @@ import datetime
 import os
 import re
 import sys
+from pathlib import Path
 
 import piexif
 from PIL import Image
@@ -33,7 +34,7 @@ def get_date_time_from_filename(filepath):
     ]
     date_time_result = None
     for re_str in re_str_list:
-        if date_time_result := re.match(re.compile(re_str), os.path.basename(filepath)):
+        if date_time_result := re.match(re.compile(re_str), Path(filepath).name):
             break
 
     date_time_tuple = None
@@ -186,23 +187,23 @@ def remove_duplicate_files(path):
     files.sort()
     hash_list = []
     for file in files:
-        if get_file_hash(os.path.join(path, file)) in hash_list:
-            print("重复文件：", os.path.join(path, file))
-            # os.remove(os.path.join(path, file))
+        if get_file_hash(Path(path, file)) in hash_list:
+            print("重复文件：", Path(path, file))
+            # os.remove(Path(path, file))
         else:
-            hash_list.append(get_file_hash(os.path.join(path, file)))
+            hash_list.append(get_file_hash(Path(path, file)))
 
 
 # 将图片转为jpg格式
 def convert_to_jpg(filepath):
     assert isinstance(filepath, str)
     if filepath.endswith(".png"):
-        new_filepath = filepath.replace(os.path.splitext(filepath)[1], ".jpg")
+        new_filepath = Path(filepath).with_suffix(".jpg")
         print("转换文件：", filepath, " -> ", new_filepath)
         img = Image.open(filepath)
         img = img.convert("RGB")
         img.save(new_filepath, "JPEG")
-        if os.path.exists(new_filepath) and os.path.getsize(new_filepath) > 0:
+        if new_filepath.exists() and new_filepath.stat().st_size > 0:
             os.remove(filepath)
             return True
     return False
@@ -213,8 +214,8 @@ if __name__ == "__main__":
     # remove_duplicate_files(path)
     # for file in os.listdir(path):
     #     if file.endswith(".jpg"):
-    #         set_date_time_in_Exif_exif(os.path.join(path, file))
-    #         convert_to_jpg(os.path.join(path, file))
+    #         set_date_time_in_Exif_exif(Path(path, file))
+    #         convert_to_jpg(Path(path, file))
     # print(get_date_time_from_filename(r"20230206_094257_E0036B09.jpg"))
     # print_exif(r"\IMG_20211220_150544.jpg")
     # set_GPS_exif(r"\IMG_20220105_144149.jpg", *get_lat_lon(r"\IMG_20220105_144201.jpg"))

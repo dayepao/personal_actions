@@ -9,6 +9,7 @@ import os
 import socket
 import struct
 import sys
+from pathlib import Path
 
 import __main__
 # import psutil
@@ -72,7 +73,7 @@ class WOL_Dayepao(toga.App):
         main_box.add(config_button_box)
         main_box.add(control_button_box)
 
-        self.config_path = os.path.join(self.get_self_dir()[1], "config.json")
+        self.config_path = Path(self.get_self_dir()[1], "config.json")
         self.initialize_config()
         self.read_config()
         self.set_ui()
@@ -284,18 +285,15 @@ class WOL_Dayepao(toga.App):
     def get_self_dir(self):
         """获取自身路径
 
-        返回`(py_path, py_dir, py_name)`
+        返回`(self_path, self_dir, self_name)`
 
-        py_path: 当前.py文件完整路径 (包括文件名)
-        py_dir: 当前.py文件所在文件夹路径
-        py_name: 当前.py文件名
+        self_path: 当前程序文件完整路径 (包括文件名)
+        self_dir: 当前程序文件所在文件夹路径
+        self_name: 当前程序文件名
         """
-        py_path = os.path.realpath(__main__.__file__)
-        py_dir, py_name = os.path.split(py_path)
-        if os.path.splitext(__file__)[1] != ".py":
-            py_path = os.path.realpath(sys.executable)
-            py_dir, py_name = os.path.split(py_path)
-        return py_path, py_dir, py_name
+        self_path = Path(__main__.__file__).resolve() if Path(__file__).suffix == ".py" else Path(sys.executable).resolve()
+        self_dir, self_name = self_path.parent, self_path.name
+        return self_path, self_dir, self_name
 
 
 def main():

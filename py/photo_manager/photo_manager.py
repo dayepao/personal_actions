@@ -1,5 +1,6 @@
 import os
 import sys
+from pathlib import Path
 
 import check_photos
 from utils_pm import (convert_to_jpg, fix_date_time_in_exif,
@@ -12,7 +13,7 @@ if __name__ == "__main__":
     print("="*60, "将所有png文件转换为jpg文件", "="*60)
     for file in os.listdir(path):
         if file.lower().endswith("png"):
-            if not convert_to_jpg(os.path.join(path, file)):
+            if not convert_to_jpg(Path(path, file)):
                 print("无法转换文件: {}".format(file))
                 sys.exit(1)
 
@@ -42,7 +43,7 @@ if __name__ == "__main__":
     unalbe_to_fix_date_time_in_exif = []
     for root, _, files in os.walk(path):
         for file in files:
-            filepath = os.path.join(root, file)
+            filepath = str(Path(root, file))
             if file.lower().endswith((".jpg", ".jpeg")):
                 if not fix_date_time_in_exif(filepath):
                     unalbe_to_fix_date_time_in_exif.append(filepath)
