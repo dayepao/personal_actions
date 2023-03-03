@@ -7,9 +7,8 @@ import load_waves
 import utils_sw
 
 # ("地震波文件路径", 时程时间间隔, "地震波名称(可选)")
-wave_file_paths = [
-    (r"AW1-0.02.txt", 0.02, "AW1"),
-    (r"BorregoMtn_NO_40-PW 8000 0.005.txt", 0.005),
+selected_waves = [
+    {"name": "人工波1", "file": r"AW1-0.02.txt", "dt": 0.02, "skiprows": 1},
 ]
 
 T = [2.782, 2.761, 2.329]  # 结构前n个周期
@@ -26,7 +25,7 @@ Ts = np.arange(0.01, 6 + 1e-4, 0.01)  # 谱周期序列，dt/Ts[i] <= 0.55时，
 
 
 # 加载地震时程数据
-waves = load_waves.load_waves(wave_file_paths)
+waves = load_waves.load_waves(selected_waves)
 # 绘制地震时程数据
 # load_waves.plot_waves(waves)
 

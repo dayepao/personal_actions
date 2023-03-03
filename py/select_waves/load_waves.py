@@ -4,21 +4,23 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def load_waves(wave_file_paths):
+def load_waves(selected_waves):
     """
     读取地震时程数据
-    :param wave_files: 地震时程数据文件列表
+    :param selected_waves: 地震时程数据文件列表
     :return: 地震时程数据列表[(时程时间, 时程加速度, 时程名称)]
     """
-    wave_file_paths = wave_file_paths if isinstance(wave_file_paths, list) else [wave_file_paths]
+    selected_waves = selected_waves if isinstance(selected_waves, list) else [selected_waves]
     waves = []
-    for wave_file_path in wave_file_paths:
-        wave_data = np.loadtxt(wave_file_path[0]) if np.loadtxt(wave_file_path[0], max_rows=1).reshape((-1,))[0] < 300 else np.loadtxt(wave_file_path[0], skiprows=1)
+    for selected_wave in selected_waves:
+        assert isinstance(selected_wave, dict)
+        skiprows = selected_wave.get("skiprows", 0)
+        wave_data = np.loadtxt(selected_wave[0]) if np.loadtxt(selected_wave[0], max_rows=1).reshape((-1,))[0] < 300 else np.loadtxt(selected_wave[0], skiprows=1)
         wave_data = wave_data if wave_data.ndim == 1 else wave_data[:, 1]
         # 归一化
         wave_data = wave_data / np.max(np.abs(wave_data))
-        Tw = np.arange(0, np.round(len(wave_data) * wave_file_path[1], len(str(wave_file_path[1]).split(".")[1])), wave_file_path[1])  # 时程时间
-        waves.append((Tw, wave_data, wave_file_path[2] if len(wave_file_path) == 3 else os.path.splitext(os.path.basename(wave_file_path[0]))[0]))
+        Tw = np.arange(0, np.round(len(wave_data) * selected_wave[1], len(str(selected_wave[1]).split(".")[1])), selected_wave[1])  # 时程时间
+        waves.append((Tw, wave_data, selected_wave[2] if len(selected_wave) == 3 else os.path.splitext(os.path.basename(selected_wave[0]))[0]))
     return waves
 
 
