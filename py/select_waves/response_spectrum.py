@@ -6,9 +6,10 @@ import dynamic_solver
 import load_waves
 import utils_sw
 
-# ("地震波文件路径", 时程时间间隔, "地震波名称(可选)")
+# {"name": "名称", "file": 时程文件路径, "dt": 时程时间间隔, "skiprows": 跳过行数}
 selected_waves = [
-    {"name": "人工波1", "file": r"AW1-0.02.txt", "dt": 0.02, "skiprows": 1},
+    {"name": "人工波1", "file": r"RH2TG040_z.txt", "dt": 0.02},
+    {"name": "人工波2", "file": r"AW1-0.02.txt", "dt": 0.02},
 ]
 
 T = [2.782, 2.761, 2.329]  # 结构前n个周期
