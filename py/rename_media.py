@@ -2,6 +2,7 @@ import copy
 import os
 import re
 import sys
+from pathlib import Path
 
 from rename_replace import rename_replace
 from utils_dayepao import get_self_dir
@@ -10,8 +11,7 @@ from utils_dayepao import get_self_dir
 # 删除指定后缀的文件
 def delete_useless_file(path):
     for child_name in os.listdir(path):
-        child_path = os.path.join(path, child_name)
-        if os.path.isfile(child_path):
+        if (child_path := Path.joinpath(path, child_name)).is_file():
             if child_name.endswith((".torrent", ".txt", ".url", ".srt", ".ass", ".ssa", ".nfo", ".jpg", ".png", ".xltd")):
                 os.remove(child_path)
 
@@ -64,7 +64,7 @@ def get_right_same_part(file_list):
             break
 
     # 去除后缀
-    right_same_part, ext = os.path.splitext(right_same_part)
+    right_same_part, ext = Path(right_same_part).stem, Path(right_same_part).suffix
     if ext == "":
         right_same_part = ""
 
@@ -77,7 +77,7 @@ def get_right_same_part(file_list):
 
 # 识别文件名中的集数
 def get_episode_num(file_name: str, episode_num_len: int = 2):
-    is_pure_num = re.search(re.compile(r"^\d+$"), os.path.splitext(file_name)[0])
+    is_pure_num = re.search(re.compile(r"^\d+$"), Path(file_name).stem)
     if is_pure_num:
         file_name = "e{}".format(file_name)
 
@@ -125,13 +125,11 @@ def get_filename_map_same_part_removal(root_path):
     none_name = []
     delete_useless_file(root_path)
     for video_name in os.listdir(root_path):
-        video_path = os.path.join(root_path, video_name)
-        if not os.path.isdir(video_path):
+        if not (video_path := Path.joinpath(root_path, video_name)).is_dir():
             continue
         delete_useless_file(video_path)
         for season in os.listdir(video_path):
-            season_path = os.path.join(video_path, season)
-            if (not os.path.isdir(season_path)) or ("Season" not in season and "season" not in season):
+            if (not (season_path := Path.joinpath(video_path, season)).is_dir()) or ("Season" not in season and "season" not in season):
                 continue
             delete_useless_file(season_path)
             file_list = os.listdir(season_path)
@@ -142,13 +140,12 @@ def get_filename_map_same_part_removal(root_path):
             for file in file_list:
                 file_dict[file] = file.replace(left_same_part, "").replace(right_same_part, "")
             for file, temp_file in file_dict.items():
-                file_path = os.path.join(season_path, file)
-                if not os.path.isfile(file_path):
+                if not Path.joinpath(season_path, file).is_file():
                     continue
                 if (episode_num := get_episode_num(temp_file, episode_num_len)):
-                    filename_map[os.path.join(video_name, season, file)] = os.path.join(video_name, season, "{} - S{}E{}.mp4".format(video_name, season[-2:], episode_num))
+                    filename_map[str(Path.joinpath(video_name, season, file))] = str(Path.joinpath(video_name, season, "{} - S{}E{}.mp4".format(video_name, season[-2:], episode_num)))
                 else:
-                    none_name.append(os.path.join(video_name, season, file))
+                    none_name.append(str(Path.joinpath(video_name, season, file)))
 
     new_name_list = list(filename_map.values())
     duplicate_name = {}
@@ -167,25 +164,22 @@ def get_filename_map_regular(root_path):
     none_name = []
     delete_useless_file(root_path)
     for video_name in os.listdir(root_path):
-        video_path = os.path.join(root_path, video_name)
-        if not os.path.isdir(video_path):
+        if not (video_path := Path.joinpath(root_path, video_name)).is_dir():
             continue
         delete_useless_file(video_path)
         for season in os.listdir(video_path):
-            season_path = os.path.join(video_path, season)
-            if (not os.path.isdir(season_path)) or ("Season" not in season and "season" not in season):
+            if (not (season_path := Path.joinpath(video_path, season)).is_dir()) or ("Season" not in season and "season" not in season):
                 continue
             delete_useless_file(season_path)
             file_list = os.listdir(season_path)
             episode_num_len = max(len(str(len(file_list))), 2)
             for file in file_list:
-                file_path = os.path.join(season_path, file)
-                if not os.path.isfile(file_path):
+                if not Path.joinpath(season_path, file).is_file():
                     continue
                 if (episode_num := get_episode_num(file, episode_num_len)):
-                    filename_map[os.path.join(video_name, season, file)] = os.path.join(video_name, season, "{} - S{}E{}.mp4".format(video_name, season[-2:], episode_num))
+                    filename_map[str(Path.joinpath(video_name, season, file))] = str(Path.joinpath(video_name, season, "{} - S{}E{}.mp4".format(video_name, season[-2:], episode_num)))
                 else:
-                    none_name.append(os.path.join(video_name, season, file))
+                    none_name.append(str(Path.joinpath(video_name, season, file)))
 
     new_name_list = list(filename_map.values())
     duplicate_name = {}
@@ -199,8 +193,7 @@ def get_filename_map_regular(root_path):
 
 
 if __name__ == "__main__":
-    root_path = os.path.join(get_self_dir()[1], "rename_media")
-    if not os.path.exists(root_path):
+    if not (root_path := Path.joinpath(get_self_dir()[1], "rename_media")).exists():
         os.mkdir(root_path)
         print("创建目录: ", root_path)
 
@@ -218,10 +211,10 @@ if __name__ == "__main__":
 
     if filename_map:
         for old_name, new_name in filename_map.items():
-            old_path = os.path.join(root_path, old_name)
-            new_path = os.path.join(root_path, new_name)
+            old_path = Path.joinpath(root_path, old_name)
+            new_path = Path.joinpath(root_path, new_name)
             if old_path != new_path:
-                if os.path.exists(new_path):
+                if new_path.exists():
                     if input("文件已存在: {}，是否删除？[y/N]".format(new_path)) in ("y", "Y"):
                         os.remove(new_path)
                     else:
