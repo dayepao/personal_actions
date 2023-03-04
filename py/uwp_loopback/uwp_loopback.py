@@ -1,19 +1,19 @@
 import ctypes
-import os
 import subprocess
 import sys
 from functools import partial
 from pathlib import Path
 
-import uwp_loopback_ui
-from get_uwp_list import get_enabled_sid_list, get_uwp_list
 from PySide6 import QtWidgets
 from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtGui import QColor, QIcon, QPixmap
 from PySide6.QtWidgets import (QAbstractItemView, QApplication, QCheckBox,
                                QHBoxLayout, QHeaderView, QMainWindow, QWidget)
 
-# pyinstall --uac-admin
+import uwp_loopback_ui
+from get_uwp_list import get_enabled_sid_list, get_uwp_list
+
+# pyinstaller --uac-admin
 
 
 class handle_loopback_thread_work(QThread):
