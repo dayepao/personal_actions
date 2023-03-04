@@ -40,10 +40,8 @@ def rename_replace_old(path, replace_list):
 
 
 def rename_replace(paths, replace_list):
-    if type(paths) not in [list, tuple, str]:
-        print("paths 参数类型错误")
-        return
-    if type(paths) == str:
+    assert isinstance(paths, (list, tuple, str, Path)), "paths 参数类型错误"
+    if isinstance(paths, (str, Path)):
         paths = [paths]
     for path in paths:
         for root, dirs, files in os.walk(path, topdown=False):  # topdown=False 从下往上遍历

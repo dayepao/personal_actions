@@ -23,6 +23,7 @@ class get_system_utilization(QThread):
 
     def run(self):
         timer = QTimer()
+        timer.moveToThread(self)
         timer.timeout.connect(self.get_system_utilization)
         timer.start(500)
         self.exec()
@@ -56,6 +57,7 @@ class resource_monitor(QThread):
         def on_thread_finished():
             self.resource["system_utilization"] = "系统使用率子线程已停止，正在尝试重启..."
             timer = QTimer()
+            timer.moveToThread(self)
             timer.singleShot(3000, lambda: self.handle_sub_thread("restart", "get_system_utilization_thread"))
         self.get_system_utilization_thread.finished.connect(on_thread_finished)
 
@@ -78,6 +80,7 @@ class resource_monitor(QThread):
         self.start_get_system_utilization_thread()
 
         self.emit_timer = QTimer()
+        self.emit_timer.moveToThread(self)
         self.emit_timer.timeout.connect(self.emit_signal)
         self.emit_timer.start(1000)
         self.exec()

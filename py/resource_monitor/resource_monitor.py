@@ -35,7 +35,7 @@ class mainwindow(QMainWindow):
 
         def on_thread_finished():
             self.TextEdit.setText("监控主线程已停止，正在尝试重启...")
-            timer = QTimer()
+            timer = QTimer(self)
             timer.singleShot(3000, self.resource_monitor_thread.start)
         self.resource_monitor_thread.finished.connect(on_thread_finished)
 
