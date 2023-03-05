@@ -6,13 +6,13 @@ import dynamic_solver
 import load_waves
 import utils_sw
 
-# {"name": "名称", "file": 时程文件路径, "dt": 时程时间间隔, "skiprows": 跳过行数}
+# {"name (可选)": "名称", "file": 时程文件路径, "dt": 时程时间间隔, "skiprows (可选)": 跳过行数}
 selected_waves = [
     {"name": "人工波1", "file": r"RH2TG040_z.txt", "dt": 0.02},
     {"name": "人工波2", "file": r"AW1-0.02.txt", "dt": 0.02},
 ]
 
-T = [2.782, 2.761, 2.329]  # 结构前n个周期
+T = [2.791, 2.769, 2.323, 2.782, 2.761, 2.329]  # 结构前n个周期
 
 
 xi = 0.05  # 阻尼比
@@ -37,7 +37,7 @@ fig = plt.figure(figsize=(12, 8))
 ax = fig.add_subplot(1, 1, 1)
 
 # 生成规范反应谱并绘制
-alpha: np.ndarray = np.vectorize(calculate_code_alpha.calculate_code_alpha_gbt51408)(alpha_max, Tg, xi, Ts)
+alpha: np.ndarray = np.vectorize(calculate_code_alpha.calculate_code_alpha_gb50011)(alpha_max, Tg, xi, Ts)
 SA_code = alpha if not is_ms2 else alpha * 9.81
 ax.plot(Ts, SA_code, label="规范设计加速度反应谱", color="#000000", linewidth=2)
 

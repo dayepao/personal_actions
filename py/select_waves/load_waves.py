@@ -15,6 +15,8 @@ def load_waves(selected_waves):
     waves = []
     for selected_wave in selected_waves:
         assert isinstance(selected_wave, dict), "地震时程数据格式错误"
+        # 确定时程名称
+        wave_name = selected_wave.get("name", Path(selected_wave["file"]).stem)
         # 确定跳过行数
         skiprows = selected_wave.get("skiprows")
         if skiprows is None:
@@ -25,8 +27,8 @@ def load_waves(selected_waves):
                         skiprows = skiprows + 1
                     else:
                         break
-        # 确定时程名称
-        wave_name = selected_wave.get("name", Path(selected_wave["file"]).stem)
+            if skiprows >= 10:
+                raise Exception(f"读取{wave_name}时程数据失败，跳过行数过多: {skiprows}")
         # 确定时程时间间隔
         assert (dt := selected_wave.get("dt")), "请指定时程时间间隔"
         # 读取时程数据
