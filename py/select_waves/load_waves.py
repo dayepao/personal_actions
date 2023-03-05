@@ -17,7 +17,7 @@ def load_waves(selected_waves):
         assert isinstance(selected_wave, dict), "地震时程数据格式错误"
         # 确定跳过行数
         skiprows = selected_wave.get("skiprows")
-        if not skiprows:
+        if skiprows is None:
             skiprows = 0
             with open(selected_wave["file"], "r") as f:
                 while (line := f.readline()) != b"":
@@ -30,7 +30,10 @@ def load_waves(selected_waves):
         # 确定时程时间间隔
         assert (dt := selected_wave.get("dt")), "请指定时程时间间隔"
         # 读取时程数据
-        wave_data = np.loadtxt(selected_wave["file"], skiprows=skiprows)
+        try:
+            wave_data = np.loadtxt(selected_wave["file"], skiprows=skiprows)
+        except Exception as e:
+            raise Exception(f"读取{wave_name}时程数据失败，{e}")
         wave_data = wave_data if wave_data.ndim == 1 else wave_data[:, 1]
         # 归一化
         wave_data = wave_data / np.max(np.abs(wave_data))
