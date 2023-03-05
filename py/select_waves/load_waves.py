@@ -52,6 +52,8 @@ def plot_waves(waves):
     :param waves: 地震时程数据列表
     :return: None
     """
+    plt.rcParams['font.sans-serif'] = ['SIMSUN']  # 用来正常显示中文标签
+    plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
     y_major_ticks = np.arange(-1, 1.1, 0.25)
     for wave in waves:
         fig = plt.figure(figsize=(12, 6))
@@ -60,7 +62,7 @@ def plot_waves(waves):
         ax.grid(which='major', alpha=0.7)
         ax.set_title(wave[2])
         ax.set_xlabel("t(s)")
-        ax.set_ylabel("a(m/s^2)")
+        ax.set_ylabel("a(m/s$^2$)")
         ax.set_xlim(0, np.max(wave[0]))
         ax.set_ylim(-1, 1)
         ax.set_yticks(y_major_ticks)
