@@ -28,9 +28,9 @@ def print_exif(filepath, target_ifd: tuple | str = ("0th", "Exif", "GPS", "1st")
 
 def get_date_time_from_filename(filepath):
     re_str_list = [
-        r".*?(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2}).*",  # 手机照片
-        r".*?(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2}).*",  # 手机截图
-        r".*?(\d{4})-(\d{2})-(\d{2}) (\d{2})(\d{2})(\d{2}).*"  # 电脑截图
+        r".*?(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2}).*",  # MIUI 相机照片
+        r".*?(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2}).*",  # MIUI 截图 & Google 相机照片
+        r".*?(\d{4})-(\d{2})-(\d{2}) (\d{2})(\d{2})(\d{2}).*"  # Windows 电脑截图
     ]
     date_time_result = None
     for re_str in re_str_list:
@@ -217,7 +217,9 @@ if __name__ == "__main__":
     #         set_date_time_in_Exif_exif(Path(path, file))
     #         convert_to_jpg(Path(path, file))
     # print(get_date_time_from_filename(r"20230206_094257_E0036B09.jpg"))
-    # print_exif(r"\IMG_20211220_150544.jpg")
+    # piexif.remove(r"2023-03-13-19-51-02-327.jpg")
+    # print_exif(r"2023-03-12-18-07-29-004.jpg")
+    # print(get_lat_lon(r"2023-03-12-18-07-29-004.jpg"))
     # set_GPS_exif(r"\IMG_20220105_144149.jpg", *get_lat_lon(r"\IMG_20220105_144201.jpg"))
     # set_GPS_exif(r"Camera\IMG_20230209_190032.jpg", 30.550508617348928, 103.98844232553355)
     # print(get_date_time_from_exif(r"IMG_20180615_161812.jpg"))

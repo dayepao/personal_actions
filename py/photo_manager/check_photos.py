@@ -31,12 +31,12 @@ def date_time_in_filename_and_exif_is_different(filepath):
 
 def date_time_in_exif_is_empty(filepath):
     """Check if datetime in exif is empty"""
-    if get_date_time_from_exif(filepath):
+    if get_date_time_from_exif(filepath)[0]:
         return False
     return True
 
 
-def check_photos(directory, check_function):
+def check_photo(directory, check_function):
     """Check photos in directory"""
     results = []
     for root, _, files in os.walk(directory):
@@ -53,5 +53,5 @@ def check_photos(directory, check_function):
 
 
 if __name__ == "__main__":
-    for result in check_photos(r"photos", date_time_in_filename_and_exif_is_different):
+    for result in check_photo(r"photos", date_time_in_filename_and_exif_is_different):
         print(result)

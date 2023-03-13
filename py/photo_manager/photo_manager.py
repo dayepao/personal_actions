@@ -20,7 +20,7 @@ if __name__ == "__main__":
     # 通过文件名修复文件的日期时间信息
     print("="*60, "通过文件名修复文件的日期时间信息", "="*60)
     empty_date_time_in_exif = []
-    for result in check_photos.check_photos(path, check_photos.date_time_in_exif_is_empty):
+    for result in check_photos.check_photo(path, check_photos.date_time_in_exif_is_empty):
         if not set_date_time_in_Exif_exif(result):
             empty_date_time_in_exif.append(result)
     if empty_date_time_in_exif:
@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
     # 检查所有文件的GPS信息
     print("="*60, "检查所有文件的GPS信息", "="*60)
-    if empty_GPS_exif := check_photos.check_photos(path, check_photos.GPS_exif_is_empty):
+    if empty_GPS_exif := check_photos.check_photo(path, check_photos.GPS_exif_is_empty):
         print("以下文件的GPS信息为空: ")
         for result in empty_GPS_exif:
             print(result)
