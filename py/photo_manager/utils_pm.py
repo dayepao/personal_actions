@@ -30,7 +30,8 @@ def get_date_time_from_filename(filepath):
     re_str_list = [
         r".*?(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2}).*",  # MIUI 相机照片
         r".*?(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2}).*",  # MIUI 截图 & Google 相机照片
-        r".*?(\d{4})-(\d{2})-(\d{2}) (\d{2})(\d{2})(\d{2}).*"  # Windows 电脑截图
+        r".*?_(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})_.*",  # 原生 Android 截图
+        r".*?(\d{4})-(\d{2})-(\d{2}) (\d{2})(\d{2})(\d{2}).*",  # Windows 电脑截图
     ]
     date_time_result = None
     for re_str in re_str_list:
@@ -133,7 +134,7 @@ def set_date_time_in_Exif_exif(filepath, date_time: datetime.datetime = None, of
     return True
 
 
-def set_GPS_exif(filepath, latitude: float | int, longitude: float | int, date_time: datetime.datetime = None, visible: bool = True):
+def set_GPS_exif(filepath, latitude: float | int, longitude: float | int, date_time: datetime.datetime = None, offset_time: str = None, visible: bool = True):
     """
     r"IMG_20181029_225228.jpg", 30.60903033714247, 103.78470976163908, datetime.datetime(2018, 10, 29, 22, 52, 28)
     """
@@ -143,14 +144,22 @@ def set_GPS_exif(filepath, latitude: float | int, longitude: float | int, date_t
     latitude = ("S" if latitude < 0 else "N", d2dms(abs(latitude)))
     longitude = ("W" if longitude < 0 else "E", d2dms(abs(longitude)))
 
-    if date_time is None:
-        date_time = get_date_time_from_exif(filepath)[0]
+    exif_date_time, exif_offset_time = get_date_time_from_exif(filepath)
 
-    if date_time is None:
+    date_time = date_time or exif_date_time
+    offset_time = offset_time or exif_offset_time
+
+    if not date_time:
         print("date_time is None: {}".format(filepath))
         return False
 
-    utc_date_time = date_time + datetime.timedelta(hours=-8)
+    if not offset_time:
+        print("offset_time is None: {}".format(filepath))
+        return False
+
+    offset_time_int = int(re.match(re.compile(r'([\+\-]\d{2})'), offset_time).group(1))
+
+    utc_date_time = date_time + datetime.timedelta(hours=-offset_time_int)
 
     gps_ifd = {
         piexif.GPSIFD.GPSLatitudeRef: latitude[0],
@@ -196,13 +205,12 @@ def remove_duplicate_files(path):
 
 # 将图片转为jpg格式
 def convert_to_jpg(filepath):
-    assert isinstance(filepath, str)
-    if filepath.endswith(".png"):
-        new_filepath = Path(filepath).with_suffix(".jpg")
-        print("转换文件：", filepath, " -> ", new_filepath)
-        img = Image.open(filepath)
-        img = img.convert("RGB")
-        img.save(new_filepath, "JPEG")
+    filepath = Path(filepath)
+    if filepath.suffix.lower() in [".png",]:
+        new_filepath = filepath.with_suffix(".jpg")
+        print(f"转换文件：{filepath} -> {new_filepath}")
+        with Image.open(filepath) as img:
+            img.convert("RGB").save(new_filepath, "JPEG")
         if new_filepath.exists() and new_filepath.stat().st_size > 0:
             os.remove(filepath)
             return True
