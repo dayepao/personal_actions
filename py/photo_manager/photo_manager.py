@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 import check_photos
-from utils_pm import (convert_to_jpg, fix_date_time_in_exif,
+from utils_pm import (convert_to_jpg, fix_date_time_in_exif, rotate_to_normal,
                       set_date_time_in_Exif_exif)
 
 if __name__ == "__main__":
@@ -15,6 +15,14 @@ if __name__ == "__main__":
         if file.lower().endswith("png"):
             if not convert_to_jpg(Path(path, file)):
                 print("无法转换文件: {}".format(file))
+                sys.exit(1)
+
+    # 将图片旋转为正确的方向
+    print("="*60, "将图片旋转为正确的方向", "="*60)
+    for file in os.listdir(path):
+        if file.lower().endswith((".jpg", ".jpeg")):
+            if not rotate_to_normal(Path(path, file)):
+                print("无法旋转文件: {}".format(file))
                 sys.exit(1)
 
     # 通过文件名修复文件的日期时间信息

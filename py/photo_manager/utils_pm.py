@@ -26,6 +26,13 @@ def print_exif(filepath, target_ifd: tuple | str = ("0th", "Exif", "GPS", "1st")
             print(piexif.TAGS[ifd][tag]["name"], exif_dict[ifd][tag])
 
 
+def insert_exif(exif_dict, filepath):
+    if isinstance(filepath, Path):
+        filepath = str(filepath)
+    exif_dict["Exif"].pop(piexif.ExifIFD.SceneType) if piexif.ExifIFD.SceneType in exif_dict["Exif"] else None
+    piexif.insert(piexif.dump(exif_dict), filepath)
+
+
 def get_date_time_from_filename(filepath):
     re_str_list = [
         r".*?(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2}).*",  # MIUI 相机照片
@@ -86,8 +93,7 @@ def copy_exif(src, dst, target_ifd: tuple | str = ("0th", "Exif", "GPS", "1st"))
     original_ifd = piexif.load(dst)
     for ifd in target_ifd:
         original_ifd[ifd] = piexif.load(src)[ifd]
-    original_ifd["Exif"].pop(piexif.ExifIFD.SceneType) if piexif.ExifIFD.SceneType in original_ifd["Exif"] else None
-    piexif.insert(piexif.dump(original_ifd), dst)
+    insert_exif(original_ifd, dst)
 
 
 def get_lat_lon(filepath):
@@ -127,8 +133,7 @@ def set_date_time_in_Exif_exif(filepath, date_time: datetime.datetime = None, of
     }
     original_ifd = piexif.load(filepath)
     original_ifd["Exif"].update(exif_ifd)
-    original_ifd["Exif"].pop(piexif.ExifIFD.SceneType) if piexif.ExifIFD.SceneType in original_ifd["Exif"] else None
-    piexif.insert(piexif.dump(original_ifd), filepath)
+    insert_exif(original_ifd, filepath)
     if visible:
         print_exif(filepath, "Exif")
     return True
@@ -174,8 +179,7 @@ def set_GPS_exif(filepath, latitude: float | int, longitude: float | int, date_t
     }
     original_ifd = piexif.load(filepath)
     original_ifd["GPS"].update(gps_ifd)
-    original_ifd["Exif"].pop(piexif.ExifIFD.SceneType) if piexif.ExifIFD.SceneType in original_ifd["Exif"] else None
-    piexif.insert(piexif.dump(original_ifd), filepath)
+    insert_exif(original_ifd, filepath)
     if visible:
         print_exif(filepath, "GPS")
     return True
@@ -206,7 +210,7 @@ def remove_duplicate_files(path):
 # 将图片转为jpg格式
 def convert_to_jpg(filepath):
     filepath = Path(filepath)
-    if filepath.suffix.lower() in [".png",]:
+    if filepath.suffix.lower() in [".png", ]:
         new_filepath = filepath.with_suffix(".jpg")
         print(f"转换文件：{filepath} -> {new_filepath}")
         with Image.open(filepath) as img:
@@ -214,6 +218,49 @@ def convert_to_jpg(filepath):
         if new_filepath.exists() and new_filepath.stat().st_size > 0:
             os.remove(filepath)
             return True
+    return False
+
+
+# 将图片旋转为正确的方向
+def rotate_to_normal(filepath):
+    filepath = Path(filepath)
+    exif_dict = piexif.load(str(filepath))
+    if filepath.suffix.lower() in [".jpg", ".jpeg"]:
+        assert isinstance(exif_dict["0th"], dict)
+        if (orientation := exif_dict["0th"].get(piexif.ImageIFD.Orientation)) and (orientation != 1):
+            print(f"旋转文件：{filepath}")
+            with Image.open(filepath) as img:
+                if orientation == 3:
+                    img = img.rotate(180, expand=True)
+                elif orientation == 6:
+                    img = img.rotate(270, expand=True)
+                elif orientation == 8:
+                    img = img.rotate(90, expand=True)
+                else:
+                    return False
+                img.save(filepath, quality=95)
+                exif_dict["0th"].update({piexif.ImageIFD.ImageWidth: img.width, piexif.ImageIFD.ImageLength: img.height, piexif.ImageIFD.Orientation: 1})
+                exif_dict["Exif"].update({piexif.ExifIFD.PixelXDimension: img.width, piexif.ExifIFD.PixelYDimension: img.height})
+                exif_dict["1st"].update({piexif.ImageIFD.Orientation: 1})
+                insert_exif(exif_dict, filepath)
+        return True
+    return False
+
+
+# 将图片旋转指定角度
+def rotate_to_angle(filepath, angle):
+    filepath = Path(filepath)
+    exif_dict = piexif.load(str(filepath))
+    if filepath.suffix.lower() in [".jpg", ".jpeg"]:
+        print(f"旋转文件：{filepath}")
+        with Image.open(filepath) as img:
+            img = img.rotate(angle, expand=True)
+            img.save(filepath, quality=95)
+            exif_dict["0th"].update({piexif.ImageIFD.ImageWidth: img.width, piexif.ImageIFD.ImageLength: img.height, piexif.ImageIFD.Orientation: 1})
+            exif_dict["Exif"].update({piexif.ExifIFD.PixelXDimension: img.width, piexif.ExifIFD.PixelYDimension: img.height})
+            exif_dict["1st"].update({piexif.ImageIFD.Orientation: 1})
+            insert_exif(exif_dict, filepath)
+        return True
     return False
 
 
@@ -226,10 +273,12 @@ if __name__ == "__main__":
     #         convert_to_jpg(Path(path, file))
     # print(get_date_time_from_filename(r"20230206_094257_E0036B09.jpg"))
     # piexif.remove(r"2023-03-13-19-51-02-327.jpg")
-    # print_exif(r"2023-03-12-18-07-29-004.jpg")
+    # print_exif(r"20230202_092530_8E369BFD.jpg")
     # print(get_lat_lon(r"2023-03-12-18-07-29-004.jpg"))
     # set_GPS_exif(r"\IMG_20220105_144149.jpg", *get_lat_lon(r"\IMG_20220105_144201.jpg"))
-    # set_GPS_exif(r"Camera\IMG_20230209_190032.jpg", 30.550508617348928, 103.98844232553355)
+    # set_GPS_exif(r"IMG_20230209_190032.jpg", 30.550508617348928, 103.98844232553355)
     # print(get_date_time_from_exif(r"IMG_20180615_161812.jpg"))
-    # set_date_time_in_Exif_exif(r"weixin\mmexport1674378903865.jpg", datetime.datetime(2023, 1, 21, 15, 33, 0))
+    # set_date_time_in_Exif_exif(r"mmexport1674378903865.jpg", datetime.datetime(2023, 1, 21, 15, 33, 0))
+    # rotate_to_normal(r"2023-03-18-18-33-21-708.jpg")
+    # rotate_to_angle(r"20230318_103322_B5664745.jpg", 90)
     pass
