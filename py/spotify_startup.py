@@ -41,7 +41,7 @@ if __name__ == "__main__":
     while True:
         # 启动 Spotify
         if not get_running_process(r"^\bSpotify.exe\b$"):
-            with subprocess.Popen(["powershell", str(Path.home() / "AppData" / "Roaming" / "Spotify" / "Spotify.exe")]) as proc:
+            with subprocess.Popen(["powershell", str(Path.home() / "AppData" / "Roaming" / "Spotify" / "Spotify.exe")], creationflags=subprocess.CREATE_NO_WINDOW) as proc:
                 proc.wait()
 
         # 使用正则表达式查找并关闭 Spotify 窗口
