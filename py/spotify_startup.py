@@ -42,7 +42,7 @@ if __name__ == "__main__":
         # 启动 Spotify
         if not get_running_process(r"^\bSpotify.exe\b$"):
             with subprocess.Popen(["powershell", str(Path.home() / "AppData" / "Roaming" / "Spotify" / "Spotify.exe")]) as proc:
-                time.sleep(2)
+                proc.wait()
 
         # 使用正则表达式查找并关闭 Spotify 窗口
         spotify_windows_hwnd = find_windows_by_regex(r"^\bSpotify(?: Premium)?\b$")
@@ -51,7 +51,9 @@ if __name__ == "__main__":
 
         # 判断 Spotify 是否已经启动并且窗口已经关闭或者程序超时
         if len(spotify_windows_hwnd) == 1 and (hwnd := spotify_windows_hwnd[0]) != 0:
-            if (get_running_process(r"^\bSpotify.exe\b$") and win32gui.IsWindowVisible(hwnd)) or time.time() - start_time >= 120:
+            if (get_running_process(r"^\bSpotify.exe\b$") and not win32gui.IsWindowVisible(hwnd)):
                 break
+        if time.time() - start_time >= 120:
+            break
 
         time.sleep(1)
