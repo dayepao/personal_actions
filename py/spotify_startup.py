@@ -40,7 +40,7 @@ if __name__ == "__main__":
     start_time = time.time()
     while True:
         # 启动 Spotify
-        if not get_running_process(r"^\bSpotify.exe\b$"):
+        if not get_running_process(r"^\bSpotify.exe\b$") and time.time() - start_time >= 10:
             with subprocess.Popen(["powershell", str(Path.home() / "AppData" / "Roaming" / "Spotify" / "Spotify.exe")], creationflags=subprocess.CREATE_NO_WINDOW) as proc:
                 proc.wait()
 
