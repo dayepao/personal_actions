@@ -1,5 +1,6 @@
 import sys
 import time
+from pathlib import Path
 
 import httpx
 import pypinyin
@@ -75,12 +76,14 @@ class jellyfin:
     def get_subItems(self, libraryId: str):
         """获取指定目录下的所有子项"""
         url = f"{self.jellyfin_url}/Users/{self.admin_user.get('Id')}/Items?api_key={self.api_key}&ParentId={libraryId}"
+        # print(url)
         res = get_method(url)
         return res.json()
 
     def get_item_info(self, itemId: str):
         """获取指定子项的信息"""
         url = f"{self.jellyfin_url}/Users/{self.admin_user.get('Id')}/Items/{itemId}?api_key={self.api_key}"
+        # print(url)
         res = get_method(url)
         return res.json()
 
@@ -153,6 +156,34 @@ def get_pinyin(string):
     return "".join(pypinyin.lazy_pinyin(preprocess_string(string), style=pypinyin.FIRST_LETTER))
 
 
+def get_item_jellyfin_path(jellyfin_api: jellyfin, itemId: str):
+    """获取指定子项在Jellyfin中的路径"""
+    jellyfin_path = Path()
+    while True:
+        item = jellyfin_api.get_item_info(itemId)
+        itemId = item.get("ParentId")
+        if itemId:
+            jellyfin_path = Path(item.get("Name")) / jellyfin_path
+        else:
+            break
+    return str(jellyfin_path.as_posix())
+
+
+def preprocess_folder(jellyfin_api: jellyfin, folder: dict):
+    """预处理文件夹"""
+    folders = []
+    subItems = jellyfin_api.get_subItems(folder.get("Id"))  # 获取文件夹下的子项，并获取子项的数量
+    count = subItems.get("TotalRecordCount", 0)
+    for item in subItems.get("Items", []):
+        if item.get("Type") == "Folder":
+            item_info = jellyfin_api.get_item_info(item.get("Id"))
+            # 递归处理文件夹
+            temp_folders, temp_count = preprocess_folder(jellyfin_api, item_info)
+            folders = [*temp_folders, item_info, *folders]
+            count += temp_count
+    return folders, count
+
+
 def preprocess_libraries(jellyfin_api: jellyfin, libraryName=None):
     """预处理媒体库，将杂项中的文件夹视为媒体库"""
     print(f"{'='*80} 正在预处理媒体库 {'='*80}")
@@ -162,51 +193,47 @@ def preprocess_libraries(jellyfin_api: jellyfin, libraryName=None):
     if not temp_libraries:
         sys.exit("Can't find any library")
     for library in temp_libraries:
-        subItems = jellyfin_api.get_subItems(library.get("Id"))  # 获取媒体库下的子项，并获取子项的数量
-        total_count += subItems.get("TotalRecordCount", 0)
-        # if library.get("CollectionType") in ["movies", "tvshows"]:
-        #     continue
-        for item in subItems.get("Items", []):
-            if item.get("Type") == "Folder":
-                item_info = jellyfin_api.get_item_info(item["Id"])
-                libraries.append(item_info)
-                total_count += item_info.get("ChildCount", 0)
+        folders, count = preprocess_folder(jellyfin_api, library)
+        libraries.extend(folders)
+        total_count += count
     libraries.extend(temp_libraries)
     return libraries, total_count
 
 
 def update_libraries_ForcedSortName(jellyfin_api: jellyfin, libraryName=None):
-    """更新全部媒体库的排序名称"""
+    """更新指定媒体库的排序名称"""
     libraries, total_count = preprocess_libraries(jellyfin_api, libraryName)
     processed_count = 0
     for library in libraries:
-        print(f"{'='*80} 正在处理: {library['Name']} {'='*80}")
+        jellyfin_path = get_item_jellyfin_path(jellyfin_api, library["Id"])
+        print(f"{'='*80} 正在处理: {jellyfin_path} {'='*80}")
         subItems = jellyfin_api.get_subItems(library.get("Id")).get("Items", [])
         for item in subItems:
             item_info = jellyfin_api.get_item_info(item["Id"])
             processed_count += 1
             if (SortName := get_pinyin(item_info["Name"])) != item_info.get("ForcedSortName"):
-                print(f"{processed_count}/{total_count}  正在处理:   {library.get('Name')}/{item_info['Name']}")
+                print(f"{processed_count}/{total_count}  正在处理:    {jellyfin_path}/{item_info['Name']}")
                 jellyfin_api.update_item_info(item["Id"], {"ForcedSortName": SortName})
             else:
-                print(f"{processed_count}/{total_count}  已处理，跳过:    {library.get('Name')}/{item_info['Name']}")
+                print(f"{processed_count}/{total_count}  已处理，跳过:    {jellyfin_path}/{item_info['Name']}")
 
 
 def clear_libraries_ForcedSortName(jellyfin_api: jellyfin, libraryName=None):
-    """清除全部媒体库的排序名称"""
+    """清除指定媒体库的排序名称"""
     libraries, total_count = preprocess_libraries(jellyfin_api, libraryName)
     processed_count = 0
     for library in libraries:
-        print(f"{'='*80} 正在处理: {library['Name']} {'='*80}")
+        jellyfin_path = get_item_jellyfin_path(jellyfin_api, library["Id"])
+        print(f"{'='*80} 正在处理: {jellyfin_path} {'='*80}")
         subItems = jellyfin_api.get_subItems(library.get("Id")).get("Items", [])
         for item in subItems:
             item_info = jellyfin_api.get_item_info(item["Id"])
             processed_count += 1
             if item_info.get("ForcedSortName"):
-                print(f"{processed_count}/{total_count}  正在处理:   {library.get('Name')}/{item_info['Name']}")
+                print(f"{processed_count}/{total_count}  正在处理:    {jellyfin_path}/{item_info['Name']}")
                 jellyfin_api.update_item_info(item["Id"], {"ForcedSortName": ""})
             else:
-                print(f"{processed_count}/{total_count}  已处理，跳过:    {library.get('Name')}/{item_info['Name']}")
+                print(f"{processed_count}/{total_count}  已处理，跳过:    {jellyfin_path}/{item_info['Name']}")
 
 
 if __name__ == "__main__":
