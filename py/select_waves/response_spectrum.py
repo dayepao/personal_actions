@@ -12,7 +12,8 @@ selected_waves = [
     {"name": "人工波2", "file": r"AW1-0.02.txt", "dt": 0.02},
 ]
 
-T = [2.791, 2.769, 2.323, 2.782, 2.761, 2.329]  # 结构前n个周期
+# T = [2.833, 2.808, 2.361, 2.782, 2.761, 2.329]  # luding
+T = [2.184, 2.172, 2.038, 2.242, 2.227, 2.103]  # 结构前n个周期
 
 
 xi = 0.05  # 阻尼比
@@ -31,13 +32,13 @@ waves = load_waves.load_waves(selected_waves)
 # load_waves.plot_waves(waves)
 
 # 创建画布
-plt.rcParams['font.sans-serif'] = ['SIMSUN']  # 用来正常显示中文标签
-plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
+plt.rcParams["font.sans-serif"] = ["SIMSUN"]  # 用来正常显示中文标签
+plt.rcParams["axes.unicode_minus"] = False  # 用来正常显示负号
 fig = plt.figure(figsize=(12, 8))
 ax = fig.add_subplot(1, 1, 1)
 
 # 生成规范反应谱并绘制
-alpha: np.ndarray = np.vectorize(calculate_code_alpha.calculate_code_alpha_gb50011)(alpha_max, Tg, xi, Ts)
+alpha: np.ndarray = np.vectorize(calculate_code_alpha.calculate_code_alpha_gbt51408)(alpha_max, Tg, xi, Ts)
 SA_code = alpha if not is_ms2 else alpha * 9.81
 ax.plot(Ts, SA_code, label="规范设计加速度反应谱", color="#000000", linewidth=2)
 
@@ -51,7 +52,7 @@ for i in range(len(waves)):
     SA[i] = SA[i] if is_ms2 else SA[i] / 9.81
     ax.plot(Ts, SA[i], label=waves[i][2], color="#505050", linewidth=0.5, alpha=0.8)  # 画出反应谱
     # ax.plot(Ts, SA[i], label=waves[i][2], linewidth=1.5, alpha=0.8)  # 画出反应谱
-    print("{}{} 反应谱指定周期点与规范谱误差为: {}".format(" "*(len(str(i+1))+len(str(len(waves)))+4), waves[i][2], str(utils_sw.get_deviation_at_T(T, Ts, SA[i], SA_code)))) if len(T) > 0 else None
+    print("{}{} 反应谱指定周期点与规范谱误差为: {}".format(" " * (len(str(i + 1)) + len(str(len(waves))) + 4), waves[i][2], str(utils_sw.get_deviation_at_T(T, Ts, SA[i], SA_code)))) if len(T) > 0 else None
     # _, _, A = dynamic_solver.fft_sdof(waves[i], am, Ts, xi)
     # A = A / 9.81
     # ax.plot(Ts, A, label=waves[i][2]+"(FFT)")
@@ -67,8 +68,8 @@ ax.set_xticks(x_major_ticks)
 ax.set_xticks(x_minor_ticks, minor=True)
 ax.set_yticks(y_major_ticks)
 ax.set_yticks(y_minor_ticks, minor=True)
-ax.grid(which='major', alpha=0.7)
-ax.grid(which='minor', alpha=0.2)
+ax.grid(which="major", alpha=0.7)
+ax.grid(which="minor", alpha=0.2)
 ax.set_xlabel("T(s)")
 ax.set_ylabel("a(m/s$^2$)") if is_ms2 else ax.set_ylabel("a(g)")
 plt.show()
