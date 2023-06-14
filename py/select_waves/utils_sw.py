@@ -1,5 +1,9 @@
-import numpy as np
 import csv
+import sys
+from pathlib import Path
+
+import __main__
+import numpy as np
 
 
 def get_deviation_at_T(T, Ts, SA_i, SA_code):
@@ -47,6 +51,21 @@ def write_lists_to_csv(filename, *args):
         writer = csv.writer(f)
         for items in zip(*args):
             writer.writerow(items)
+
+
+# 获取当前程序文件路径、文件夹路径、文件名
+def get_self_dir():
+    """获取自身路径
+
+    返回`(self_path, self_dir, self_name)`
+
+    self_path: 当前程序文件完整路径 (包括文件名)
+    self_dir: 当前程序文件所在文件夹路径
+    self_name: 当前程序文件名
+    """
+    self_path = Path(__main__.__file__).resolve() if Path(__file__).suffix == ".py" else Path(sys.executable).resolve()
+    self_dir, self_name = self_path.parent, self_path.name
+    return self_path, self_dir, self_name
 
 
 if __name__ == "__main__":
