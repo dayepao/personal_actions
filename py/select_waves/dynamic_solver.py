@@ -3,7 +3,7 @@ import numpy as np
 
 
 @nb.njit
-def newmark_beta_deprecated(wave, am, xi, T, beta=1/6, gamma=1/2):
+def newmark_beta_deprecated(wave, am, xi, T, beta=1 / 6, gamma=1 / 2):
     """newmark-beta 积分求解单自由度结构地震荷载下的响应
     :param wave: 地震时程
     :param am: 时程波加速度峰值(m/s^2)
@@ -17,7 +17,7 @@ def newmark_beta_deprecated(wave, am, xi, T, beta=1/6, gamma=1/2):
     Ag = Ag * am  # 时程加速度序列(放大到指定峰值)
 
     # 1. 积分参数赋值
-    n0 = 1 / (beta * dt ** 2)
+    n0 = 1 / (beta * dt**2)
     n1 = gamma / (beta * dt)
     n2 = 1 / (beta * dt)
     n3 = 1 / (2 * beta) - 1
@@ -30,7 +30,7 @@ def newmark_beta_deprecated(wave, am, xi, T, beta=1/6, gamma=1/2):
     m = 1
 
     wn = 2 * np.pi / T  # 无阻尼圆频率
-    k = wn ** 2 * m
+    k = wn**2 * m
     c = 2 * m * wn * xi
     ke = k + n0 * m + n1 * c
     u0 = 0  # 初始位移
@@ -54,7 +54,7 @@ def newmark_beta_deprecated(wave, am, xi, T, beta=1/6, gamma=1/2):
 
 
 @nb.njit
-def newmark_beta(wave, am, xi, T, beta=1/6, gamma=1/2):
+def newmark_beta(wave, am, xi, T, beta=1 / 6, gamma=1 / 2):
     """newmark-beta 积分求解单自由度结构地震荷载下的响应
     :param wave: 地震时程
     :param am: 时程波加速度峰值(m/s^2)
@@ -71,12 +71,12 @@ def newmark_beta(wave, am, xi, T, beta=1/6, gamma=1/2):
     m = 1
 
     wn = 2 * np.pi / T  # 无阻尼圆频率
-    k = wn ** 2 * m
+    k = wn**2 * m
     c = 2 * m * wn * xi
     # 1. 积分参数赋值
-    n1 = m / (beta * dt ** 2) + c * gamma / (beta * dt)
+    n1 = m / (beta * dt**2) + c * gamma / (beta * dt)
     n2 = m / (beta * dt) + (gamma / beta - 1) * c
-    n3 = (1/(2 * beta) - 1) * m + dt * (gamma / (2 * beta) - 1) * c
+    n3 = (1 / (2 * beta) - 1) * m + dt * (gamma / (2 * beta) - 1) * c
     k_hat = k + n1
     u_r = np.zeros(len(Tw))  # 结构相对位移(从时程第一个点开始)
     v_r = np.zeros(len(Tw))  # 结构相对速度(从时程第一个点开始)
@@ -87,7 +87,7 @@ def newmark_beta(wave, am, xi, T, beta=1/6, gamma=1/2):
         p_e = -m * Ag[j] + n1 * u_r[j - 1] + n2 * v_r[j - 1] + n3 * a_r[j - 1]
         u_r[j] = p_e / k_hat
         v_r[j] = gamma / (beta * dt) * (u_r[j] - u_r[j - 1]) + (1 - gamma / beta) * v_r[j - 1] + dt * (1 - gamma / (2 * beta)) * a_r[j - 1]
-        a_r[j] = 1 / (beta * dt ** 2) * (u_r[j] - u_r[j - 1]) - 1 / (beta * dt) * v_r[j - 1] - (1 / (2 * beta) - 1) * a_r[j - 1]
+        a_r[j] = 1 / (beta * dt**2) * (u_r[j] - u_r[j - 1]) - 1 / (beta * dt) * v_r[j - 1] - (1 / (2 * beta) - 1) * a_r[j - 1]
         a[j] = a_r[j] + Ag[j]
 
     return u_r, v_r, a
@@ -109,18 +109,18 @@ def nigam_jennings(wave, am, xi, T):
     # m = 1
 
     wn = 2 * np.pi / T  # 无阻尼圆频率
-    wd = wn * np.sqrt(1 - xi ** 2)  # 阻尼圆频率
+    wd = wn * np.sqrt(1 - xi**2)  # 阻尼圆频率
     # k = wn ** 2 * m
     # c = 2 * m * wn * xi
     # 参数赋值
-    a11 = np.exp(-xi * wn * dt) * (xi / np.sqrt(1 - xi ** 2) * np.sin(wd * dt) + np.cos(wd * dt))
+    a11 = np.exp(-xi * wn * dt) * (xi / np.sqrt(1 - xi**2) * np.sin(wd * dt) + np.cos(wd * dt))
     a12 = np.exp(-xi * wn * dt) / wd * np.sin(wd * dt)
-    a21 = -wn / np.sqrt(1 - xi ** 2) * np.exp(-xi * wn * dt) * np.sin(wd * dt)
-    a22 = np.exp(-xi * wn * dt) * (np.cos(wd * dt) - xi / np.sqrt(1 - xi ** 2) * np.sin(wd * dt))
-    b11 = np.exp(-xi * wn * dt) * (((2 * xi ** 2 - 1) / (wn ** 2 * dt) + xi / wn) * np.sin(wd * dt) / wd + (2 * xi / (wn ** 3 * dt) + 1 / wn ** 2) * np.cos(wd * dt)) - 2 * xi / (wn ** 3 * dt)
-    b12 = -np.exp(-xi * wn * dt) * (((2 * xi ** 2 - 1) / (wn ** 2 * dt)) * np.sin(wd * dt) / wd + 2 * xi / (wn ** 3 * dt) * np.cos(wd * dt)) - 1 / wn ** 2 + 2 * xi / (wn ** 3 * dt)
-    b21 = -1 / wn ** 2 * (-1 / dt + np.exp(-xi * wn * dt) * ((wn / np.sqrt(1 - xi ** 2) + xi / (dt * np.sqrt(1 - xi ** 2))) * np.sin(wd * dt) + 1 / dt * np.cos(wd * dt)))
-    b22 = -1 / (wn ** 2 * dt) * (1 - np.exp(-xi * wn * dt)*(xi / np.sqrt(1 - xi ** 2) * np.sin(wd * dt) + np.cos(wd * dt)))
+    a21 = -wn / np.sqrt(1 - xi**2) * np.exp(-xi * wn * dt) * np.sin(wd * dt)
+    a22 = np.exp(-xi * wn * dt) * (np.cos(wd * dt) - xi / np.sqrt(1 - xi**2) * np.sin(wd * dt))
+    b11 = np.exp(-xi * wn * dt) * (((2 * xi**2 - 1) / (wn**2 * dt) + xi / wn) * np.sin(wd * dt) / wd + (2 * xi / (wn**3 * dt) + 1 / wn**2) * np.cos(wd * dt)) - 2 * xi / (wn**3 * dt)
+    b12 = -np.exp(-xi * wn * dt) * (((2 * xi**2 - 1) / (wn**2 * dt)) * np.sin(wd * dt) / wd + 2 * xi / (wn**3 * dt) * np.cos(wd * dt)) - 1 / wn**2 + 2 * xi / (wn**3 * dt)
+    b21 = -1 / wn**2 * (-1 / dt + np.exp(-xi * wn * dt) * ((wn / np.sqrt(1 - xi**2) + xi / (dt * np.sqrt(1 - xi**2))) * np.sin(wd * dt) + 1 / dt * np.cos(wd * dt)))
+    b22 = -1 / (wn**2 * dt) * (1 - np.exp(-xi * wn * dt) * (xi / np.sqrt(1 - xi**2) * np.sin(wd * dt) + np.cos(wd * dt)))
     u_r = np.zeros(len(Tw))  # 结构相对位移(从时程第一个点开始)
     v_r = np.zeros(len(Tw))  # 结构相对速度(从时程第一个点开始)
     a_r = np.zeros(len(Tw))  # 结构相对加速度(从时程第一个点开始)
@@ -129,7 +129,7 @@ def nigam_jennings(wave, am, xi, T):
     for j in range(1, len(Tw)):
         u_r[j] = a11 * u_r[j - 1] + a12 * v_r[j - 1] + b11 * Ag[j - 1] + b12 * Ag[j]
         v_r[j] = a21 * u_r[j - 1] + a22 * v_r[j - 1] + b21 * Ag[j - 1] + b22 * Ag[j]
-        a_r[j] = -Ag[j] - wn ** 2 * u_r[j] - 2 * xi * wn * v_r[j]
+        a_r[j] = -Ag[j] - wn**2 * u_r[j] - 2 * xi * wn * v_r[j]
         a[j] = a_r[j] + Ag[j]
     return u_r, v_r, a
 
@@ -172,13 +172,13 @@ def fft_sdof(wave, am, xi, T):
     m = 1
 
     wn = 2 * np.pi / T  # 无阻尼圆频率
-    k = wn ** 2 * m  # 刚度
+    k = wn**2 * m  # 刚度
     beta_n = wn_bar / wn
     # H = 1 / (wn ** 2 + 2 * wn_bar * xi * wn * 1j - wn_bar ** 2)  # fft传递函数
-    H = (1 / k) * (1 / (1 - beta_n ** 2 + 2 * xi * beta_n * 1j))  # fft传递函数
+    H = (1 / k) * (1 / (1 - beta_n**2 + 2 * xi * beta_n * 1j))  # fft传递函数
     u_r = np.fft.ifft(-m * Agf * H).real  # 快速Fourier逆变换并取实部，结构相对位移
     v_r = np.fft.ifft(-m * Agf * H * wn_bar * 1j).real  # 快速Fourier逆变换并取实部，结构相对速度
-    a = np.fft.ifft(-(-m * Agf * H) * wn_bar ** 2 + Agf).real  # 快速Fourier逆变换并取实部，结构绝对加速度
+    a = np.fft.ifft(-(-m * Agf * H) * wn_bar**2 + Agf).real  # 快速Fourier逆变换并取实部，结构绝对加速度
 
     return u_r, v_r, a
 

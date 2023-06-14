@@ -1,4 +1,5 @@
 import numpy as np
+import csv
 
 
 def get_deviation_at_T(T, Ts, SA_i, SA_code):
@@ -29,7 +30,26 @@ def get_axis_ticks(Ts, SA):
     return x_major_ticks, x_minor_ticks, y_major_ticks, y_minor_ticks
 
 
-if __name__ == '__main__':
+def write_lists_to_csv(filename, *args):
+    """
+    将任意数量的列表写入到指定的CSV文件
+
+    参数：
+    filename (str or Path): 要写入的CSV文件的名字
+    *args (list): 任意数量的列表
+
+    注意：这个函数假设所有的列表长度相等。
+    """
+    # 确保所有的列表长度都相等
+    assert all(len(lst) == len(args[0]) for lst in args)
+
+    with open(filename, "w", newline="") as f:
+        writer = csv.writer(f)
+        for items in zip(*args):
+            writer.writerow(items)
+
+
+if __name__ == "__main__":
     Ts = np.arange(0, 6, 0.01)
     SA = np.array(0.4)
     print(get_axis_ticks(Ts, SA))
