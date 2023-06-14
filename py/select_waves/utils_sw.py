@@ -1,6 +1,7 @@
 import csv
 import sys
 from pathlib import Path
+import re
 
 import __main__
 import numpy as np
@@ -68,7 +69,36 @@ def get_self_dir():
     return self_path, self_dir, self_name
 
 
+# 将 PEER 格式的时程文件转换为 1 列的时程文件
+def peer_to_single_column(peer_file):
+    """将 PEER 格式的时程文件转换为 1 列的时程文件
+
+    参数：
+    peer_file (str or Path): PEER 格式的时程文件
+    """
+    peer_file = Path(peer_file)
+
+    # 读取 PEER 格式的时程文件
+    with open(peer_file, "r") as f:
+        lines = f.readlines()
+
+    # 提取 PEER 格式的时程文件中的时程数据
+    data = []
+    found_npts_dt = False
+    for line in lines:
+        if (not found_npts_dt) and (re_result := re.search(r"NPTS=\s+(\d+), DT=\s+([\.\d]+)", line)):
+            npts, dt = int(re_result.group(1)), float(re_result.group(2))
+
+        if line.startswith(" ") or line.startswith("\t"):
+            data.extend(line.split())
+    data = np.array(data, dtype=float)
+
+    # 将时程数据写入 1 列的时程文件
+    np.savetxt(peer_file.with_name(f"{peer_file.stem}_{npts}_{dt}.txt"), data, fmt="%.6e")
+
+
 if __name__ == "__main__":
-    Ts = np.arange(0, 6, 0.01)
-    SA = np.array(0.4)
-    print(get_axis_ticks(Ts, SA))
+    # Ts = np.arange(0, 6, 0.01)
+    # SA = np.array(0.4)
+    # print(get_axis_ticks(Ts, SA))
+    peer_to_single_column(r"RSN138_TABAS_BOS-L1.AT2")

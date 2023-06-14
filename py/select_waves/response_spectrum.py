@@ -52,7 +52,7 @@ for i in range(len(waves)):
     SA[i] = SA[i] if is_ms2 else SA[i] / 9.81
     ax.plot(Ts, SA[i], label=waves[i][2], color="#505050", linewidth=0.5, alpha=0.8)  # 画出反应谱
     # 输出反应谱 CSV 文件
-    utils_sw.write_lists_to_csv(utils_sw.get_self_dir()[1] / "output" / f"RES_{waves[i][2]}.csv", Ts, SA[i])
+    # utils_sw.write_lists_to_csv(utils_sw.get_self_dir()[1] / "output" / f"RES_{waves[i][2]}.csv", Ts, SA[i])
     print(f"{' ' * (len(str(i + 1)) + len(str(len(waves))) + 4)}{waves[i][2]} 反应谱指定周期点与规范谱误差为: {str(utils_sw.get_deviation_at_T(T, Ts, SA[i], SA_code))}") if T else None
     # _, _, A = dynamic_solver.fft_sdof(waves[i], am, Ts, xi)
     # A = A / 9.81
