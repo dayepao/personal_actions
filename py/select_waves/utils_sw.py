@@ -1,7 +1,7 @@
 import csv
+import re
 import sys
 from pathlib import Path
-import re
 
 import __main__
 import numpy as np
@@ -86,11 +86,12 @@ def peer_to_single_column(peer_file):
     data = []
     found_npts_dt = False
     for line in lines:
-        if (not found_npts_dt) and (re_result := re.search(r"NPTS=\s+(\d+), DT=\s+([\.\d]+)", line)):
-            npts, dt = int(re_result.group(1)), float(re_result.group(2))
-
-        if line.startswith(" ") or line.startswith("\t"):
-            data.extend(line.split())
+        if not found_npts_dt:
+            if re_result := re.search(r"NPTS\s*=\s*(\d+)\s*.*\s*DT\s*=\s*([\.\d]+)", line):
+                npts, dt = int(re_result.group(1)), float(re_result.group(2))
+                found_npts_dt = True
+        elif re.match(r"[\s]*-?[\d\.]+(?:[Ee][+\-]?\d+)?", line):
+            data.extend(map(float, re.findall(r"-?[\d\.]+(?:[Ee][+\-]?\d+)?", line)))
     data = np.array(data, dtype=float)
 
     # 将时程数据写入 1 列的时程文件

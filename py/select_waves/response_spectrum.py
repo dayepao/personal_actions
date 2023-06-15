@@ -1,19 +1,37 @@
-import matplotlib.pyplot as plt
-import numpy as np
-
 import calculate_code_alpha
 import dynamic_solver
 import load_waves
+import matplotlib.pyplot as plt
+import numpy as np
 import utils_sw
+import yaml
+
+# pip install pyyaml
+# pip install numba
+
+
+# 读取选取的地震波信息和结构前n个周期
+with open(utils_sw.get_self_dir()[1] / "selected_waves.yaml", "r", encoding="utf-8") as f:
+    selected_waves_yaml: dict = yaml.load(f, Loader=yaml.FullLoader)
+
+selected_waves: list = selected_waves_yaml.get("selected_waves")
+T: list = selected_waves_yaml.get("T")
+
 
 # {"name (可选)": "名称", "file": 时程文件路径, "dt": 时程时间间隔, "skiprows (可选)": 跳过行数}
-selected_waves = [
-    {"name": "人工波1", "file": r"RH2TG040_z.txt", "dt": 0.02},
-    {"name": "人工波2", "file": r"AW1-0.02.txt", "dt": 0.02},
-]
-
+# selected_waves.extend(
+#     [
+#         {"name": "人工波1", "file": r"RH2TG040_z.txt", "dt": 0.02},
+#         {"name": "人工波2", "file": r"AW1-0.02.txt", "dt": 0.02},
+#     ]
+# )
+# 结构前n个周期
 # T = [2.833, 2.808, 2.361, 2.782, 2.761, 2.329]  # luding
-T = [2.184, 2.172, 2.038, 2.242, 2.227, 2.103]  # 结构前n个周期
+# T.extend([2.184, 2.172, 2.038, 2.242, 2.227, 2.103])
+
+# 存储选取的地震波信息和结构前n个周期
+# with open(utils_sw.get_self_dir()[1] / "selected_waves.yaml", "w", encoding="utf-8") as f:
+#     yaml.dump({"selected_waves": selected_waves, "T": T}, f, allow_unicode=True, width=1000, sort_keys=False)
 
 
 xi = 0.05  # 阻尼比

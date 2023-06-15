@@ -4,4 +4,4 @@ build
 dist
 
 *.exe
-selected_waves
+selected_waves.yaml
