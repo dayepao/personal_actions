@@ -102,4 +102,7 @@ if __name__ == "__main__":
     # Ts = np.arange(0, 6, 0.01)
     # SA = np.array(0.4)
     # print(get_axis_ticks(Ts, SA))
-    peer_to_single_column(r"RSN138_TABAS_BOS-L1.AT2")
+    # for file in Path(r"PEERNGARecords_Unscaled").glob("*.AT2"):
+    #     peer_to_single_column(file)
+    for num in range(101, 201):
+        print(f"{num},", end="")
