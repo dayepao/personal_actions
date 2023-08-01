@@ -21,6 +21,6 @@ url_list = re.split("[;,]", url_list)
 for url in url_list:
     try:
         response = httpx.get(url)
-        print(f"Successfully connected to {url}.")
+        print(f"成功访问 {url}.")
     except Exception as e:
-        print(f"Error occurred while connecting to {url}: {e}")
+        print(f"访问 {url} 时遇到错误: {e}")
