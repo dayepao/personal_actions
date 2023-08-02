@@ -26,7 +26,7 @@ pip install apscheduler
 """
 
 
-def http_request(request_method_str: str, url: str, timeout=5, max_retries=5, c: httpx.Client = None, **kwargs):
+def http_request(method_name: str, url: str, timeout=5, max_retries=5, c: httpx.Client = None, **kwargs):
     """
     method: 请求方法，如 'get', 'post', 'put', 'delete'等
     url: 请求的URL
@@ -35,18 +35,18 @@ def http_request(request_method_str: str, url: str, timeout=5, max_retries=5, c:
     c: httpx.Client 对象
     **kwargs: 其他传递给 httpx 请求方法的参数, 如 headers, data, json, verify 等
     """
-    request_method_str = request_method_str.lower()  # 先转换为小写
+    method_name = method_name.lower()  # 先转换为小写
 
-    if not request_method_str:
+    if not method_name:
         raise ValueError("请求方法不能为空")
 
     try:
         if c is not None:
-            request_method = getattr(c, request_method_str)
+            request_method = getattr(c, method_name)
         else:
-            request_method = getattr(httpx, request_method_str)
+            request_method = getattr(httpx, method_name)
     except AttributeError:
-        raise ValueError(f"不支持的请求方法: '{request_method_str}'")
+        raise ValueError(f"不支持的请求方法: '{method_name}'")
 
     k = 1
     while (k <= max_retries) or (max_retries == 0):
