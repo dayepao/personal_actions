@@ -442,7 +442,7 @@ class WeCom:
             "safe": "0",
         }
         send_msges = bytes(json.dumps(send_values), "utf-8")
-        respone = httpx.post(send_url, send_msges)
+        respone = httpx.post(send_url, json=send_msges)
         respone = respone.json()
         return respone["errmsg"]
 
