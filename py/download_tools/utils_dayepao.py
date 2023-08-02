@@ -14,8 +14,7 @@ import __main__
 import apscheduler.job
 import chardet
 import httpx
-from apscheduler.events import (EVENT_JOB_ERROR, EVENT_JOB_MISSED,
-                                JobExecutionEvent)
+from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_MISSED, JobExecutionEvent
 from apscheduler.schedulers.background import BackgroundScheduler
 from bs4 import BeautifulSoup
 
@@ -27,46 +26,35 @@ pip install apscheduler
 """
 
 
-def get_method(url: str, headers: dict = None, timeout=5, verify: bool = True, max_retries=5, c: httpx.Client = None):
+def http_request(request_method_str: str, url: str, timeout=5, max_retries=5, c: httpx.Client = None, **kwargs):
     """
-    timeout: 超时时间,单位秒(s), 默认为 5 秒, 为 `None` 时禁用
-    max_retries: 最大尝试次数, 默认为 5 次, 为 0 时禁用
-    """
-    k = 1
-    while (k <= max_retries) or (max_retries == 0):
-        try:
-            if c is not None:
-                res = c.get(url, headers=headers, timeout=timeout, verify=verify)
-            else:
-                res = httpx.get(url, headers=headers, timeout=timeout, verify=verify)
-        except Exception as e:
-            k = k + 1
-            print(sys._getframe().f_code.co_name + ": " + str(e))
-            time.sleep(1)
-            continue
-        else:
-            break
-    try:
-        return res
-    except Exception:
-        sys.exit(sys._getframe().f_code.co_name + ": " + "Max retries exceeded")
-
-
-def post_method(url: str, postdata=None, postjson=None, headers: dict = None, timeout=5, verify: bool = True, max_retries=5, c: httpx.Client = None):
-    """
+    method: 请求方法，如 'get', 'post', 'put', 'delete'等
+    url: 请求的URL
     timeout: 超时时间, 单位秒(s), 默认为 5 秒, 为 `None` 时禁用
     max_retries: 最大尝试次数, 默认为 5 次, 为 0 时禁用
+    c: httpx.Client 对象
+    **kwargs: 其他传递给 httpx 请求方法的参数, 如 headers, data, json, verify 等
     """
+    request_method_str = request_method_str.lower()  # 先转换为小写
+
+    if not request_method_str:
+        raise ValueError("请求方法不能为空")
+
+    try:
+        if c is not None:
+            request_method = getattr(c, request_method_str)
+        else:
+            request_method = getattr(httpx, request_method_str)
+    except AttributeError:
+        raise ValueError(f"不支持的请求方法: '{request_method_str}'")
+
     k = 1
     while (k <= max_retries) or (max_retries == 0):
         try:
-            if c is not None:
-                res = c.post(url, data=postdata, json=postjson, headers=headers, timeout=timeout, verify=verify)
-            else:
-                res = httpx.post(url, data=postdata, json=postjson, headers=headers, timeout=timeout, verify=verify)
+            res = request_method(url=url, timeout=timeout, **kwargs)
         except Exception as e:
             k = k + 1
-            print(sys._getframe().f_code.co_name + ": " + str(e))
+            print(f"{sys._getframe().f_code.co_name} 出错: {str(e)}")
             time.sleep(1)
             continue
         else:
@@ -74,7 +62,7 @@ def post_method(url: str, postdata=None, postjson=None, headers: dict = None, ti
     try:
         return res
     except Exception:
-        sys.exit(sys._getframe().f_code.co_name + ": " + "Max retries exceeded")
+        sys.exit(f"{sys._getframe().f_code.co_name} 出错: 已达到最大重试次数")
 
 
 def dayepao_push(
@@ -101,7 +89,7 @@ def dayepao_push(
         "enable_duplicate_check": 0,
         "duplicate_check_interval": 0
     }
-    return post_method(pushurl, postjson=pushdata, timeout=10).text
+    return http_request("post", pushurl, json=pushdata, timeout=10).text
 
 
 def get_self_dir():
@@ -130,16 +118,15 @@ def get_file_hash(file_path, name: str = "md5"):
     """
     hashstr = hashlib.new(name)
     with open(file_path, "rb") as f:
-        while (tempdata := f.read(40960)) != b'':
+        while (tempdata := f.read(40960)) != b"":
             hashstr.update(tempdata)
     return str(hashstr.hexdigest())
 
 
 def download_file(file_path: str, file_url: str, headers: dict = None):
-    """下载文件到指定路径
-    """
+    """下载文件到指定路径"""
     Path(file_path).parent.mkdir(parents=True, exist_ok=True)
-    file_content = get_method(file_url, headers=headers).content
+    file_content = http_request("get", file_url, headers=headers).content
     with open(file_path, "wb") as f:
         f.write(file_content)
 
@@ -155,8 +142,8 @@ def get_tags_with_certain_attrs(url: str, headers: dict = None, attrs: dict[str,
     tags: 标签列表
     tags_content: 标签内容列表
     """
-    res = get_method(url, headers, max_retries=max_retries, c=c)
-    soup = BeautifulSoup(res.text, 'html.parser')
+    res = http_request("get", url, headers=headers, max_retries=max_retries, c=c)
+    soup = BeautifulSoup(res.text, "html.parser")
     temp_tags = list(soup.find_all(attrs=attrs))
     tags = []
 
@@ -173,7 +160,7 @@ def get_tags_with_certain_attrs(url: str, headers: dict = None, attrs: dict[str,
 
     tags_content = []
     for tag in tags:
-        search_result = re.search(re.compile(r'^<.+?>(.+)<.+?>$'), str(tag).replace("\r", "").replace("\n", ""))
+        search_result = re.search(re.compile(r"^<.+?>(.+)<.+?>$"), str(tag).replace("\r", "").replace("\n", ""))
         if search_result:
             tags_content.append(str(search_result.group(1).strip()))
     return (tags, tags_content)
@@ -211,6 +198,7 @@ def cmd_dayepao(cmd: str | list, encoding: str = None):
 
     返回 (out_queue, err_queue)
     """
+
     class cmd_thread_work(Thread):
         def __init__(self, queue_list: list[Queue], cmd: str | list, encoding: str) -> None:
             super().__init__()
@@ -222,16 +210,16 @@ def cmd_dayepao(cmd: str | list, encoding: str = None):
         def run(self):
             with subprocess.Popen(self.cmd, shell=self.shell, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW) as proc:
                 # for line in proc.stdout.readlines():
-                while (line := proc.stdout.readline()) != b'':
+                while (line := proc.stdout.readline()) != b"":
                     chardet_result = chardet.detect(line)
                     encoding = self.encoding or (chardet_result["encoding"] if chardet_result["confidence"] >= 0.8 else None) or "gb18030"
                     self.out_queue.put(line.decode(encoding, "ignore").replace("\r\n", ""))
-                self.out_queue.put(b'')
-                while (line := proc.stderr.readline()) != b'':
+                self.out_queue.put(b"")
+                while (line := proc.stderr.readline()) != b"":
                     chardet_result = chardet.detect(line)
                     encoding = self.encoding or (chardet_result["encoding"] if chardet_result["confidence"] >= 0.8 else None) or "gb18030"
                     self.err_queue.put(line.decode(encoding, "ignore").replace("\r\n", ""))
-                self.err_queue.put(b'')
+                self.err_queue.put(b"")
                 proc.wait()
                 self.returncode_queue.put(proc.returncode)
 
