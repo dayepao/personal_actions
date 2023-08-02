@@ -627,7 +627,7 @@ def one() -> str:
     :return:
     """
     url = "https://v1.hitokoto.cn/"
-    res = httpx.get(url).json()
+    res = http_request("get", url=url).json()
     return res["hitokoto"] + "    ----" + res["from"]
 
 
