@@ -4,7 +4,7 @@ import os
 import sys
 import time
 
-from utils_dayepao import creat_apscheduler, dayepao_push, get_method
+from utils_dayepao import creat_apscheduler, dayepao_push, http_request
 
 # 6开头：上证，1
 # 0或3开头：深证，0
@@ -48,7 +48,7 @@ def get_info(code: str):
     url = "http://push2.eastmoney.com/api/qt/stock/get?secid={}.{}&fltt=2&fields=f43,f57,f58,f60,f169,f170".format(key, code)
 
     try:
-        res.update(json.loads(get_method(url).text)["data"] or {})
+        res.update(json.loads(http_request("get", url).text)["data"] or {})
     except Exception as e:
         print(sys._getframe().f_code.co_name + ": " + str(e))
 
