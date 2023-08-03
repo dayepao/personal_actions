@@ -13,7 +13,7 @@ from method import (get_BSK, get_fid, get_list, get_method, get_mouse_pwd,
 
 TIEBA_COOKIE = str(os.environ.get("TIEBA_COOKIE"))
 IS_AUTO_POST = str(os.environ.get("IS_AUTO_POST"))
-PUSH_KEY = os.environ.get("PUSH_KEY")
+PUSH_KEY = os.environ.get("DAYEPAO_PUSH_KEY")
 
 
 def onekeysignin():

@@ -5,6 +5,7 @@ import json
 import os
 import re
 import smtplib
+import sys
 import threading
 import time
 import urllib.parse
@@ -12,7 +13,7 @@ from email.header import Header
 from email.mime.text import MIMEText
 from email.utils import formataddr
 
-from utils_dayepao import http_request
+import httpx
 
 # 原先的 print 函数和主线程的锁
 _print = print
@@ -26,6 +27,46 @@ def print(text, *args, **kw):
     """
     with mutex:
         _print(text, *args, **kw)
+
+
+# 定义 http 请求方法
+def http_request(method_name: str, url: str, timeout=5, max_retries=5, c: httpx.Client = None, **kwargs):
+    """
+    method: 请求方法，如 'get', 'post', 'put', 'delete'等
+    url: 请求的URL
+    timeout: 超时时间, 单位秒(s), 默认为 5 秒, 为 `None` 时禁用
+    max_retries: 最大尝试次数, 默认为 5 次, 为 0 时禁用
+    c: httpx.Client 对象
+    **kwargs: 其他传递给 httpx 请求方法的参数, 如 headers, data, json, verify 等
+    """
+    method_name = method_name.lower()  # 先转换为小写
+
+    if not method_name:
+        raise ValueError("请求方法不能为空")
+
+    try:
+        if c is not None:
+            request_method = getattr(c, method_name)
+        else:
+            request_method = getattr(httpx, method_name)
+    except AttributeError:
+        raise ValueError(f"不支持的请求方法: '{method_name}'")
+
+    k = 1
+    while (k <= max_retries) or (max_retries == 0):
+        try:
+            res = request_method(url=url, timeout=timeout, **kwargs)
+        except Exception as e:
+            k = k + 1
+            print(f"{sys._getframe().f_code.co_name} 出错: {str(e)}")
+            time.sleep(1)
+            continue
+        else:
+            break
+    try:
+        return res
+    except Exception:
+        sys.exit(f"{sys._getframe().f_code.co_name} 出错: 已达到最大重试次数")
 
 
 # 通知服务
@@ -60,13 +101,13 @@ push_config = {
 
     'IGOT_PUSH_KEY': '',                # iGot 聚合推送的 IGOT_PUSH_KEY
 
-    'PUSH_KEY': '',                     # server 酱的 PUSH_KEY，兼容旧版与 Turbo 版
+    'SERVERJ_PUSH_KEY': '',             # server 酱的 PUSH_KEY，兼容旧版与 Turbo 版
 
     'DEER_KEY': '',                     # PushDeer 的 PUSHDEER_KEY
     'DEER_URL': '',                     # PushDeer 的 PUSHDEER_URL
 
-    'CHAT_URL': '',                     # synology chat url
-    'CHAT_TOKEN': '',                   # synology chat token
+    'SYNOLOGY_CHAT_URL': '',            # synology chat url
+    'SYNOLOGY_CHAT_TOKEN': '',          # synology chat token
 
     'PUSH_PLUS_TOKEN': '',              # push+ 微信推送的用户令牌
     'PUSH_PLUS_USER': '',               # push+ 微信推送的群组编码
@@ -99,7 +140,6 @@ push_config = {
 
     'PUSHME_KEY': '',                   # PushMe 酱的 PUSHME_KEY
 }
-notify_function = []
 # fmt: on
 
 # 首先读取 面板变量 或者 github action 运行变量
@@ -260,29 +300,29 @@ def iGot(title: str, content: str) -> None:
 
 def serverJ(title: str, content: str) -> None:
     """
-    通过 serverJ 推送消息。
+    通过 server酱 推送消息。
     """
-    if not push_config.get("PUSH_KEY"):
-        print("serverJ 服务的 PUSH_KEY 未设置!!\n取消推送")
+    if not push_config.get("SERVERJ_PUSH_KEY"):
+        print("server酱 服务的 PUSH_KEY 未设置!!\n取消推送")
         return
-    print("serverJ 服务启动")
+    print("server酱 服务启动")
 
     data = {"text": title, "desp": content.replace("\n", "\n\n")}
-    if push_config.get("PUSH_KEY").find("SCT") != -1:
-        url = f'https://sctapi.ftqq.com/{push_config.get("PUSH_KEY")}.send'
+    if push_config.get("SERVERJ_PUSH_KEY").find("SCT") != -1:
+        url = f'https://sctapi.ftqq.com/{push_config.get("SERVERJ_PUSH_KEY")}.send'
     else:
-        url = f'https://sc.ftqq.com/{push_config.get("PUSH_KEY")}.send'
+        url = f'https://sc.ftqq.com/{push_config.get("SERVERJ_PUSH_KEY")}.send'
     response = http_request("post", url=url, data=data).json()
 
     if response.get("errno") == 0 or response.get("code") == 0:
-        print("serverJ 推送成功！")
+        print("server酱 推送成功！")
     else:
-        print(f'serverJ 推送失败！错误码：{response["message"]}')
+        print(f'server酱 推送失败！错误码：{response["message"]}')
 
 
 def pushdeer(title: str, content: str) -> None:
     """
-    通过PushDeer 推送消息
+    通过 PushDeer 推送消息
     """
     if not push_config.get("DEER_KEY"):
         print("PushDeer 服务的 DEER_KEY 未设置!!\n取消推送")
@@ -306,22 +346,22 @@ def pushdeer(title: str, content: str) -> None:
         print("PushDeer 推送失败！错误信息：", response)
 
 
-def chat(title: str, content: str) -> None:
+def synology_chat(title: str, content: str) -> None:
     """
-    通过Chat 推送消息
+    通过 Synology Chat 推送消息
     """
-    if not push_config.get("CHAT_URL") or not push_config.get("CHAT_TOKEN"):
-        print("chat 服务的 CHAT_URL或CHAT_TOKEN 未设置!!\n取消推送")
+    if not push_config.get("SYNOLOGY_CHAT_URL") or not push_config.get("SYNOLOGY_CHAT_TOKEN"):
+        print("Synology Chat 服务的 SYNOLOGY_CHAT_URL 或 SYNOLOGY_CHAT_TOKEN 未设置!!\n取消推送")
         return
-    print("chat 服务启动")
+    print("Synology Chat 服务启动")
     data = "payload=" + json.dumps({"text": title + "\n" + content})
-    url = push_config.get("CHAT_URL") + push_config.get("CHAT_TOKEN")
+    url = push_config.get("SYNOLOGY_CHAT_URL") + push_config.get("SYNOLOGY_CHAT_TOKEN")
     response = http_request("post", url=url, data=data)
 
     if response.status_code == 200:
-        print("Chat 推送成功！")
+        print("Synology Chat 推送成功！")
     else:
-        print("Chat 推送失败！错误信息：", response)
+        print("Synology Chat 推送失败！错误信息：", response)
 
 
 def pushplus_bot(title: str, content: str) -> None:
@@ -380,7 +420,7 @@ def qmsg_bot(title: str, content: str) -> None:
 
 def wecom_app(title: str, content: str) -> None:
     """
-    通过 企业微信 APP 推送消息。
+    通过 企业微信APP 推送消息。
     """
     if not push_config.get("QYWX_AM"):
         print("QYWX_AM 未设置!!\n取消推送")
@@ -497,7 +537,7 @@ def wecom_bot(title: str, content: str) -> None:
 
 def telegram_bot(title: str, content: str) -> None:
     """
-    使用 telegram 机器人 推送消息。
+    使用 telegram机器人 推送消息。
     """
     if not push_config.get("TG_BOT_TOKEN") or not push_config.get("TG_USER_ID"):
         print("tg 服务的 bot_token 或者 user_id 未设置!!\n取消推送")
@@ -563,7 +603,7 @@ def aibotk(title: str, content: str) -> None:
 
 def smtp(title: str, content: str) -> None:
     """
-    使用 SMTP 邮件 推送消息。
+    使用 SMTP邮件 推送消息。
     """
     if not push_config.get("SMTP_SERVER") or not push_config.get("SMTP_SSL") or not push_config.get("SMTP_EMAIL") or not push_config.get("SMTP_PASSWORD") or not push_config.get("SMTP_NAME"):
         print("SMTP 邮件 的 SMTP_SERVER 或者 SMTP_SSL 或者 SMTP_EMAIL 或者 SMTP_PASSWORD 或者 SMTP_NAME 未设置!!\n取消推送")
@@ -631,45 +671,38 @@ def one() -> str:
     return res["hitokoto"] + "    ----" + res["from"]
 
 
-if push_config.get("BARK_PUSH"):
-    notify_function.append(bark)
-if push_config.get("CONSOLE"):
-    notify_function.append(console)
-if push_config.get("DD_BOT_TOKEN") and push_config.get("DD_BOT_SECRET"):
-    notify_function.append(dingding_bot)
-if push_config.get("FSKEY"):
-    notify_function.append(feishu_bot)
-if push_config.get("GOBOT_URL") and push_config.get("GOBOT_QQ"):
-    notify_function.append(go_cqhttp)
-if push_config.get("GOTIFY_URL") and push_config.get("GOTIFY_TOKEN"):
-    notify_function.append(gotify)
-if push_config.get("IGOT_PUSH_KEY"):
-    notify_function.append(iGot)
-if push_config.get("PUSH_KEY"):
-    notify_function.append(serverJ)
-if push_config.get("DEER_KEY"):
-    notify_function.append(pushdeer)
-if push_config.get("CHAT_URL") and push_config.get("CHAT_TOKEN"):
-    notify_function.append(chat)
-if push_config.get("PUSH_PLUS_TOKEN"):
-    notify_function.append(pushplus_bot)
-if push_config.get("QMSG_KEY") and push_config.get("QMSG_TYPE"):
-    notify_function.append(qmsg_bot)
-if push_config.get("QYWX_AM"):
-    notify_function.append(wecom_app)
-if push_config.get("QYWX_KEY"):
-    notify_function.append(wecom_bot)
-if push_config.get("TG_BOT_TOKEN") and push_config.get("TG_USER_ID"):
-    notify_function.append(telegram_bot)
-if push_config.get("AIBOTK_KEY") and push_config.get("AIBOTK_TYPE") and push_config.get("AIBOTK_NAME"):
-    notify_function.append(aibotk)
-if push_config.get("SMTP_SERVER") and push_config.get("SMTP_SSL") and push_config.get("SMTP_EMAIL") and push_config.get("SMTP_PASSWORD") and push_config.get("SMTP_NAME"):
-    notify_function.append(smtp)
-if push_config.get("PUSHME_KEY"):
-    notify_function.append(pushme)
+def send_message(title: str, content: str, channels_list: list = None) -> None:
+    """
+    title: 消息标题
 
+    content: 消息内容
 
-def send(title: str, content: str) -> None:
+    channels_list: 推送渠道，默认全部推送，可选项：
+    - bark
+    - console
+    - dingding_bot
+    - feishu_bot
+    - go_cqhttp
+    - gotify
+    - iGot
+    - serverJ
+    - pushdeer
+    - synology_chat
+    - pushplus_bot
+    - qmsg_bot
+    - wecom_app
+    - wecom_bot
+    - telegram_bot
+    - aibotk
+    - smtp
+    - pushme
+    """
+
+    # 确保 channel_list 是一个列表
+    if not channels_list:
+        channels_list = []
+    channels_list = [channels_list] if not isinstance(channels_list, list) else channels_list
+
     if not content:
         print(f"{title} 推送内容为空！")
         return
@@ -681,9 +714,38 @@ def send(title: str, content: str) -> None:
             print(f"{title} 在SKIP_PUSH_TITLE环境变量内，跳过推送！")
             return
 
-    hitokoto = push_config.get("HITOKOTO")
+    notify_function = []
+    functions_map = {
+        "BARK_PUSH": bark,
+        "CONSOLE": console,
+        ("DD_BOT_TOKEN", "DD_BOT_SECRET"): dingding_bot,
+        "FSKEY": feishu_bot,
+        ("GOBOT_URL", "GOBOT_QQ"): go_cqhttp,
+        ("GOTIFY_URL", "GOTIFY_TOKEN"): gotify,
+        "IGOT_PUSH_KEY": iGot,
+        "SERVERJ_PUSH_KEY": serverJ,
+        "DEER_KEY": pushdeer,
+        ("SYNOLOGY_CHAT_URL", "SYNOLOGY_CHAT_TOKEN"): synology_chat,
+        "PUSH_PLUS_TOKEN": pushplus_bot,
+        ("QMSG_KEY", "QMSG_TYPE"): qmsg_bot,
+        "QYWX_AM": wecom_app,
+        "QYWX_KEY": wecom_bot,
+        ("TG_BOT_TOKEN", "TG_USER_ID"): telegram_bot,
+        ("AIBOTK_KEY", "AIBOTK_TYPE", "AIBOTK_NAME"): aibotk,
+        ("SMTP_SERVER", "SMTP_SSL", "SMTP_EMAIL", "SMTP_PASSWORD", "SMTP_NAME"): smtp,
+        "PUSHME_KEY": pushme
+    }
 
-    text = one() if hitokoto else ""
+    notify_function = []
+    for keys, function in functions_map.items():
+        if isinstance(keys, tuple):
+            if all(push_config.get(key) for key in keys) and (not channels_list or function.__name__ in channels_list):
+                notify_function.append(function)
+        elif push_config.get(keys) and (not channels_list or function.__name__ in channels_list):
+            notify_function.append(function)
+    print(f"本次推送使用到的通道：{[f.__name__ for f in notify_function]}")
+
+    text = one() if push_config.get("HITOKOTO") else ""
     content += "\n\n" + text
 
     ts = [threading.Thread(target=mode, args=(title, content), name=mode.__name__) for mode in notify_function]
@@ -692,7 +754,7 @@ def send(title: str, content: str) -> None:
 
 
 def main():
-    send("title", "content")
+    send_message("title", "content")
 
 
 if __name__ == "__main__":
