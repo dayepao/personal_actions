@@ -18,6 +18,8 @@ from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_MISSED, JobExecutionEv
 from apscheduler.schedulers.background import BackgroundScheduler
 from bs4 import BeautifulSoup
 
+from notify import send_message
+
 """
 pip install httpx
 pip install beautifulsoup4
@@ -28,11 +30,18 @@ pip install apscheduler
 
 def http_request(method_name: str, url: str, timeout=5, max_retries=5, c: httpx.Client = None, **kwargs):
     """
+    发送 HTTP 请求
+
     method: 请求方法，如 'get', 'post', 'put', 'delete'等
+
     url: 请求的URL
+
     timeout: 超时时间, 单位秒(s), 默认为 5 秒, 为 `None` 时禁用
+
     max_retries: 最大尝试次数, 默认为 5 次, 为 0 时禁用
+
     c: httpx.Client 对象
+
     **kwargs: 其他传递给 httpx 请求方法的参数, 如 headers, data, json, verify 等
     """
     method_name = method_name.lower()  # 先转换为小写
@@ -63,33 +72,6 @@ def http_request(method_name: str, url: str, timeout=5, max_retries=5, c: httpx.
         return res
     except Exception:
         sys.exit(f"{sys._getframe().f_code.co_name} 出错: 已达到最大重试次数")
-
-
-def dayepao_push(
-    pushstr: str,
-    pushkey: str,
-    pushurl: str = "https://push.dayepao.com/",
-    agentid: str = "1000002",
-    touser: str = "@all",
-):
-    try:
-        pushurl = "{}?pushkey={}".format(pushurl, pushkey)
-    except Exception as e:
-        print(sys._getframe().f_code.co_name + ": " + str(e))
-        pushurl = "https://push.dayepao.com/?pushkey="
-    pushdata = {
-        "touser": touser,
-        "msgtype": "text",
-        "agentid": agentid,
-        "text": {
-            "content": pushstr
-        },
-        "safe": 0,
-        "enable_id_trans": 0,
-        "enable_duplicate_check": 0,
-        "duplicate_check_interval": 0
-    }
-    return http_request("post", pushurl, json=pushdata, timeout=10).text
 
 
 def get_self_dir():
@@ -232,12 +214,10 @@ def cmd_dayepao(cmd: str | list, encoding: str = None):
     return out_queue, err_queue, returncode_queue
 
 
-def creat_apscheduler(sched_job_list: list[dict], push_option: dict = {}, timezone: str = "Asia/Shanghai"):
+def creat_apscheduler(sched_job_list: list[dict], push_channel: list, timezone: str = "Asia/Shanghai"):
     """sched_job_list: [sched_job1, sched_job2, ...]
 
-    push_option: 错误推送参数
-
-    {"pushkey": "", "pushurl": "https://push.dayepao.com/", "agentid": "1000002"}
+    push_channel: [push_channel1, push_channel2, ...]
 
     sched_job: 计划任务示例
 
@@ -287,8 +267,8 @@ def creat_apscheduler(sched_job_list: list[dict], push_option: dict = {}, timezo
             pushstr += "短时间内出现3次异常, 定时任务已暂停"
 
         print(pushstr)
-        if "pushkey" in push_option:
-            print(dayepao_push(pushstr, **push_option))
+        if push_channel:
+            print(send_message("定时任务", pushstr, push_channel))
 
     sched = BackgroundScheduler(timezone=timezone)
     err_count = [0, time.time()]
