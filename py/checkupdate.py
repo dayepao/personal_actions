@@ -3,7 +3,7 @@ import os
 
 from bs4 import BeautifulSoup
 
-from utils_dayepao import get_method, post_method
+from utils_dayepao import http_request
 
 GH_ACTOR = os.environ.get('GH_ACTOR')
 PUSH_KEY = os.environ.get('PUSH_KEY')
@@ -16,7 +16,7 @@ if __name__ == '__main__':
     now = now.strftime("%Y-%m-%d %H:%M:%S")
     for repo in REPOS:
         url = "https://github.com/" + GH_ACTOR + "/" + repo
-        res = get_method(url)
+        res = http_request("get", url)
         html = res.text
         soup = BeautifulSoup(html, 'html.parser')
         items = soup.find_all(class_='d-flex flex-auto')
@@ -40,6 +40,6 @@ if __name__ == '__main__':
                 "enable_duplicate_check": 0,
                 "duplicate_check_interval": 0
             }
-            post_method(pushurl, postjson=pushdata, timeout=10)
+            http_request("post", pushurl, postjson=pushdata, timeout=10)
     else:
         print(now + "\n\n" + "所有仓库都是最新的")
