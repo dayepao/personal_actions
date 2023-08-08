@@ -1,12 +1,13 @@
 import datetime
+import json
 import os
 import time
 
-from utils_dayepao import (creat_apscheduler, dayepao_push,
-                           get_tags_with_certain_attrs)
+from notify import send_message
+from utils_dayepao import creat_apscheduler, get_tags_with_certain_attrs
 
 PUSH_KEY = os.environ.get("PUSH_KEY")
-STREAMERS = {"楚河": "998"}  # {"主播名称（随意）": "房间号"}
+HUYA_STREAMERS = json.loads(os.environ.get("HUYA_STREAMERS"))  # {"主播名称（随意）": "房间号"}
 MAX_PUSH_COUNT = 5  # 每个主播每天最多推送次数，0点清零
 
 
@@ -48,7 +49,7 @@ def check_job(streamer_dict_list: list[dict]):
 
     if pushstr:
         pushstr = now + "\n\n" + pushstr
-        print(dayepao_push(pushstr, PUSH_KEY))
+        print(send_message("虎牙监控", pushstr))
 
     streamers_status = {}
     for streamer_dict in streamer_dict_list:
@@ -62,12 +63,12 @@ def reset_counter(streamer_dict_list: list[dict]):
         streamer_dict["counter"] = 0
 
 
-if __name__ == '__main__':
-    headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36 Edg/97.0.1072.69', 'X-Forwarded-For': '121.238.47.136'}
+if __name__ == "__main__":
+    headers = {"user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36 Edg/97.0.1072.69", "X-Forwarded-For": "121.238.47.136"}
     print("正在初始化...")
-    streamer_dict_list = generate_list(STREAMERS)
+    streamer_dict_list = generate_list(HUYA_STREAMERS)
     print(streamer_dict_list)
-    print("正在监控" + str(list(STREAMERS.keys())) + "是否开播")
+    print("正在监控" + str(list(HUYA_STREAMERS.keys())) + "是否开播")
 
     sched_job_list = [
         {
