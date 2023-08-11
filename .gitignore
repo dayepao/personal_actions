@@ -5,4 +5,4 @@ build
 dist
 
 *.exe
-selected_waves.yaml
+selected_waves.toml
