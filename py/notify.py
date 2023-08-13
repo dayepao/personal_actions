@@ -745,8 +745,8 @@ def send_message(title: str, content: str, channels_list: list = None) -> None:
             notify_function.append(function)
     print(f"本次推送使用到的通道：{[f.__name__ for f in notify_function]}")
 
-    text = one() if push_config.get("HITOKOTO") else ""
-    content += "\n\n" + text
+    if (text := (one() if push_config.get("HITOKOTO") else "")):
+        content += "\n\n" + text
 
     ts = [threading.Thread(target=mode, args=(title, content), name=mode.__name__) for mode in notify_function]
     [t.start() for t in ts]
