@@ -671,13 +671,13 @@ def one() -> str:
     return res["hitokoto"] + "    ----" + res["from"]
 
 
-def send_message(title: str, content: str, channels_list: list = None) -> None:
+def send_message(title: str, content: str, channels: list = None, is_channels_visible: bool = False) -> None:
     """
     title: 消息标题
 
     content: 消息内容
 
-    channels_list: 推送渠道，默认全部推送，可选项：
+    channels: 推送渠道，默认全部推送，可选项：
     - bark
     - console
     - dingding_bot
@@ -696,12 +696,18 @@ def send_message(title: str, content: str, channels_list: list = None) -> None:
     - aibotk
     - smtp
     - pushme
+
+    is_channels_visible: 是否在控制台显示 channels 信息，默认不显示
     """
 
+    # 确保 title 和 content 是字符串
+    title = str(title)
+    content = str(content)
+
     # 确保 channel_list 是一个列表
-    if not channels_list:
-        channels_list = []
-    channels_list = [channels_list] if not isinstance(channels_list, list) else channels_list
+    if not channels:
+        channels = []
+    channels = [channels] if not isinstance(channels, list) else channels
 
     if not content:
         print(f"{title} 推送内容为空！")
@@ -739,11 +745,12 @@ def send_message(title: str, content: str, channels_list: list = None) -> None:
     notify_function = []
     for keys, function in functions_map.items():
         if isinstance(keys, tuple):
-            if all(push_config.get(key) for key in keys) and (not channels_list or function.__name__ in channels_list):
+            if all(push_config.get(key) for key in keys) and (not channels or function.__name__ in channels):
                 notify_function.append(function)
-        elif push_config.get(keys) and (not channels_list or function.__name__ in channels_list):
+        elif push_config.get(keys) and (not channels or function.__name__ in channels):
             notify_function.append(function)
-    print(f"本次推送使用到的通道：{[f.__name__ for f in notify_function]}")
+    if is_channels_visible:
+        print(f"本次推送使用到的通道：{[f.__name__ for f in notify_function]}")
 
     if (text := (one() if push_config.get("HITOKOTO") else "")):
         content += "\n\n" + text
