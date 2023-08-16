@@ -52,7 +52,7 @@ def init_from_env():
 
     if messages:
         messages.insert(0, formatted_current_time)
-        send_message("初始化虎牙监控", "\n".join(messages))
+        send_message("初始化虎牙监控", "\n".join(messages), ["console", "wecom_app"])
     return streamers
 
 
@@ -91,7 +91,7 @@ def check(streamers: list[dict]):
 
     if messages:
         messages.insert(0, formatted_current_time)
-        send_message("虎牙监控", "\n".join(messages))
+        send_message("虎牙监控", "\n".join(messages), ["console", "wecom_app"])
 
     send_message(formatted_current_time, json.dumps(streamers, indent=4, ensure_ascii=False), "console")
 
