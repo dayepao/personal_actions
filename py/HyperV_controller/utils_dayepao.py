@@ -2,6 +2,7 @@ import datetime
 import hashlib
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -287,10 +288,20 @@ def update_self():
             if file == "utils_dayepao.py":
                 old_path = Path(root, file)
                 if get_file_hash(self_path) != get_file_hash(old_path):
-                    with open(self_path, "rb") as f:
-                        new_content = f.read()
-                    with open(old_path, "wb") as f:
-                        f.write(new_content)
+                    shutil.copy(self_path, old_path)
+                    print(f"更新 {old_path} 成功")
+
+
+def update_notify():
+    self_path, self_dir, _ = get_self_dir()
+    new_path = Path(self_path).parent / "notify.py"
+    for root, _, files in os.walk(self_dir):
+        for file in files:
+            if file == "notify.py":
+                old_path = Path(root, file)
+                if get_file_hash(new_path) != get_file_hash(old_path):
+                    shutil.copy(new_path, old_path)
+                    print(f"更新 {old_path} 成功")
 
 
 if __name__ == "__main__":
