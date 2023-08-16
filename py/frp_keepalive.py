@@ -21,6 +21,6 @@ frp_urls = re.split("[;,]", frp_urls)
 for frp_url in frp_urls:
     try:
         response = httpx.get(frp_url)
-        print(f"成功访问 {frp_url}.")
+        print(f"成功访问 {frp_url}")
     except Exception as e:
         print(f"访问 {frp_url} 时遇到错误: {e}")
