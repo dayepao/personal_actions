@@ -77,16 +77,14 @@ def check(streamers: list[dict]):
                     streamer["counter"] += 1  # 每推送一次开播，计数器加1
                     if streamer["counter"] == MAX_PUSH_COUNT:
                         messages.append(f"{streamer['name']} 已达到今日开播推送次数上限({MAX_PUSH_COUNT}次)")
-            streamer["status"] = status
-            streamer["update_time"] = formatted_current_time
         else:
             if streamer["status"] == "正在直播":
                 if streamer["counter"] <= MAX_PUSH_COUNT:
                     messages.append(f"{streamer['name']} 下播了\n")
                     if streamer["counter"] == MAX_PUSH_COUNT:
                         streamer["counter"] += 1  # 计数器加1，避免重复推送下播通知
-            streamer["status"] = status
-            streamer["update_time"] = formatted_current_time
+        streamer["status"] = status
+        streamer["update_time"] = formatted_current_time
     # 更新环境变量
     qinglong(os.getenv("QL_PANEL_URL"), os.getenv("QL_CLIENT_ID"), os.getenv("QL_CLIENT_SECRET")).update_env("HUYA_STREAMERS", json.dumps(streamers, ensure_ascii=False))
 
