@@ -306,3 +306,4 @@ def update_notify():
 
 if __name__ == "__main__":
     update_self()
+    update_notify()
