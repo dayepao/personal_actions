@@ -1,3 +1,8 @@
+"""
+cron: 30 2 * * *
+new Env('Bing 每日壁纸下载');
+"""
+
 import ast
 import datetime
 import json
@@ -7,13 +12,14 @@ import re
 
 from bs4 import BeautifulSoup
 
-from utils_dayepao import get_method, dayepao_push
+from notify import send_message
+from utils_dayepao import http_request
 
 
 def download():
     url = "https://cn.bing.com/HPImageArchive.aspx?format=js&idx=0&n=2&nc=1610239683659&pid=hp&uhd=1&uhdwidth=3840&uhdheight=2160"
     headers = {'X-Forwarded-For': '106.112.196.1'}
-    res = get_method(url, headers)
+    res = http_request("get", url, headers=headers)
     html = res.text
     soup = BeautifulSoup(html, 'html.parser')
     jsonstr = json.loads(soup.text)
@@ -28,9 +34,9 @@ def download():
             filename = finalpath + "\\" + (''.join(re.findall('[，\u4e00-\u9fa5]', image['copyright'])) or image['enddate']) + ".jpg"
         else:
             filename = finalpath + "/" + (''.join(re.findall('[，\u4e00-\u9fa5]', image['copyright'])) or image['enddate']) + ".jpg"
-        imgr = get_method(imgurl)
+        imgr = http_request("get", imgurl)
         print("正在下载 " + filename)
-        para.pushstr = para.pushstr + "正在下载" + filename + "\n\n"
+        para.messages.append(f"正在下载 {filename}")
         with open(filename, 'wb') as f:
             f.write(imgr.content)
         key = key + 1
@@ -43,17 +49,19 @@ def num():
 
 
 class para:
-    pushstr = ""
+    messages = []
 
 
-finalpath = 'bingHD'
+if __name__ == "__main__":
+    finalpath = os.getenv("BINGHD_PATH")
 
-now = datetime.datetime.now()
-now = now.strftime("%Y-%m-%d %H:%M:%S")
-para.pushstr = now + "\n\n" + "当前bingHD文件数：" + str(num()) + "\n\n"
+    now = datetime.datetime.now()
+    now = now.strftime("%Y-%m-%d %H:%M:%S")
+    para.messages.append(f"{now}\n")
+    para.messages.append(f"当前bingHD文件数：{str(num())}\n")
 
-download()
+    download()
 
-para.pushstr = para.pushstr + "当前bingHD文件数：" + str(num()) + "\n\n"
+    para.messages.append(f"\n当前bingHD文件数：{str(num())}")
 
-dayepao_push(para.pushstr, "Your_Push_Key")
+    send_message("Bing 每日壁纸下载", "\n".join(para.messages), ["console", "wecom_app"])
