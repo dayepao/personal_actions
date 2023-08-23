@@ -45,8 +45,8 @@ def init_from_env():
             streamer["update_time"] = formatted_current_time
         if (current_time.date() - last_update_time.date()).days >= 1:
             streamer["counter"] = 0
-        if (not streamer.get("status")) or ((current_time-last_update_time).total_seconds() >= 600):
-            messages.append(f"{streamer['name']} 缺少状态或距离上次更新时间超过10分钟，将更新状态")
+        if (not streamer.get("status")) or ((current_time-last_update_time).total_seconds() >= 1800):
+            messages.append(f"{streamer['name']} 缺少状态或距离上次更新时间超过30分钟，将更新状态")
             streamer["status"] = get_status(streamer["id"])
             streamer["update_time"] = formatted_current_time
         streamers[index] = streamer
