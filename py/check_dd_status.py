@@ -1,33 +1,13 @@
 import datetime
-import os
 import socket
 import sys
 import time
 
 import paramiko
 
-from utils_dayepao import post_method
+from notify import send_message
 
 # pip install paramiko
-PUSH_KEY = os.environ.get("PUSH_KEY")
-
-
-def notice(pushstr):
-    print('\n\n' + pushstr)
-    pushurl = "https://push.dayepao.com/?pushkey=" + PUSH_KEY
-    pushdata = {
-        "touser": "@all",
-        "msgtype": "text",
-        "agentid": 1000002,
-        "text": {
-            "content": pushstr
-        },
-        "safe": 0,
-        "enable_id_trans": 0,
-        "enable_duplicate_check": 0,
-        "duplicate_check_interval": 0
-    }
-    post_method(pushurl, postjson=pushdata, timeout=10)
 
 
 def change_password(now, ssh: paramiko.SSHClient, target_password: str):
@@ -41,9 +21,9 @@ def change_password(now, ssh: paramiko.SSHClient, target_password: str):
     res, err = stdout.read(), stderr.read()
     result = res if res else err
     if 'password updated successfully' in result.decode():
-        notice(now + '\nDD 已完成\n密码修改为' + target_password)
+        send_message("DD 监控", now + '\nDD 已完成\n密码修改为' + target_password, channels="wecom_app")
     else:
-        notice(now + '\nDD 已完成\n密码修改失败')
+        send_message("DD 监控", now + '\nDD 已完成\n密码修改失败', channels="wecom_app")
 
 
 if __name__ == '__main__':
@@ -59,7 +39,7 @@ if __name__ == '__main__':
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
     while True:
         now_time = datetime.datetime.now()
-        now = now_time.strftime("%Y-%m-%d %H:%M:%S")
+        now = now_time.strftime("%Y-%m-%d %H:%M:%S") + "\n"
         print(now + '  正在监测')
         time.sleep(1)
         try:
@@ -68,19 +48,19 @@ if __name__ == '__main__':
             print('\n\nIP 地址错误')
             sys.exit(0)
         except paramiko.ssh_exception.AuthenticationException:
-            notice(now + '\nDD 已完成\n[错误] 默认密码错误')
+            send_message("DD 监控", now + '\nDD 已完成\n[错误] 默认密码错误', channels="wecom_app")
             sys.exit(0)
         except Exception:
             delta_time = now_time - start_time
             if delta_time.seconds > 3600:
-                notice(now + '\n' + str(round(delta_time.seconds / 3600, 2)) + "小时后 DD 仍未成功，停止监测")
+                send_message("DD 监控", now + '\n' + str(round(delta_time.seconds / 3600, 2)) + "小时后 DD 仍未成功，停止监测", channels="wecom_app")
                 sys.exit(0)
             continue
         else:
             if target_password:
                 change_password(now, ssh, target_password)
             else:
-                notice(now + '\nDD 已完成')
+                send_message("DD 监控", now + '\nDD 已完成', channels="wecom_app")
             break
         finally:
             ssh.close()

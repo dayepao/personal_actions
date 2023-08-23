@@ -52,7 +52,7 @@ def init_from_env():
         streamers[index] = streamer
 
     if messages:
-        messages.insert(0, formatted_current_time)
+        messages.insert(0, f"{formatted_current_time}\n")
         send_message("初始化虎牙监控", "\n".join(messages), ["console", "wecom_app"])
     return streamers
 
@@ -89,7 +89,7 @@ def check(streamers: list[dict]):
     qinglong(os.getenv("QL_PANEL_URL"), os.getenv("QL_CLIENT_ID"), os.getenv("QL_CLIENT_SECRET")).update_env("HUYA_STREAMERS", json.dumps(streamers, ensure_ascii=False))
 
     if messages:
-        messages.insert(0, formatted_current_time)
+        messages.insert(0, f"{formatted_current_time}\n")
         send_message("虎牙监控", "\n".join(messages), ["console", "wecom_app"])
 
     send_message(formatted_current_time, json.dumps(streamers, indent=4, ensure_ascii=False), "console")
