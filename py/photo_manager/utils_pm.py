@@ -194,8 +194,8 @@ def fix_date_time_in_exif(filepath, offset_time: str = "+08:00"):
     return False
 
 
-# 文件夹去重
 def remove_duplicate_files(path):
+    """文件夹去重"""
     files = os.listdir(path)
     files.sort()
     hash_list = []
@@ -207,8 +207,8 @@ def remove_duplicate_files(path):
             hash_list.append(get_file_hash(Path(path, file)))
 
 
-# 将图片转为jpg格式
 def convert_to_jpg(filepath):
+    """将图片转为jpg格式"""
     filepath = Path(filepath)
     if filepath.suffix.lower() in [".png", ]:
         new_filepath = filepath.with_suffix(".jpg")
@@ -221,8 +221,8 @@ def convert_to_jpg(filepath):
     return False
 
 
-# 将图片旋转为正确的方向
 def rotate_to_normal(filepath):
+    """将图片旋转为正确的方向"""
     filepath = Path(filepath)
     exif_dict = piexif.load(str(filepath))
     if filepath.suffix.lower() in [".jpg", ".jpeg"]:
@@ -247,8 +247,8 @@ def rotate_to_normal(filepath):
     return False
 
 
-# 将图片旋转指定角度
 def rotate_to_angle(filepath, angle):
+    """将图片逆时针旋转指定角度"""
     filepath = Path(filepath)
     exif_dict = piexif.load(str(filepath))
     if filepath.suffix.lower() in [".jpg", ".jpeg"]:
