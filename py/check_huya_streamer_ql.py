@@ -80,7 +80,7 @@ def check(streamers: list[dict]):
         else:
             if streamer["status"] == "正在直播":
                 if streamer["counter"] <= MAX_PUSH_COUNT:
-                    messages.append(f"{streamer['name']} 下播了\n")
+                    messages.append(f"{streamer['name']} 下播了")
                     if streamer["counter"] == MAX_PUSH_COUNT:
                         streamer["counter"] += 1  # 计数器加1，避免重复推送下播通知
         streamer["status"] = status
