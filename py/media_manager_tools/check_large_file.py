@@ -37,4 +37,4 @@ def find_large_files(path, extensions, min_size_in_gb):
 
 
 # 调用函数，例如:
-find_large_files(r"", [".mp4", ".mp3", ".mkv", ".avi", ".flv", ".mov"], 10)
+find_large_files(r"", [".mp4", ".mp3", ".mkv", ".avi", ".flv", ".mov"], 15)
