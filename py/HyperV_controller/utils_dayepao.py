@@ -21,7 +21,7 @@ pip install chardet
 """
 
 
-def http_request(method_name: str, url: str, timeout=5, max_retries=5, c: httpx.Client = None, **kwargs):
+def http_request(method_name: str, url: str, timeout=5, max_retries=5, c: httpx.Client = None, **kwargs) -> httpx.Response:
     """
     发送 HTTP 请求
 
