@@ -50,9 +50,7 @@ class jellyfin:
     def get_libraries(self, libraryName=None):
         """获取指定媒体库"""
         if isinstance(libraryName, str):
-            libraryName = [
-                libraryName,
-            ]
+            libraryName = [libraryName]
         if not (userId := self.admin_user.get("Id")):
             return None
         libraries = []

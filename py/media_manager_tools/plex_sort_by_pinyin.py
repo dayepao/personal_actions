@@ -65,9 +65,14 @@ class Plex:
             library_medias.append(media_dict)
         return library_medias
 
-    def get_media_count(self):
+    def get_media_count(self, libraryName: str | list = None):
+        """获取媒体库中的视频数量"""
+        if isinstance(libraryName, str):
+            libraryName = [libraryName]
         count = 0
         for library in self.libraries:
+            if libraryName and library["name"] not in libraryName:
+                continue
             count += len(library["medias"])
         return count
 
@@ -87,32 +92,40 @@ def get_pinyin(string):
     return "".join(pypinyin.lazy_pinyin(preprocess_string(string), style=pypinyin.FIRST_LETTER))
 
 
-def update_libraries_titleSort(plex_api: Plex):
-    """更新媒体库的排序名称"""
+def update_libraries_titleSort(plex_api: Plex, libraryName: str | list = None):
+    """更新指定媒体库的排序名称"""
+    if isinstance(libraryName, str):
+        libraryName = [libraryName]
     processed_count = 0
+    total_count = plex_api.get_media_count(libraryName)
     for library in plex_api.get_libraries():
-        print(f"{'='*80} 正在处理: {library['name']} {'='*80}")
+        if libraryName and library["name"] not in libraryName:
+            continue
         for media in library["medias"]:
             processed_count += 1
             if ((titleSort := get_pinyin(media["name"])) != media.get("titleSort")) and (titleSort != media.get("name")):
-                print(f"{processed_count}/{plex_api.media_count}  正在处理:    {media['name']}")
+                print(f"{processed_count}/{total_count}  正在处理:    {library['name']}/{media['name']}")
                 plex_api.update_media_details(media["ratingKey"], {"titleSort.value": titleSort, "titleSort.locked": "1"})
             else:
-                print(f"{processed_count}/{plex_api.media_count}  已处理，跳过:    {media['name']}")
+                print(f"{processed_count}/{total_count}  已处理，跳过:    {library['name']}/{media['name']}")
 
 
-def clear_libraries_titleSort(plx_api: Plex):
-    """清除媒体库的排序名称"""
+def clear_libraries_titleSort(plx_api: Plex, libraryName: str | list = None):
+    """清除指定媒体库的排序名称"""
+    if isinstance(libraryName, str):
+        libraryName = [libraryName]
     processed_count = 0
+    total_count = plex_api.get_media_count(libraryName)
     for library in plex_api.get_libraries():
-        print(f"{'='*80} 正在处理: {library['name']} {'='*80}")
+        if libraryName and library["name"] not in libraryName:
+            continue
         for media in library["medias"]:
             processed_count += 1
             if media.get("titleSort"):
-                print(f"{processed_count}/{plex_api.media_count}  正在处理:    {media['name']}")
+                print(f"{processed_count}/{total_count}  正在处理:    {library['name']}/{media['name']}")
                 plex_api.update_media_details(media["ratingKey"], {"titleSort.value": "", "titleSort.locked": "0"})
             else:
-                print(f"{processed_count}/{plex_api.media_count}  已处理，跳过:    {media['name']}")
+                print(f"{processed_count}/{total_count}  已处理，跳过:    {library['name']}/{media['name']}")
 
 
 if __name__ == "__main__":
@@ -121,5 +134,5 @@ if __name__ == "__main__":
 
     plex_api = Plex(PLEX_URL, PLEX_TOKEN)
 
-    # update_libraries_titleSort(plex_api)
-    clear_libraries_titleSort(plex_api)
+    update_libraries_titleSort(plex_api)
+    # clear_libraries_titleSort(plex_api)
