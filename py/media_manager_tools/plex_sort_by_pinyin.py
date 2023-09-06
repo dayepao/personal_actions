@@ -1,3 +1,8 @@
+"""
+cron: 0 */1 * * *
+new Env('Plex 媒体库拼音排序');
+"""
+
 import os
 import sys
 
