@@ -37,15 +37,6 @@ if __name__ == "__main__":
             print(result)
         sys.exit(1)
 
-    # 检查所有文件的GPS信息
-    print("="*60, "检查所有文件的GPS信息", "="*60)
-    if empty_GPS_exif := check_photos.check_photo(path, check_photos.GPS_exif_is_empty):
-        print(f"以下 {len(empty_GPS_exif)} 个文件的GPS信息为空: ")
-        for result in empty_GPS_exif:
-            print(result)
-        if input("是否继续? (y/N): ") not in ("y", "Y"):
-            sys.exit(1)
-
     # 修复所有文件的时区信息
     print("="*60, "修复所有文件的时区信息", "="*60)
     unalbe_to_fix_date_time_in_exif = []
@@ -60,6 +51,15 @@ if __name__ == "__main__":
         for result in unalbe_to_fix_date_time_in_exif:
             print(result)
         sys.exit(1)
+
+    # 检查所有文件的GPS信息
+    print("="*60, "检查所有文件的GPS信息", "="*60)
+    if empty_GPS_exif := check_photos.check_photo(path, check_photos.GPS_exif_is_empty):
+        print(f"以下 {len(empty_GPS_exif)} 个文件的GPS信息为空: ")
+        for result in empty_GPS_exif:
+            print(result)
+        if input("是否继续? (y/N): ") not in ("y", "Y"):
+            sys.exit(1)
 
     # for result in check_photos.check_photos(path, check_photos.date_time_in_filename_and_exif_is_different):
     #     print(result)
