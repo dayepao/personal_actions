@@ -1,9 +1,7 @@
 import datetime
-import os
 from pathlib import Path
 
 import piexif
-
 from utils_pm import get_date_time_from_exif, get_date_time_from_filename
 
 
@@ -36,19 +34,30 @@ def date_time_in_exif_is_empty(filepath):
     return True
 
 
+def is_screenshot(filepath):
+    """Check if it is a screenshot"""
+    exif_dict = piexif.load(filepath)
+    keys_0th = [piexif.ImageIFD.Make, piexif.ImageIFD.Model]
+    keys_exif = [piexif.ExifIFD.Flash, piexif.ExifIFD.FlashpixVersion, piexif.ExifIFD.ColorSpace]
+    if (not exif_dict["0th"]) or (all(key not in exif_dict["0th"] for key in keys_0th) and all(key not in exif_dict["Exif"] for key in keys_exif) and GPS_exif_is_empty(filepath)):
+        return True
+    return False
+
+
 def check_photo(directory, check_function):
     """Check photos in directory"""
+    if isinstance(directory, str):
+        directory = Path(directory)
     results = []
-    for root, _, files in os.walk(directory):
-        for file in files:
-            filepath = str(Path(root, file))
-            if file.lower().endswith((".jpg", ".jpeg")):
-                if check_function(filepath):
-                    results.append(filepath)
+    for file in directory.rglob("*"):
+        if file.is_file():
+            if file.suffix.lower() in [".jpg", ".jpeg"]:
+                if check_function(str(file)):
+                    results.append(str(file))
             elif file.lower().endswith((".mp4", ".mov")):
                 pass
             else:
-                print("Not a jpeg photo: {}".format(filepath))
+                print(f"Not a supported file: {file}")
     return results
 
 

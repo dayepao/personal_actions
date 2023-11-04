@@ -3,8 +3,7 @@ import sys
 from pathlib import Path
 
 import check_photos
-from utils_pm import (convert_to_jpg, fix_date_time_in_exif, rotate_to_normal,
-                      set_date_time_in_Exif_exif)
+from utils_pm import convert_to_jpg, fix_date_time_in_exif, rotate_to_normal, set_date_time_in_Exif_exif
 
 if __name__ == "__main__":
     path = r""
