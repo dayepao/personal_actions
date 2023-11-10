@@ -60,5 +60,7 @@ if __name__ == "__main__":
         if input("是否继续? (y/N): ") not in ("y", "Y"):
             sys.exit(1)
 
+    print("="*60, "检查完成", "="*60)
+
     # for result in check_photos.check_photos(path, check_photos.date_time_in_filename_and_exif_is_different):
     #     print(result)
