@@ -12,7 +12,7 @@ import re
 
 from bs4 import BeautifulSoup
 
-from notify import send_message
+from notify_dayepao import send_message
 from utils_dayepao import http_request
 
 

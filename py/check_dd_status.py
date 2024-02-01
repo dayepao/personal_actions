@@ -5,7 +5,7 @@ import time
 
 import paramiko
 
-from notify import send_message
+from notify_dayepao import send_message
 
 # pip install paramiko
 

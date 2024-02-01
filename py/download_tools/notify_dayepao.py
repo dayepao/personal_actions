@@ -29,7 +29,7 @@ def _print(text, *args, **kw):
 
 
 # 定义 http 请求方法
-def http_request(method_name: str, url: str, timeout=5, max_retries=5, c: httpx.Client = None, **kwargs):
+def http_request(method_name: str, url: str, timeout=5, max_retries=5, c: httpx.Client = None, **kwargs) -> httpx.Response:
     """
     method: 请求方法，如 'get', 'post', 'put', 'delete'等
     url: 请求的URL
@@ -66,6 +66,15 @@ def http_request(method_name: str, url: str, timeout=5, max_retries=5, c: httpx.
         return res
     except Exception:
         sys.exit(f"{sys._getframe().f_code.co_name} 出错: 已达到最大重试次数")
+
+
+# 检查是否可以访问互联网
+def check_network():
+    """
+    检查是否可以访问互联网。
+    """
+    response = http_request("get", "http://www.google.cn/generate_204", timeout=10, follow_redirects=True)
+    return bool(response.status_code == 204)
 
 
 # 通知服务
@@ -710,6 +719,11 @@ def send_message(title: str, content: str, channels: list = None, is_channels_vi
 
     if not content:
         _print(f"{title} 推送内容为空！")
+        return
+
+    # 确保可以访问互联网
+    if not check_network():
+        _print("无法访问互联网！")
         return
 
     # 根据标题跳过一些消息推送，环境变量：SKIP_PUSH_TITLE 用回车分隔

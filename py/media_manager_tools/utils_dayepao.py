@@ -220,10 +220,10 @@ def update_self():
 
 def update_notify():
     self_path, self_dir, _ = get_self_dir()
-    new_path = Path(self_path).parent / "notify.py"
+    new_path = Path(self_path).parent / "notify_dayepao.py"
     for root, _, files in os.walk(self_dir):
         for file in files:
-            if file == "notify.py":
+            if file == "notify_dayepao.py":
                 old_path = Path(root, file)
                 if get_file_hash(new_path) != get_file_hash(old_path):
                     shutil.copy(new_path, old_path)

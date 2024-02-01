@@ -3,7 +3,7 @@ import json
 import os
 import time
 
-from notify import send_message
+from notify_dayepao import send_message
 from utils_dayepao import creat_apscheduler, get_tags_with_certain_attrs
 
 PUSH_KEY = os.environ.get("PUSH_KEY")

@@ -7,7 +7,7 @@ import json
 import os
 from datetime import datetime
 
-from notify import send_message
+from notify_dayepao import send_message
 from qinglong_api import qinglong
 from utils_dayepao import get_tags_with_certain_attrs
 

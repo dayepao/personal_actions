@@ -14,5 +14,5 @@ def pack_pdf_files(folder_path: Path, zip_file_name: str = "pdf_files.zip"):
             zip_file.write(file, file.name)
 
 
-folder_path = r".\files"
+folder_path = r"C:\Users\ll057\Desktop\导出的条目2\files"
 pack_pdf_files(folder_path)
