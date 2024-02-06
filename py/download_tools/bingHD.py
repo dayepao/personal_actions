@@ -18,7 +18,9 @@ from utils_dayepao import http_request
 
 def download():
     url = "https://cn.bing.com/HPImageArchive.aspx?format=js&idx=0&n=2&nc=1610239683659&pid=hp&uhd=1&uhdwidth=3840&uhdheight=2160"
-    headers = {'X-Forwarded-For': '106.112.196.1'}
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0"
+    }
     res = http_request("get", url, headers=headers)
     html = res.text
     soup = BeautifulSoup(html, 'html.parser')
