@@ -73,7 +73,7 @@ def check_network():
     """
     检查是否可以访问互联网。
     """
-    response = http_request("get", "http://www.google.cn/generate_204", timeout=10, follow_redirects=True)
+    response = http_request("get", "http://cp.cloudflare.com/", timeout=10, follow_redirects=True)
     return bool(response.status_code == 204)
 
 
