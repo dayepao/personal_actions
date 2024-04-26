@@ -28,11 +28,11 @@ def change_password(now, ssh: paramiko.SSHClient, target_password: str):
 
 if __name__ == '__main__':
     target_ip = input("请输入要监控的服务器IP : ")
-    default_password = input("请输入 DD 包默认密码(默认为\"cxthhhhh.com\"): ")
+    default_password = input("请输入 DD 包默认密码(默认为\"LeitboGi0ro\"): ")
     target_password = input("请输入要修改的密码(为空则不修改): ")
 
     if default_password == '':
-        default_password = "cxthhhhh.com"
+        default_password = "LeitboGi0ro"
 
     start_time = datetime.datetime.now()
     ssh = paramiko.SSHClient()
