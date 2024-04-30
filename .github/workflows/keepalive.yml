@@ -41,6 +41,7 @@ jobs:
           path: ${{ github.workspace }}/tmp_message_${{ matrix.repo }}
 
   Push_message:
+    needs: Update_keepalive
     runs-on: ubuntu-latest
     steps:
       - name: Set time zone
