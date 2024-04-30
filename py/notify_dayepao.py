@@ -779,6 +779,7 @@ def main(title: str = "title", content: str = "content"):
 
 if __name__ == "__main__":
     if len(sys.argv) > 2:
-        main(sys.argv[1], sys.argv[2])
+        processed_args = [arg.replace("\\n", "\n") for arg in sys.argv[1:]]
+        main(processed_args[0], processed_args[1])
     else:
         main()

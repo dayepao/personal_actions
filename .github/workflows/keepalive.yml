@@ -72,7 +72,7 @@ jobs:
           for file in tmp_message/*; do
             message="${message}$(cat $file)\n\n"
           done
-          message=$(echo -n "$message" | sed 's/\n\n$//')
+          message=$(echo -n "$message" | sed 's/\\n\\n$//')
           echo "MESSAGE=${message}" >> $GITHUB_ENV
 
       - name: Push message
