@@ -79,7 +79,7 @@ jobs:
         env:
           QYWX_AM: ${{ secrets.QYWX_AM }}
         run: |
-          CURRENT_TIME=$(date "+%Y-%m-%d %H:%M:%S %Z(%z)")
+          CURRENT_TIME=$(date "+%Y-%m-%d %H:%M:%S %Z")
           MESSAGE_CONTENT="${CURRENT_TIME}\n\n${MESSAGE}"
           if [ "QYWX_AM" != "" ];then
             python py/notify_dayepao.py "Github Keepalive" "${MESSAGE_CONTENT}"
