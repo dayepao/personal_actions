@@ -6,7 +6,7 @@ on:
     - cron: 0 13 1,15 * *
 
 jobs:
-  keepalive:
+  Update_keepalive:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -15,15 +15,6 @@ jobs:
       - name: Set time zone
         run: |
           sudo timedatectl set-timezone 'Asia/Shanghai'
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install dependencies
-        run: |
-          pip install httpx
 
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -40,16 +31,53 @@ jobs:
           git config user.email "action@github.com"
           git add keepalive
           git commit -m "Update keepalive"
-          git push
-          echo "${{ matrix.repo }} 保活成功\n\n" >> ${{ github.workspace }}/tmp_message
+          echo "${{ matrix.repo}} 保活成功" > tmp_message_${{ matrix.repo }}
+
+      - name: Upload tmp_message
+        uses: actions/upload-artifact@v4
+        with:
+          name: tmp_message_${{ matrix.repo }}
+          path: tmp_message_${{ matrix.repo }}
+
+  Push_message:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set time zone
+        run: |
+          sudo timedatectl set-timezone 'Asia/Shanghai'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install httpx
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download tmp_message
+        uses: actions/download-artifact@v4
+        with:
+          path: tmp_message
+
+      - name: Compile message
+        run: |
+          message=""
+          for file in tmp_message/*; do
+            message="${message}$(cat $file)\n\n"
+          done
+          message=$(echo -n "$message" | sed 's/\n\n$//')
+          echo "MESSAGE=${message}" >> $GITHUB_ENV
 
       - name: Push message
         env:
           QYWX_AM: ${{ secrets.QYWX_AM }}
         run: |
           CURRENT_TIME=$(date "+%Y-%m-%d %H:%M:%S %Z(%z)")
-          MESSAGE_CONTENT=$(cat ${{ github.workspace }}/tmp_message)
-          MESSAGE_CONTENT="${CURRENT_TIME}\n\n${MESSAGE_CONTENT}"
+          MESSAGE_CONTENT="${CURRENT_TIME}\n\n${MESSAGE}"
           if [ "QYWX_AM" != "" ];then
-            python personal_actions/notify_dayepao.py "Github Keepalive" "${MESSAGE_CONTENT}"
+            python py/notify_dayepao.py "Github Keepalive" "${MESSAGE_CONTENT}"
           fi
