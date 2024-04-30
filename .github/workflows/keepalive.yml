@@ -73,7 +73,7 @@ jobs:
             message="${message}$(cat $file)"$'\n\n'
           done
           message=$(echo -n "$message" | sed 's/\n\n$//')
-          echo "MESSAGE=${message}" >> $GITHUB_ENV
+          echo "MESSAGE=\"${message}\"" >> $GITHUB_ENV
 
       - name: Push message
         env:
