@@ -8,39 +8,48 @@ on:
 jobs:
   keepalive:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo: [personal_actions, backup]
     steps:
       - name: Set time zone
         run: |
           sudo timedatectl set-timezone 'Asia/Shanghai'
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - name: Install dependencies
         run: |
           pip install httpx
-      - name: Update keepalive
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.actor }}/${{ matrix.repo }}
+          path: ${{ matrix.repo }}
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Update keepalive file
         run: |
-          repos="personal_actions backup" #仓库名称
-          message_content="$(date)\n\n"
-          for repo in $repos
-          do
-          git clone https://github.com/${{ github.actor }}/${repo}
-          cd ${repo}
+          cd ${{ matrix.repo }}
           echo "$(date)" > keepalive
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
           git add keepalive
-          git commit -m "Update keepalive" -a
-          git push "https://${{ github.actor }}:${{ secrets.GH_PAT }}@github.com/${{ github.actor }}/${repo}.git"
-          message_content="${message_content}${repo}保活成功\n\n"
-          cd ..
-          done
-          echo "MESSAGE_CONTENT=${message_content}" >> $GITHUB_ENV
+          git commit -m "Update keepalive"
+          git push
+          echo "${{ matrix.repo }} 保活成功\n\n" >> ${{ github.workspace }}/tmp_message
+
       - name: Push message
         env:
           QYWX_AM: ${{ secrets.QYWX_AM }}
         run: |
+          CURRENT_TIME=$(date "+%Y-%m-%d %H:%M:%S %Z(%z)")
+          MESSAGE_CONTENT=$(cat ${{ github.workspace }}/tmp_message)
+          MESSAGE_CONTENT="${CURRENT_TIME}\n\n${MESSAGE_CONTENT}"
           if [ "QYWX_AM" != "" ];then
-            python notify_dayepao.py "keepalive" "${PUSHDATA}"
+            python personal_actions/notify_dayepao.py "Github Keepalive" "${MESSAGE_CONTENT}"
           fi
