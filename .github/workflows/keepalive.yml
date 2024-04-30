@@ -31,13 +31,14 @@ jobs:
           git config user.email "action@github.com"
           git add keepalive
           git commit -m "Update keepalive"
-          echo "${{ matrix.repo}} 保活成功" > tmp_message_${{ matrix.repo }}
+          git push || exit 1
+          echo "${{ matrix.repo}} 保活成功" > ${{ github.workspace }}/tmp_message_${{ matrix.repo }}
 
       - name: Upload tmp_message
         uses: actions/upload-artifact@v4
         with:
           name: tmp_message_${{ matrix.repo }}
-          path: tmp_message_${{ matrix.repo }}
+          path: ${{ github.workspace }}/tmp_message_${{ matrix.repo }}
 
   Push_message:
     runs-on: ubuntu-latest
