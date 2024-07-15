@@ -86,6 +86,29 @@ class Plex:
         res = http_request("put", url, params=update_data)
         return res.status_code
 
+    def get_media_locked_items(self, ratingKey):
+        url = f"{self.plex_url}/library/metadata/{ratingKey}?X-Plex-Token={self.plex_token}"
+        res = http_request("get", url)
+        res_dict = xmltodict.parse(res.text)
+        locked_items = []
+        if "Video" in res_dict["MediaContainer"].keys():
+            if "Field" in res_dict["MediaContainer"]["Video"].keys():
+                fields = res_dict["MediaContainer"]["Video"]["Field"]
+                if not isinstance(fields, list):
+                    fields = [fields]
+                for field in fields:
+                    if field.get("@locked") == "1":
+                        locked_items.append(field.get("@name"))
+        if "Directory" in res_dict["MediaContainer"].keys():
+            if "Field" in res_dict["MediaContainer"]["Directory"].keys():
+                fields = res_dict["MediaContainer"]["Directory"]["Field"]
+                if not isinstance(fields, list):
+                    fields = [fields]
+                for field in fields:
+                    if field.get("@locked") == "1":
+                        locked_items.append(field.get("@name"))
+        return locked_items
+
 
 def preprocess_string(string):
     """仅保留中文、字母和数字"""
@@ -108,14 +131,18 @@ def update_libraries_titleSort(plex_api: Plex, libraryName: str | list = None):
             continue
         for media in library["medias"]:
             processed_count += 1
-            if ((titleSort := get_pinyin(media["name"])) != media.get("titleSort")) and (titleSort != media.get("name")):
+            titleSort = get_pinyin(media["name"])
+            if titleSort and (titleSort != media.get("titleSort")) and (titleSort != media.get("name")):
+                if "titleSort" in plex_api.get_media_locked_items(media["ratingKey"]):
+                    print(f"{processed_count}/{total_count}  已锁定，跳过:    {library['name']}/{media['name']}")
+                    continue
                 print(f"{processed_count}/{total_count}  正在处理:    {library['name']}/{media['name']}")
                 plex_api.update_media_details(media["ratingKey"], {"titleSort.value": titleSort, "titleSort.locked": "1"})
             else:
                 print(f"{processed_count}/{total_count}  已处理，跳过:    {library['name']}/{media['name']}")
 
 
-def clear_libraries_titleSort(plx_api: Plex, libraryName: str | list = None):
+def clear_libraries_titleSort(plex_api: Plex, libraryName: str | list = None):
     """清除指定媒体库的排序名称"""
     if isinstance(libraryName, str):
         libraryName = [libraryName]
@@ -131,6 +158,23 @@ def clear_libraries_titleSort(plx_api: Plex, libraryName: str | list = None):
                 plex_api.update_media_details(media["ratingKey"], {"titleSort.value": "", "titleSort.locked": "0"})
             else:
                 print(f"{processed_count}/{total_count}  已处理，跳过:    {library['name']}/{media['name']}")
+
+
+def get_medias_with_locked_items(plex_api: Plex, libraryName: str | list = None):
+    """获取包含锁定字段的媒体"""
+    if isinstance(libraryName, str):
+        libraryName = [libraryName]
+    processed_count = 0
+    total_count = plex_api.get_media_count(libraryName)
+    for library in plex_api.get_libraries():
+        if libraryName and library["name"] not in libraryName:
+            continue
+        for media in library["medias"]:
+            processed_count += 1
+            if locked_items := plex_api.get_media_locked_items(media["ratingKey"]):
+                print(f"{processed_count}/{total_count}  {library['name']}/{media['name']} 包含锁定字段: {locked_items}\033[K")
+            else:
+                print(f"{processed_count}/{total_count}  {library['name']}/{media['name']} 不包含锁定字段\033[K", end="\r")
 
 
 if __name__ == "__main__":
