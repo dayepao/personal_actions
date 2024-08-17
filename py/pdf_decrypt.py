@@ -3,6 +3,8 @@ from pathlib import Path
 
 import fitz
 
+# pip install PyMuPDF
+
 
 # 检查pdf是否需要密码或被加密
 def check_pdf(pdf):
