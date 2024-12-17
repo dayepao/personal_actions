@@ -61,7 +61,7 @@ def get_date_time_from_filename(filepath):
 
 def get_date_time_from_exif(filepath):
     """return date_time, offset_time"""
-    exif_dict = piexif.load(filepath)
+    exif_dict = piexif.load(str(filepath))
     if piexif.ExifIFD.DateTimeOriginal in exif_dict["Exif"]:
         date_time_str = exif_dict["Exif"][piexif.ExifIFD.DateTimeOriginal].decode("utf-8")
     elif piexif.ExifIFD.DateTimeDigitized in exif_dict["Exif"]:

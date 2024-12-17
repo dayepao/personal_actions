@@ -1,4 +1,3 @@
-import os
 import sys
 from pathlib import Path
 
@@ -6,28 +5,32 @@ import check_photos
 from utils_pm import convert_to_jpg, fix_date_time_in_exif, rotate_to_normal, set_date_time_in_Exif_exif
 
 if __name__ == "__main__":
-    path = r""
+    target_path = Path(r"")
+
+    # 删除所有Thumbs.db文件
+    print("="*60, "删除所有Thumbs.db文件", "="*60)
+    for file in target_path.rglob("Thumbs.db"):
+        file.unlink()
 
     # 将所有png文件转换为jpg文件
     print("="*60, "将所有png文件转换为jpg文件", "="*60)
-    for file in os.listdir(path):
-        if file.lower().endswith("png"):
-            if not convert_to_jpg(Path(path, file)):
-                print("无法转换文件: {}".format(file))
-                sys.exit(1)
+    for file in target_path.glob("*.png"):
+        if not convert_to_jpg(file):
+            print("无法转换文件: {}".format(file))
+            sys.exit(1)
 
     # 将图片旋转为正确的方向
     print("="*60, "将图片旋转为正确的方向", "="*60)
-    for file in os.listdir(path):
-        if file.lower().endswith((".jpg", ".jpeg")):
-            if not rotate_to_normal(Path(path, file)):
+    for file in target_path.iterdir():
+        if file.suffix.lower() in (".jpg", ".jpeg"):
+            if not rotate_to_normal(file):
                 print("无法旋转文件: {}".format(file))
                 sys.exit(1)
 
     # 通过文件名修复文件的日期时间信息
     print("="*60, "通过文件名修复文件的日期时间信息", "="*60)
     empty_date_time_in_exif = []
-    for result in check_photos.check_photo(path, check_photos.date_time_in_exif_is_empty):
+    for result in check_photos.check_photo(target_path, check_photos.date_time_in_exif_is_empty):
         if not set_date_time_in_Exif_exif(result):
             empty_date_time_in_exif.append(result)
     if empty_date_time_in_exif:
@@ -39,12 +42,10 @@ if __name__ == "__main__":
     # 修复所有文件的时区信息
     print("="*60, "修复所有文件的时区信息", "="*60)
     unalbe_to_fix_date_time_in_exif = []
-    for root, _, files in os.walk(path):
-        for file in files:
-            filepath = str(Path(root, file))
-            if file.lower().endswith((".jpg", ".jpeg")):
-                if not fix_date_time_in_exif(filepath):
-                    unalbe_to_fix_date_time_in_exif.append(filepath)
+    for file in target_path.rglob("*"):
+        if file.suffix.lower() in (".jpg", ".jpeg"):
+            if not fix_date_time_in_exif(file):
+                unalbe_to_fix_date_time_in_exif.append(file)
     if unalbe_to_fix_date_time_in_exif:
         print(f"以下 {len(unalbe_to_fix_date_time_in_exif)} 个文件的时区信息无法修复: ")
         for result in unalbe_to_fix_date_time_in_exif:
@@ -53,7 +54,7 @@ if __name__ == "__main__":
 
     # 检查所有文件的GPS信息
     print("="*60, "检查所有文件的GPS信息", "="*60)
-    if empty_GPS_exif := check_photos.check_photo(path, check_photos.GPS_exif_is_empty):
+    if empty_GPS_exif := check_photos.check_photo(target_path, check_photos.GPS_exif_is_empty):
         print(f"以下 {len(empty_GPS_exif)} 个文件的GPS信息为空: ")
         for result in empty_GPS_exif:
             print(result)

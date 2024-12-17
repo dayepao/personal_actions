@@ -51,10 +51,10 @@ def check_photo(directory, check_function):
     results = []
     for file in directory.rglob("*"):
         if file.is_file():
-            if file.suffix.lower() in [".jpg", ".jpeg"]:
+            if file.suffix.lower() in (".jpg", ".jpeg"):
                 if check_function(str(file)):
                     results.append(str(file))
-            elif file.name.lower().endswith((".mp4", ".mov")):
+            elif file.suffix.lower() in (".mp4", ".mov"):
                 pass
             else:
                 print(f"Not a supported file: {file}")
