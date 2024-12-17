@@ -41,14 +41,14 @@ if __name__ == "__main__":
 
     # 修复所有文件的时区信息
     print("="*60, "修复所有文件的时区信息", "="*60)
-    unalbe_to_fix_date_time_in_exif = []
+    unable_to_fix_exif_date_time = []
     for file in target_path.rglob("*"):
         if file.suffix.lower() in (".jpg", ".jpeg"):
             if not fix_date_time_in_exif(file):
-                unalbe_to_fix_date_time_in_exif.append(file)
-    if unalbe_to_fix_date_time_in_exif:
-        print(f"以下 {len(unalbe_to_fix_date_time_in_exif)} 个文件的时区信息无法修复: ")
-        for result in unalbe_to_fix_date_time_in_exif:
+                unable_to_fix_exif_date_time.append(file)
+    if unable_to_fix_exif_date_time:
+        print(f"以下 {len(unable_to_fix_exif_date_time)} 个文件的时区信息无法修复: ")
+        for result in unable_to_fix_exif_date_time:
             print(result)
         sys.exit(1)
 
