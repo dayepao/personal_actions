@@ -8,7 +8,6 @@ import sys
 
 import pypinyin
 import xmltodict
-
 from utils_dayepao import http_request
 
 """
