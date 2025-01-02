@@ -8,6 +8,7 @@ import sys
 
 import pypinyin
 import xmltodict
+
 from utils_dayepao import http_request
 
 """
@@ -24,6 +25,7 @@ class Plex:
             plex_url = plex_url[:-1]
         self.plex_url = plex_url
         self.plex_token = plex_token
+        self.auth_headers = {"X-Plex-Token": plex_token}
         self.libraries = self.get_libraries()
         self.media_count = self.get_media_count()
         self.check_init()
@@ -34,8 +36,8 @@ class Plex:
             sys.exit("Can't find any library")
 
     def get_libraries(self):
-        url = f"{self.plex_url}/library/sections?X-Plex-Token={self.plex_token}"
-        res = http_request("get", url)
+        url = f"{self.plex_url}/library/sections"
+        res = http_request("get", url, headers=self.auth_headers)
         res_dict = xmltodict.parse(res.text)
         libraries = []
         if isinstance(res_dict["MediaContainer"]["Directory"], list):
@@ -48,8 +50,8 @@ class Plex:
         return libraries
 
     def get_library_medias(self, library_id):
-        url = f"{self.plex_url}/library/sections/{library_id}/all?X-Plex-Token={self.plex_token}"
-        res = http_request("get", url)
+        url = f"{self.plex_url}/library/sections/{library_id}/all"
+        res = http_request("get", url, headers=self.auth_headers)
         res_dict = xmltodict.parse(res.text)
         medias_list = []
         if "Video" in res_dict["MediaContainer"].keys():
@@ -81,13 +83,13 @@ class Plex:
         return count
 
     def update_media_details(self, ratingKey, update_data: dict):
-        url = f"{self.plex_url}/library/metadata/{ratingKey}?X-Plex-Token={self.plex_token}"
-        res = http_request("put", url, params=update_data)
+        url = f"{self.plex_url}/library/metadata/{ratingKey}"
+        res = http_request("put", url, params=update_data, headers=self.auth_headers)
         return res.status_code
 
     def get_media_locked_items(self, ratingKey):
-        url = f"{self.plex_url}/library/metadata/{ratingKey}?X-Plex-Token={self.plex_token}"
-        res = http_request("get", url)
+        url = f"{self.plex_url}/library/metadata/{ratingKey}"
+        res = http_request("get", url, headers=self.auth_headers)
         res_dict = xmltodict.parse(res.text)
         locked_items = []
         if "Video" in res_dict["MediaContainer"].keys():
