@@ -21,6 +21,7 @@ class emby:
     def __init__(self, emby_url: str, api_key: str):
         self.emby_url = emby_url
         self.api_key = api_key
+        self.auth_headers = {"X-Emby-Token": api_key}
         self.server_info = self.get_server_info()
         self.admin_user = self.get_admin_user()
         self.item_count = self.get_item_count()
@@ -38,14 +39,14 @@ class emby:
 
     def get_server_info(self):
         """获取服务器信息"""
-        url = f"{self.emby_url}/System/Info?api_key={self.api_key}"
-        res = http_request("get", url)
+        url = f"{self.emby_url}/System/Info"
+        res = http_request("get", url, headers=self.auth_headers)
         return res.json()
 
     def get_admin_user(self):
         """获取管理员用户"""
-        url = f"{self.emby_url}/Users?api_key={self.api_key}"
-        res = http_request("get", url)
+        url = f"{self.emby_url}/Users"
+        res = http_request("get", url, headers=self.auth_headers)
         users = res.json()
         for user in users:
             if user.get("Policy", {}).get("IsAdministrator", False):
@@ -60,8 +61,8 @@ class emby:
         if not (userId := self.admin_user.get("Id")):
             return None
         libraries = []
-        url = f"{self.emby_url}/Users/{userId}/Views?api_key={self.api_key}"
-        res = http_request("get", url)
+        url = f"{self.emby_url}/Users/{userId}/Views"
+        res = http_request("get", url, headers=self.auth_headers)
         for library in res.json().get("Items", []):
             # 跳过非目录
             # if library.get("IsFolder") and (library.get("CollectionType") in ["movies", "tvshows"]):
@@ -72,31 +73,31 @@ class emby:
 
     def get_item_count(self):
         """获取项目数量"""
-        url = f"{self.emby_url}/Items/Counts?api_key={self.api_key}"
-        res = http_request("get", url)
+        url = f"{self.emby_url}/Items/Counts"
+        res = http_request("get", url, headers=self.auth_headers)
         # print(json.dumps(res.json(), indent=4, ensure_ascii=False))
         return res.json()
 
     def get_subItems(self, libraryId: str):
         """获取指定目录下的所有子项"""
-        url = f"{self.emby_url}/Users/{self.admin_user.get('Id')}/Items?api_key={self.api_key}&ParentId={libraryId}"
+        url = f"{self.emby_url}/Users/{self.admin_user.get('Id')}/Items?ParentId={libraryId}"
         # print(url)
-        res = http_request("get", url)
+        res = http_request("get", url, headers=self.auth_headers)
         return res.json()
 
     def get_item_info(self, itemId: str):
         """获取指定子项的信息"""
-        url = f"{self.emby_url}/Users/{self.admin_user.get('Id')}/Items/{itemId}?api_key={self.api_key}"
+        url = f"{self.emby_url}/Users/{self.admin_user.get('Id')}/Items/{itemId}"
         # print(url)
-        res = http_request("get", url)
+        res = http_request("get", url, headers=self.auth_headers)
         return res.json()
 
     def update_item_info(self, itemId: str, newjson: dict):
         """更新指定子项的信息"""
-        url = f"{self.emby_url}/Items/{itemId}?api_key={self.api_key}"
+        url = f"{self.emby_url}/Items/{itemId}"
         postjson = self.get_item_info(itemId)
         postjson.update(newjson)
-        res = http_request("post", url, json=postjson)
+        res = http_request("post", url, json=postjson, headers=self.auth_headers)
         return res.status_code
 
 
@@ -167,7 +168,8 @@ def update_libraries_ForcedSortName(emby_api: emby, libraryName=None):
             if "SortName" not in LockedFields:
                 LockedFields.append("SortName")
             processed_count += 1
-            if (SortName := get_pinyin(item_info["Name"])) != item_info.get("ForcedSortName"):
+            SortName = get_pinyin(item_info["Name"])
+            if SortName and SortName != item_info.get("ForcedSortName") and SortName != item_info.get("Name"):
                 print(f"{processed_count}/{total_count}  正在处理:    {emby_path}/{item_info['Name']}")
                 emby_api.update_item_info(
                     item["Id"],
@@ -190,10 +192,11 @@ def clear_libraries_ForcedSortName(emby_api: emby, libraryName=None):
         for item in subItems:
             item_info = emby_api.get_item_info(item["Id"])
             LockedFields = item_info.get("LockedFields", [])
-            if "SortName" in LockedFields:
+            SortNameIsLocked = "SortName" in LockedFields
+            if SortNameIsLocked:
                 LockedFields.remove("SortName")
             processed_count += 1
-            if item_info.get("ForcedSortName") != item_info.get("Name"):
+            if SortNameIsLocked:
                 print(f"{processed_count}/{total_count}  正在处理:    {emby_path}/{item_info['Name']}")
                 emby_api.update_item_info(
                     item["Id"],
