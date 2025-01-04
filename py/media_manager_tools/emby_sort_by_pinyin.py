@@ -19,9 +19,9 @@ pip install pypinyin
 
 class emby:
     def __init__(self, emby_url: str, api_key: str):
-        self.emby_url = emby_url
-        self.api_key = api_key
-        self.auth_headers = {"X-Emby-Token": api_key}
+        self.emby_url = str(emby_url)
+        self.api_key = str(api_key)
+        self.auth_headers = {"X-Emby-Token": self.api_key}
         self.server_info = self.get_server_info()
         self.admin_user = self.get_admin_user()
         self.item_count = self.get_item_count()
@@ -41,7 +41,12 @@ class emby:
         """获取服务器信息"""
         url = f"{self.emby_url}/System/Info"
         res = http_request("get", url, headers=self.auth_headers)
-        return res.json()
+        try:
+            res_json = res.json()
+        except Exception:
+            raise Exception("API 验证失败")
+
+        return res_json
 
     def get_admin_user(self):
         """获取管理员用户"""
@@ -58,11 +63,12 @@ class emby:
         """获取指定媒体库"""
         if isinstance(libraryName, str):
             libraryName = [libraryName]
-        if not (userId := self.admin_user.get("Id")):
-            return None
-        libraries = []
-        url = f"{self.emby_url}/Users/{userId}/Views"
+        # if not (userId := self.admin_user.get("Id")):
+        #     return None
+        # url = f"{self.emby_url}/Users/{userId}/Views"
+        url = f"{self.emby_url}/Library/MediaFolders"
         res = http_request("get", url, headers=self.auth_headers)
+        libraries = []
         for library in res.json().get("Items", []):
             # 跳过非目录
             # if library.get("IsFolder") and (library.get("CollectionType") in ["movies", "tvshows"]):
@@ -80,7 +86,8 @@ class emby:
 
     def get_subItems(self, libraryId: str):
         """获取指定目录下的所有子项"""
-        url = f"{self.emby_url}/Users/{self.admin_user.get('Id')}/Items?ParentId={libraryId}"
+        # url = f"{self.emby_url}/Users/{self.admin_user.get('Id')}/Items?ParentId={libraryId}"
+        url = f"{self.emby_url}/Items?ParentId={libraryId}"
         # print(url)
         res = http_request("get", url, headers=self.auth_headers)
         return res.json()
@@ -88,15 +95,29 @@ class emby:
     def get_item_info(self, itemId: str):
         """获取指定子项的信息"""
         url = f"{self.emby_url}/Users/{self.admin_user.get('Id')}/Items/{itemId}"
+        # assert isinstance(QUERY_FIELDS, list), "QUERY_FIELDS 必须为列表"
+        # if not QUERY_FIELDS:
+        #     QUERY_FIELDS = [
+        #         "OriginalTitle", "ForcedSortName",
+        #         "Budget", "Chapters", "DateCreated", "Genres", "HomePageUrl", "IndexOptions",
+        #         "MediaStreams", "Overview", "ParentId", "Path", "People", "ProviderIds",
+        #         "PrimaryImageAspectRatio", "Revenue", "SortName", "Studios", "Taglines"
+        #     ]
+        # url = f"{self.emby_url}/Items/?Ids={itemId}&Fields={','.join(QUERY_FIELDS)}"
         # print(url)
         res = http_request("get", url, headers=self.auth_headers)
+        # with open("2.json", "w", encoding="utf-8") as f:
+        #     f.write(json.dumps(res.json(), indent=4, ensure_ascii=False))
         return res.json()
 
     def update_item_info(self, itemId: str, newjson: dict):
         """更新指定子项的信息"""
         url = f"{self.emby_url}/Items/{itemId}"
         postjson = self.get_item_info(itemId)
+        # postjson = self.get_item_info(itemId).get("Items", [])[0]
         postjson.update(newjson)
+        # print(json.dumps(postjson, indent=4, ensure_ascii=False))
+        # exit()
         res = http_request("post", url, json=postjson, headers=self.auth_headers)
         return res.status_code
 
@@ -218,6 +239,23 @@ if __name__ == "__main__":
 
     update_libraries_ForcedSortName(emby_api)
     # clear_libraries_ForcedSortName(emby_api)
+
+    # import json
+
+    # for a in emby_api.get_subItems(3)["Items"]:
+    #     print(a["Name"], a["Id"])
+
+    # print(json.dumps(emby_api.get_libraries(), indent=4, ensure_ascii=False))
+    # print(json.dumps(emby_api.get_subItems(3)["Items"][22], indent=4, ensure_ascii=False))
+    # print(json.dumps(emby_api.get_libraries(), indent=4, ensure_ascii=False))
+    # print(json.dumps(emby_api.get_subItems(3), indent=4, ensure_ascii=False))
+    # print(json.dumps(emby_api.get_item_info(10), indent=4, ensure_ascii=False))
+    # print(json.dumps(emby_api.get_subItems(35), indent=4, ensure_ascii=False))
+    # print(json.dumps(emby_api.get_item_info(16908), indent=4, ensure_ascii=False))
+    # print(json.dumps(emby_api.update_item_info(224, {
+    #     "LockedFields": [],
+    #     "ForcedSortName": ""
+    # }), indent=4, ensure_ascii=False))
 
     for error_msg in error_msg_list:
         print(error_msg)
