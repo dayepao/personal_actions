@@ -6,7 +6,7 @@ path = r""
 if input(f"Delete all metadata files in {path}? (y/n) ").lower() != "y":
     sys.exit()
 
-include_extensions = (".nfo", ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".webp", ".svg", ".txt")
+include_extensions = (".nfo", ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".webp", ".svg", ".txt", "bif")
 
 for file in Path(path).rglob("*"):
     if file.is_file() and str(file).endswith(include_extensions):
