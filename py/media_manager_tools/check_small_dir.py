@@ -18,7 +18,7 @@ def check_subdirectory_sizes(target_directory, size_threshold_mb):
             if total_size < size_threshold_bytes:
                 print(f"Directory: {subdir}, Size: {total_size / (1024 * 1024):.2f} MB")
                 # delete the directory
-                subdir.rmdir()
+                # subdir.rmdir()
 
 
 # Specify the target directory and size threshold in MB
