@@ -231,8 +231,8 @@ def clear_libraries_ForcedSortName(emby_api: emby, libraryName=None):
 
 
 if __name__ == "__main__":
-    EMBY_URL = os.environ.get("EMBY_URL")
-    EMBY_API_KEY = os.environ.get("EMBY_API_KEY")
+    EMBY_URL = os.getenv("EMBY_URL")
+    EMBY_API_KEY = os.getenv("EMBY_API_KEY")
 
     emby_api = emby(EMBY_URL, EMBY_API_KEY)
     error_msg_list = []

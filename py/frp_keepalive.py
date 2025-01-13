@@ -10,11 +10,11 @@ import sys
 import httpx
 
 # 从环境变量读取url列表
-frp_urls = os.environ.get("FRP_URLS")
+frp_urls = os.getenv("FRP_URLS")
 
 if not frp_urls:
-    print("未发现有效的 FRP_URL_LIST 环境变量,退出程序!")
-    sys.exit()
+    print("未配置 FRP_URLS 环境变量, 退出程序")
+    sys.exit(1)
 
 frp_urls = re.split("[;,]", frp_urls)
 

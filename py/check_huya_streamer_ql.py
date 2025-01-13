@@ -5,13 +5,13 @@ new Env('虎牙开播监控');
 
 import json
 import os
+import sys
 from datetime import datetime
 
 from notify_dayepao import send_message
 from qinglong_api import qinglong
 from utils_dayepao import get_tags_with_certain_attrs
 
-PUSH_KEY = os.environ.get("PUSH_KEY")
 MAX_PUSH_COUNT = 5  # 每个主播每天最多推送次数，0点清零
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -25,7 +25,13 @@ def init_from_env():
     """
     messages = []
     base_streamer = {"name": "", "id": "", "status": "", "counter": 0, "update_time": ""}
-    streamers: list[dict] = json.loads(os.environ.get("HUYA_STREAMERS"))
+    streamers_env = os.getenv("HUYA_STREAMERS")
+
+    if not streamers_env:
+        print("未配置 HUYA_STREAMERS 环境变量, 退出程序")
+        sys.exit(1)
+
+    streamers: list[dict] = json.loads(streamers_env)
 
     current_time = datetime.now()
     formatted_current_time = current_time.strftime(DATETIME_FORMAT)

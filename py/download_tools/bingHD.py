@@ -58,8 +58,8 @@ class para:
 if __name__ == "__main__":
     finalpath = os.getenv("BINGHD_PATH")
     if not finalpath:
-        print("未配置 BINGHD_PATH")
-        os._exit(0)
+        print("未配置 BINGHD_PATH 环境变量, 退出程序")
+        os._exit(1)
 
     now = datetime.datetime.now()
     now = now.strftime("%Y-%m-%d %H:%M:%S")
