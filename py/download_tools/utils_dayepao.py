@@ -50,12 +50,12 @@ def http_request(method_name: str, url: str, timeout=5, max_retries=5, c: httpx.
     except AttributeError:
         raise ValueError(f"不支持的请求方法: '{method_name}'")
 
-    k = 1
-    while (k <= max_retries) or (max_retries == 0):
+    attempt_count = 1
+    while (attempt_count <= max_retries) or (max_retries == 0):
         try:
             res = request_method(url=url, timeout=timeout, **kwargs)
         except Exception as e:
-            k = k + 1
+            attempt_count = attempt_count + 1
             print(f"{sys._getframe().f_code.co_name} 出错: {str(e)}")
             time.sleep(1)
             continue
@@ -64,7 +64,7 @@ def http_request(method_name: str, url: str, timeout=5, max_retries=5, c: httpx.
     try:
         return res
     except Exception:
-        sys.exit(f"{sys._getframe().f_code.co_name} 出错: 已达到最大重试次数")
+        raise RuntimeError(f"{sys._getframe().f_code.co_name} 出错: 已达到最大重试次数")
 
 
 def get_self_dir():
