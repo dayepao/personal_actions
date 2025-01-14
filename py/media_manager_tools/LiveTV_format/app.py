@@ -42,7 +42,7 @@ def update_cached_epg_xml():
 
 # 定时任务更新缓存文件
 def schedule_update_epg_xml():
-    """定时任务，每24小时更新一次TXT文件"""
+    """定时任务，每24小时更新一次 EPG XML 文件"""
     scheduler = BackgroundScheduler()
     scheduler.add_job(update_cached_epg_xml, "interval", hours=24)
     scheduler.start()
@@ -55,7 +55,7 @@ def modify_m3u():
         return jsonify({"error": "Missing URL parameter"}), 400
 
     try:
-        # 获取并加载TXT文件缓存
+        # 获取并加载 EPG XML 文件缓存
         txt_content = load_cached_epg_xml()
 
         # 下载M3U文件
@@ -78,7 +78,7 @@ def modify_m3u():
 def modify_m3u_file(m3u_content, txt_content):
     """
     处理M3U文件内容的逻辑，可以根据需求自定义修改。
-    这里可以使用txt_content作为参考，对M3U文件进行修改。
+    这里可以使用EPG XML 文件作为参考，对M3U文件进行修改。
     """
     lines = m3u_content.splitlines()
     modified_lines = []
