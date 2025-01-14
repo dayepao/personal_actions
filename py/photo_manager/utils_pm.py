@@ -264,6 +264,12 @@ def rotate_to_angle(filepath, angle):
     return False
 
 
+def delete_exif(filepath):
+    img = Image.open(filepath)
+    # 删除exif信息后保存，保证画质不变
+    img.save(filepath, exif=piexif.dump({}), quality=100)
+
+
 if __name__ == "__main__":
     # path = r"新建文件夹"
     # remove_duplicate_files(path)
