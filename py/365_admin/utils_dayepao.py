@@ -63,8 +63,8 @@ def http_request(method_name: str, url: str, timeout=5, max_retries=5, c: httpx.
             break
     try:
         return res
-    except Exception:
-        raise RuntimeError(f"{sys._getframe().f_code.co_name} 出错: 已达到最大重试次数")
+    except Exception as e:
+        raise RuntimeError(f"{sys._getframe().f_code.co_name} 出错: 已达到最大重试次数") from e
 
 
 def get_self_dir():
