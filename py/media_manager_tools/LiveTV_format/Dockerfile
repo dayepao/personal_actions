@@ -5,14 +5,14 @@ FROM python:3.12-slim
 WORKDIR /app
 
 # 安装必要的依赖
-COPY requirements.txt /app/
-RUN pip install -r requirements.txt
+COPY ./livetv_format/requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
 
 # 复制应用代码到容器中
-COPY . /app/
+COPY ./livetv_format /app/
 
 # 开放应用端口
 EXPOSE 35456
 
 # 使用 Gunicorn 启动应用
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:35456", "--config", "gunicorn_config.py", "livetv_format.app:app"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:35456", "--config", "gunicorn_config.py", "app:app"]
