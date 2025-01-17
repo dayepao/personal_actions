@@ -4,6 +4,7 @@ worker_class = "gevent"  # 可以选择其他类型的 worker，例如 sync、ge
 loglevel = "info"  # 日志级别
 accesslog = "-"  # 将访问日志输出到标准输出
 errorlog = "-"  # 将错误日志输出到标准输出
+timeout = 120  # 超时时间
 # preload = True  # 启用预加载应用代码
 
 
