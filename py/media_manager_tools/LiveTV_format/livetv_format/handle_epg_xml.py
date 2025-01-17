@@ -1,12 +1,15 @@
 import xml.etree.ElementTree as ET
 
-from cache_config import CACHE_FILE_CONFIGS
+from .cache_config import CACHE_FILE_CONFIGS
+from .handle_cache import update_cached_file
 
 
 def generate_tvg_map():
     """根据 EPG XML 文件, 生成节目单映射表"""
     # 读取 EPG XML 文件
     epg_xml_file = CACHE_FILE_CONFIGS["epg.xml"]["CACHE_PATH"].joinpath("epg.xml")
+    if not epg_xml_file.exists():
+        update_cached_file(CACHE_FILE_CONFIGS["epg.xml"]["FILE_URL"], epg_xml_file)
     tree = ET.parse(epg_xml_file)
     root = tree.getroot()
     tvg_map = {}

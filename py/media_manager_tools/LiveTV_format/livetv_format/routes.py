@@ -1,16 +1,12 @@
 import os
-
-from flask import Flask, Response, jsonify, request
-
-from handle_cache import schedule_update_cached_file
 import re
-from handle_epg_xml import generate_tvg_map
-from utils_app import http_request
 
-app = Flask(__name__)
+from flask import Response, jsonify, request
+
+from .handle_epg_xml import generate_tvg_map
+from .utils_app import http_request
 
 
-@app.route("/tv.m3u", methods=["GET"])
 def modify_m3u():
     tv_m3u_url = os.getenv("TV_M3U_URL", request.args.get("url"))
     if not tv_m3u_url:
@@ -106,10 +102,3 @@ def format_m3u_file(m3u_content, tvg_map):
         formated_m3u_entries.append(f'#EXTINF:{inf},tvg-id="{tvg_id}" tvg-name="{desc}" tvg-logo="{tvg_logo}" group-title="{group_title}","{desc}"\n{tvg_url}\n')
 
     return "".join(formated_m3u_entries)
-
-
-if __name__ == "__main__":
-    # 启动定时任务
-    schedule_update_cached_file()
-    app.run(port=35456)
-    # app.run(debug=True)

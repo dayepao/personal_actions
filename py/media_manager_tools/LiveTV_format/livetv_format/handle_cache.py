@@ -2,8 +2,9 @@ from datetime import datetime
 from pathlib import Path
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from cache_config import CACHE_FILE_CONFIGS
-from utils_app import http_request
+
+from .cache_config import CACHE_FILE_CONFIGS
+from .utils_app import http_request
 
 
 # 下载并更新缓存的文件
