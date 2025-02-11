@@ -19,7 +19,7 @@ if __name__ == '__main__':
             post_name="同步文件",
             post_hour="4",
             post_minute="00",
-            post_sBody="rsync -avzhP --update /onedrive/resource/img/ /www/wwwroot/img.dayepao.com/img/\n"
+            post_sBody="rsync -avzhP --update /onedrive/resource/img/ /opt/1panel/apps/openresty/openresty/www/sites/img.dayepao.com/index/img\n"
             "rclone sync --exclude '{panel,file_history}/' /www/backup onedrive:VPS/backup"
         )
     )
