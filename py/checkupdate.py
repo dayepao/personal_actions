@@ -3,11 +3,11 @@ import os
 
 from bs4 import BeautifulSoup
 
-from utils_dayepao import http_request
 from notify_dayepao import send_message
+from utils_dayepao import http_request
 
 GH_ACTOR = os.environ.get('GH_ACTOR')
-REPOS = ["uptime-status",]  # 仓库名称
+REPOS = ["CF-Workers-docker.io", "CF-Workers-SUB"]  # 仓库名称
 
 
 if __name__ == '__main__':
