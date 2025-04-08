@@ -118,6 +118,7 @@ def dms2d(deg, mnt, sec):
 
 
 def set_date_time_in_Exif_exif(filepath, date_time: datetime.datetime = None, offset_time: str = "+08:00", visible: bool = True):
+    filepath = str(filepath)
     if date_time is None:
         date_time = get_date_time_from_filename(filepath)
 
