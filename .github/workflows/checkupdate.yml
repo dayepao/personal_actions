@@ -27,6 +27,5 @@ jobs:
     - name: Checkupdate
       env: 
         GH_ACTOR: ${{ github.actor }}
-        PUSH_KEY: ${{ secrets.PUSH_KEY }}
       run: | 
         python py/checkupdate.py
