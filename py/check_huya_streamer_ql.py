@@ -57,10 +57,7 @@ def init_from_env():
             streamer["update_time"] = formatted_current_time
         streamers[index] = streamer
 
-    if messages:
-        messages.insert(0, f"{formatted_current_time}\n")
-        send_message("初始化虎牙监控", "\n".join(messages), ["console", "wecom_app"])
-    return streamers
+    return streamers, messages
 
 
 def get_status(streamer_id: str):
@@ -94,16 +91,23 @@ def check(streamers: list[dict]):
     # 更新环境变量
     qinglong(os.getenv("QL_PANEL_URL"), os.getenv("QL_CLIENT_ID"), os.getenv("QL_CLIENT_SECRET")).update_env("HUYA_STREAMERS", json.dumps(streamers, ensure_ascii=False))
 
-    if messages:
-        messages.insert(0, f"{formatted_current_time}\n")
-        send_message("虎牙监控", "\n".join(messages), ["console", "wecom_app"])
-
     send_message(formatted_current_time, json.dumps(streamers, indent=4, ensure_ascii=False), "console")
+
+    return messages
 
 
 if __name__ == "__main__":
     headers = {"user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36 Edg/115.0.1901.203", "X-Forwarded-For": "121.238.47.136"}
     print("正在初始化...")
-    HUYA_STREAMERS = init_from_env()
+    messages = []
+    HUYA_STREAMERS, messages_tmp = init_from_env()
+    messages.extend(messages_tmp)
     # print(HUYA_STREAMERS)
-    check(HUYA_STREAMERS)
+    messages_tmp = check(HUYA_STREAMERS)
+    messages.extend(messages_tmp)
+
+    if messages:
+        current_time = datetime.now()
+        formatted_current_time = current_time.strftime(DATETIME_FORMAT)
+        messages.insert(0, f"{formatted_current_time}\n")
+        send_message("虎牙监控", "\n".join(messages), ["console", "wecom_app"])

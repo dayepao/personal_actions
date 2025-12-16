@@ -6,7 +6,7 @@ from utils_dayepao import http_request
 
 class qinglong:
     def __init__(self, url, client_id, client_secret):
-        self.url = url
+        self.url = url.rstrip("/")
         self.client_id = client_id
         self.client_secret = client_secret
         self.token = self.get_token()
