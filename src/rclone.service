@@ -1,0 +1,12 @@
+[Unit]
+Description=rclone
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=sudo bash /root/autorclone.sh start
+ExecStop=sudo bash /root/autorclone.sh stop
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

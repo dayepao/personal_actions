@@ -1,8 +1,3 @@
 .env*
 
 __pycache__
-build
-dist
-
-*.exe
-selected_waves.toml
