@@ -9,15 +9,14 @@ from pathlib import Path
 from queue import Queue
 from threading import Thread
 
-import __main__
 import chardet
 import httpx
 from bs4 import BeautifulSoup
 
+import __main__
+
 """
-pip install httpx
-pip install beautifulsoup4
-pip install chardet
+uv pip install httpx beautifulsoup4 chardet
 """
 
 
@@ -47,8 +46,8 @@ def http_request(method_name: str, url: str, timeout=5, max_retries=5, c: httpx.
             request_method = getattr(c, method_name)
         else:
             request_method = getattr(httpx, method_name)
-    except AttributeError:
-        raise ValueError(f"不支持的请求方法: '{method_name}'")
+    except AttributeError as err:
+        raise ValueError(f"不支持的请求方法: '{method_name}'") from err
 
     attempt_count = 1
     while (attempt_count <= max_retries) or (max_retries == 0):
