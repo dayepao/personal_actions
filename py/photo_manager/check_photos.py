@@ -18,7 +18,7 @@ def GPS_exif_is_empty(filepath):
 def date_time_in_filename_and_exif_is_different(filepath):
     """Check if datetime in filename and exif is different"""
     if not (date_time := get_date_time_from_exif(filepath)):
-        print("No datetime in exif: {}".format(filepath))
+        print(f"No datetime in exif: {filepath}")
         return True
     date_time_from_filename = get_date_time_from_filename(filepath)
     if date_time_from_filename:

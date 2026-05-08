@@ -6,21 +6,19 @@ from pathlib import Path
 
 import piexif
 from PIL import Image
-
 from utils_dayepao import get_file_hash
 
-# pip install piexif
-# pip install Pillow
+# uv pip install piexif Pillow
 
 
 def print_exif(filepath, target_ifd: tuple | str = ("0th", "Exif", "GPS", "1st")):
     assert isinstance(target_ifd, (tuple, str))
     if isinstance(target_ifd, str):
         target_ifd = (target_ifd,)
-    print("{} {} {}".format("="*60, filepath, "="*60))
+    print("{} {} {}".format("=" * 60, filepath, "=" * 60))
     exif_dict = piexif.load(filepath)
     for ifd in target_ifd:
-        print("{} {} {}".format("-"*60, ifd, "-"*60))
+        print("{} {} {}".format("-" * 60, ifd, "-" * 60))
         print(exif_dict[ifd])
         for tag in exif_dict[ifd]:
             print(piexif.TAGS[ifd][tag]["name"], exif_dict[ifd][tag])
@@ -73,7 +71,7 @@ def get_date_time_from_exif(filepath):
     assert isinstance(date_time_str, str)
 
     date_time = None
-    offset_time = re.match(re.compile(r'.*?([\+\-]\d{2}:\d{2})'), date_time_str)
+    offset_time = re.match(re.compile(r".*?([\+\-]\d{2}:\d{2})"), date_time_str)
     if offset_time:
         offset_time = offset_time.group(1)
         date_time_str = date_time_str.replace(offset_time, "")
@@ -123,14 +121,14 @@ def set_date_time_in_Exif_exif(filepath, date_time: datetime.datetime = None, of
         date_time = get_date_time_from_filename(filepath)
 
     if date_time is None:
-        print("date_time is None: {}".format(filepath))
+        print(f"date_time is None: {filepath}")
         return False
 
     exif_ifd = {
         piexif.ExifIFD.OffsetTime: offset_time,
         piexif.ExifIFD.OffsetTimeOriginal: offset_time,
-        piexif.ExifIFD.DateTimeOriginal: date_time.strftime("%Y:%m:%d %H:%M:%S{}".format(offset_time)),
-        piexif.ExifIFD.DateTimeDigitized: date_time.strftime("%Y:%m:%d %H:%M:%S{}".format(offset_time)),
+        piexif.ExifIFD.DateTimeOriginal: f"{date_time.strftime('%Y:%m:%d %H:%M:%S')}{offset_time}",
+        piexif.ExifIFD.DateTimeDigitized: f"{date_time.strftime('%Y:%m:%d %H:%M:%S')}{offset_time}",
     }
     original_ifd = piexif.load(filepath)
     original_ifd["Exif"].update(exif_ifd)
@@ -156,14 +154,14 @@ def set_GPS_exif(filepath, latitude: float | int, longitude: float | int, date_t
     offset_time = offset_time or exif_offset_time
 
     if not date_time:
-        print("date_time is None: {}".format(filepath))
+        print(f"date_time is None: {filepath}")
         return False
 
     if not offset_time:
-        print("offset_time is None: {}".format(filepath))
+        print(f"offset_time is None: {filepath}")
         return False
 
-    offset_time_int = int(re.match(re.compile(r'([\+\-]\d{2})'), offset_time).group(1))
+    offset_time_int = int(re.match(re.compile(r"([\+\-]\d{2})"), offset_time).group(1))
 
     utc_date_time = date_time + datetime.timedelta(hours=-offset_time_int)
 
@@ -175,8 +173,8 @@ def set_GPS_exif(filepath, latitude: float | int, longitude: float | int, date_t
         piexif.GPSIFD.GPSAltitudeRef: 0,
         piexif.GPSIFD.GPSAltitude: (0, 1000),
         piexif.GPSIFD.GPSTimeStamp: ((utc_date_time.hour, 1), (utc_date_time.minute, 1), (utc_date_time.second, 1)),
-        piexif.GPSIFD.GPSProcessingMethod: b'ASCII\x00\x00\x00CELLID\x00',
-        piexif.GPSIFD.GPSDateStamp: '{}:{}:{}'.format(str(utc_date_time.year).zfill(4), str(utc_date_time.month).zfill(2), str(utc_date_time.day).zfill(2))
+        piexif.GPSIFD.GPSProcessingMethod: b"ASCII\x00\x00\x00CELLID\x00",
+        piexif.GPSIFD.GPSDateStamp: f"{utc_date_time.year:04d}:{utc_date_time.month:02d}:{utc_date_time.day:02d}",
     }
     original_ifd = piexif.load(filepath)
     original_ifd["GPS"].update(gps_ifd)
@@ -211,7 +209,9 @@ def remove_duplicate_files(path):
 def convert_to_jpg(filepath):
     """将图片转为jpg格式"""
     filepath = Path(filepath)
-    if filepath.suffix.lower() in [".png", ]:
+    if filepath.suffix.lower() in [
+        ".png",
+    ]:
         new_filepath = filepath.with_suffix(".jpg")
         print(f"转换文件：{filepath} -> {new_filepath}")
         with Image.open(filepath) as img:
