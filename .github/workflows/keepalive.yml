@@ -17,7 +17,7 @@ jobs:
           sudo timedatectl set-timezone 'Asia/Shanghai'
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: ${{ github.actor }}/${{ matrix.repo }}
           path: ${{ matrix.repo }}
@@ -35,7 +35,7 @@ jobs:
           echo "${{ matrix.repo}} 保活成功" > ${{ github.workspace }}/tmp_message_${{ matrix.repo }}
 
       - name: Upload tmp_message
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: tmp_message_${{ matrix.repo }}
           path: ${{ github.workspace }}/tmp_message_${{ matrix.repo }}
@@ -49,7 +49,7 @@ jobs:
           sudo timedatectl set-timezone 'Asia/Shanghai'
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -58,10 +58,10 @@ jobs:
           pip install httpx
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Download tmp_message
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: tmp_message
           merge-multiple: true
