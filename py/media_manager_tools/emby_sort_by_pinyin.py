@@ -8,7 +8,6 @@ import sys
 from pathlib import Path
 
 import pypinyin
-
 from utils_dayepao import http_request
 
 """
@@ -43,8 +42,8 @@ class emby:
         res = http_request("get", url, headers=self.auth_headers)
         try:
             res_json = res.json()
-        except Exception:
-            raise Exception("API 验证失败")
+        except Exception as err:
+            raise Exception("API 验证失败") from err
 
         return res_json
 
@@ -124,7 +123,13 @@ class emby:
 
 def preprocess_string(string):
     """仅保留中文、字母和数字"""
-    return "".join([i for i in string if ("\u4e00" <= i <= "\u9fa5") or ("\u0041" <= i <= "\u005a") or ("\u0061" <= i <= "\u007a") or ("\u0030" <= i <= "\u0039")])
+    return "".join(
+        [
+            i
+            for i in string
+            if ("\u4e00" <= i <= "\u9fa5") or ("\u0041" <= i <= "\u005a") or ("\u0061" <= i <= "\u007a") or ("\u0030" <= i <= "\u0039")
+        ]
+    )
 
 
 def get_pinyin(string):
@@ -196,8 +201,8 @@ def update_libraries_ForcedSortName(emby_api: emby, libraryName=None):
                     item["Id"],
                     {
                         "LockedFields": LockedFields,
-                        "ForcedSortName": SortName
-                    }
+                        "ForcedSortName": SortName,
+                    },
                 )
             else:
                 print(f"{processed_count}/{total_count}  已处理，跳过:    {emby_path}/{item_info['Name']}")
@@ -223,8 +228,8 @@ def clear_libraries_ForcedSortName(emby_api: emby, libraryName=None):
                     item["Id"],
                     {
                         "LockedFields": LockedFields,
-                        "ForcedSortName": ""
-                    }
+                        "ForcedSortName": "",
+                    },
                 )
             else:
                 print(f"{processed_count}/{total_count}  已处理，跳过:    {emby_path}/{item_info['Name']}")
